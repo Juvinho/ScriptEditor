@@ -82,13 +82,13 @@ run(`git push origin ${tag}`);
 
 // 6. Publica Release no GitHub via gh CLI com o instalador anexado
 console.log(`Criando Release ${tag} no GitHub...`);
-const notes = `### ScriptEditor ${version} · Edição 95 — Estação Broadcast Avançada 95\n\n` +
-  `- **Importação Limpa no Bin (Sem Inserção Automática):** Vídeos, áudios e imagens importados agora vão direto para o Cesto de Mídia (Bin) sem alterar a Linha do Tempo, permitindo ao usuário posicionar e montar quando desejar\n` +
-  `- **Rubberbanding de Áudio na Timeline:** Curvas gráficas elásticas amarelas de volume sobre as faixas de áudio com nós interativos de envelope arrastáveis com o mouse\n` +
-  `- **Gerador de Sinais e Tons de Teste DSP:** Tom senoidal puro 1 kHz SMPTE (-20 dBFS / 0 VU), Ruído Rosa (Pink Noise 1/f) e Ruído Branco (White Noise) de estúdio\n` +
-  `- **Padrões de Calibração de Vídeo Broadcast:** Grade ortogonal de alinhamento CRT (Crosshatch), Escala de Cinza de 10 Passos (10-Step Wedge 0–100 IRE) e Barras SMPTE com pulso Pluge\n` +
-  `- **Reconexão de Mídia Offline (Media Relink 1995):** Localização em lote e substituição de mídias movidas ou renomeadas preservando todos os cortes e transições\n` +
-  `- **Window Dub de Timecode Avançado:** Superposição flutuante configurável de TCR (Master), TCO (Origem do Clipe), contador de quadros ou contagem regressiva`;
+const notes = `### ScriptEditor ${version} · Edição 95 — Multi-Sequências, Ripple Delete no Vazio e Salvamento Profissional\n\n` +
+  `- **Múltiplas Timelines / Sequências no Mesmo Projeto (Ctrl+N):** Crie e gerencie várias sequências de montagem no mesmo arquivo .PPJ através de abas clássicas 3D no topo da régua e pastas no Cesto de Mídia (Bin)\n` +
+  `- **Seleção de Espaço Vazio & Eliminar Ondulação (Ripple Delete):** Clique em qualquer buraco entre clipes na timeline para selecioná-lo em hachura amarela e aperte Delete ou use o botão direito para fechar o espaço instantaneamente\n` +
+  `- **Fluxo Padrão de Salvamento de Projetos (.PPJ):** Salvamento direto e ágil no arquivo com Ctrl+S, Salvar Como com Ctrl+Shift+S, indicador de alterações não salvas (*) na barra de título e download real no navegador\n` +
+  `- **Ímã Magnético de Snapping (Tecla S):** Encaixe automático e magnético com linhas guias verticais nas bordas de clipes, cortes de outras faixas, playhead e marcadores\n` +
+  `- **Edição Rápida de 3 Pontos (Monitor de Origem):** Tecla . (Ponto) para Sobrescrever (Overwrite) e Tecla , (Vírgula) para Inserir com Ondulação (Insert)\n` +
+  `- **Área de Trabalho & Pontos IN/OUT na Linha do Tempo (Teclas I e O):** Delimitação de trechos de exportação e reprodução em loop na régua principal`;
 
 const releaseCheck = runSilent(`gh release view ${tag} --json tagName`);
 if (!releaseCheck) {

@@ -5,7 +5,7 @@
    Zero emojis · Ícones SVG 16x16 pixel-art · Edição Comercial, Doméstica e Roteirizada
    ============================================================================ */
 
-let APP_VERSAO = "1.0.5"; // Substituída em boot() pela versão real do package.json
+let APP_VERSAO = "1.0.6"; // Substituída em boot() pela versão real do package.json
 const FPS = 29.97;
 
 const ICON = {
@@ -38,7 +38,9 @@ const ICON = {
   sync: '<path d="M3.2 8a4.8 4.8 0 0 1 8.2-3.4L13.5 2.5V7.5H8.5l2.4-2.4A3.4 3.4 0 0 0 4.6 8z" fill="#00A030"/><path d="M12.8 8a4.8 4.8 0 0 1-8.2 3.4L2.5 13.5V8.5h5l-2.4 2.4A3.4 3.4 0 0 0 11.4 8z" fill="#00A030"/>',
   splash: '<rect x="1.5" y="2.5" width="13" height="11" fill="#C6BFA6" stroke="#000"/><rect x="2" y="3" width="12" height="3" fill="#800000"/><rect x="3.5" y="7.5" width="9" height="5" fill="#4A1010"/><path d="M5 9.5l3-1.5v3z" fill="#FFE040"/>',
   info: '<circle cx="8" cy="8" r="6.5" fill="#fff" stroke="#800000" stroke-width="1.4"/><rect x="7.2" y="7" width="1.6" height="5" fill="#800000"/><rect x="7.2" y="4" width="1.6" height="1.6" fill="#800000"/>',
-  power: '<circle cx="8" cy="9" r="5.5" fill="none" stroke="#000" stroke-width="1.6"/><path d="M8 1.5v7" stroke="#C00000" stroke-width="2"/>'
+  power: '<circle cx="8" cy="9" r="5.5" fill="none" stroke="#000" stroke-width="1.6"/><path d="M8 1.5v7" stroke="#C00000" stroke-width="2"/>',
+  seq: '<rect x="1.5" y="3.5" width="13" height="9" fill="#182838" stroke="#000"/><circle cx="5" cy="8" r="2.2" fill="#fff" stroke="#000"/><circle cx="11" cy="8" r="2.2" fill="#fff" stroke="#000"/><path d="M4 3.5v9M12 3.5v9" stroke="#FFE040"/><rect x="6.5" y="5.5" width="3" height="5" fill="#FFE040"/>',
+  magnet: '<path d="M3 3v6a5 5 0 0 0 10 0V3h-3v6a2 2 0 0 1-4 0V3z" fill="#C00000" stroke="#000"/><rect x="3" y="2" width="3" height="3" fill="#C0C0C0" stroke="#000"/><rect x="10" y="2" width="3" height="3" fill="#C0C0C0" stroke="#000"/>'
 };
 
 const icon = (n, s = 16) => `<svg viewBox="0 0 16 16" width="${s}" height="${s}" aria-hidden="true" focusable="false">${ICON[n] || ICON.editor}</svg>`;
@@ -106,6 +108,10 @@ const DEFAULT_KEYMAP = {
   importMedia: "Ctrl+I",
   openProject: "Ctrl+O",
   saveProject: "Ctrl+S",
+  saveProjectAs: "Ctrl+Shift+S",
+  newSequence: "Ctrl+N",
+  toggleSnap: "S",
+  clearInOut: "Alt+X",
   exportMovie: "Ctrl+M",
   copyClip: "Ctrl+C",
   pasteClip: "Ctrl+V",
@@ -132,12 +138,15 @@ const KEYMAP_LABELS = [
   ["duplicateClip", "Duplicar Clipe Selecionado"],
   ["congelarQuadro", "Congelar Fotograma na Agulha (Freeze Frame)"],
   ["addMarker", "Inserir Marcador na Agulha"],
-  ["markIn", "Marcar Entrada (IN) no Monitor de Origem"],
-  ["markOut", "Marcar Saída (OUT) no Monitor de Origem"],
-  ["insertClip", "Inserir da Origem (Empurrando Clipes)"],
-  ["overwriteClip", "Sobrescrever da Origem na Timeline"],
-  ["deleteClip", "Apagar Clipe Selecionado"],
+  ["markIn", "Marcar Entrada (IN) no Monitor ou Timeline"],
+  ["markOut", "Marcar Saída (OUT) no Monitor ou Timeline"],
+  ["clearInOut", "Limpar Pontos IN/OUT da Linha do Tempo"],
+  ["insertClip", "Inserir da Origem com Ondulação (Insert)"],
+  ["overwriteClip", "Sobrescrever da Origem na Timeline (Overwrite)"],
+  ["deleteClip", "Apagar Clipe ou Fechar Espaço Selecionado"],
   ["rippleDelete", "Apagar e Fechar Espaço (Ripple Delete)"],
+  ["toggleSnap", "Alternar Ímã Magnético de Encaixe (Snap)"],
+  ["newSequence", "Criar Nova Sequência / Linha do Tempo"],
   ["stepBack", "Recuar 1 Quadro (Shift = 1s)"],
   ["stepFwd", "Avançar 1 Quadro (Shift = 1s)"],
   ["prevCut", "Pular para Corte Anterior"],
@@ -146,6 +155,7 @@ const KEYMAP_LABELS = [
   ["pasteClip", "Colar Clipe na Agulha"],
   ["openProject", "Abrir Projeto (.PPJ)"],
   ["saveProject", "Salvar Projeto (.PPJ)"],
+  ["saveProjectAs", "Salvar Projeto Como… (.PPJ)"],
   ["importMedia", "Importar Mídia do Computador"],
   ["exportMovie", "Exportar Filme Master (.MP4 / .WEBM)"],
   ["undo", "Desfazer Última Edição"],
@@ -227,6 +237,40 @@ const S = {
   playing: false,
   shuttleSpeed: 1,       // Velocidade J/K/L (-2, -1, 1, 2, 4)
   loop: false,
+
+  // Versão 1.0.6: Área de Trabalho & Pontos IN / OUT na Linha do Tempo (Teclas I e O)
+  tlIn: null,
+  tlOut: null,
+
+  // Versão 1.0.6: Múltiplas Timelines / Sequências no mesmo projeto
+  sequences: [
+    {
+      id: "seq_1",
+      name: "Sequência 1",
+      videoTracks: ["v3", "v2", "v1"],
+      audioTracks: ["a1", "a2", "a3"],
+      clips: { v3: [], v2: [], v1: [], a1: [], a2: [], a3: [] },
+      markers: [
+        { id: "mk_1", time: 6.0, label: "Início VT", color: "green", comment: "Entrada do VT principal" },
+        { id: "mk_2", time: 16.0, label: "Oferta", color: "yellow", comment: "Anotação da direção para GC" }
+      ],
+      totalDur: 30,
+      playhead: 0,
+      tlIn: null,
+      tlOut: null,
+      targetVideoTrack: "v1",
+      targetAudioTrack: "a1",
+      tracksMuted: { v3: false, v2: false, v1: false, a1: false, a2: false, a3: false },
+      tracksLocked: { v3: false, v2: false, v1: false, a1: false, a2: false, a3: false },
+      tracksSolo: { a1: false, a2: false, a3: false },
+      trackVolumes: { a1: 100, a2: 85, a3: 100, master: 100 },
+      trackPans: { a1: 0, a2: 0, a3: 0 }
+    }
+  ],
+  activeSequenceId: "seq_1",
+
+  // Versão 1.0.6: Seleção de Espaço Vazio (Gap Selection) para Ripple Delete
+  selectedGap: null, // { track, start, end, dur }
 
   // Monitor de Origem (Clipe Bruto / Source Monitor)
   srcItem: null,         // Item atualmente aberto no Monitor de Origem
@@ -404,6 +448,386 @@ const epCode = m => `${(m && m.codigo) || "ANS001"}_${epTag(m)}`;
 const epLabel = s => `${epTag(s.meta)} · ${String((s.meta && s.meta.titulo) || "").replace(/[.“”"]+$/, "")}`;
 const baseName = x => String(x || "").replace(/\s*\(.*$/, "").trim().toUpperCase();
 
+/* ---------- Versão 1.0.6: Gestão de Múltiplas Timelines / Sequências no Mesmo Projeto ---------- */
+function ensureSequencesInitialized() {
+  if (!Array.isArray(S.sequences) || !S.sequences.length) {
+    S.sequences = [
+      {
+        id: "seq_1",
+        name: "Sequência 1",
+        videoTracks: [...S.videoTracks],
+        audioTracks: [...S.audioTracks],
+        clips: JSON.parse(JSON.stringify(S.clips || {})),
+        markers: [...(S.markers || [])],
+        totalDur: S.totalDur || 30,
+        playhead: S.playhead || 0,
+        tlIn: S.tlIn ?? null,
+        tlOut: S.tlOut ?? null,
+        targetVideoTrack: S.targetVideoTrack || "v1",
+        targetAudioTrack: S.targetAudioTrack || "a1",
+        tracksMuted: Object.assign({}, S.tracksMuted),
+        tracksLocked: Object.assign({}, S.tracksLocked),
+        tracksSolo: Object.assign({}, S.tracksSolo),
+        trackVolumes: Object.assign({}, S.trackVolumes),
+        trackPans: Object.assign({}, S.trackPans)
+      }
+    ];
+    S.activeSequenceId = "seq_1";
+  }
+}
+
+function syncActiveSequenceToState() {
+  ensureSequencesInitialized();
+  const seq = S.sequences.find(s => s.id === S.activeSequenceId);
+  if (!seq) return;
+  seq.videoTracks = [...S.videoTracks];
+  seq.audioTracks = [...S.audioTracks];
+  seq.clips = JSON.parse(JSON.stringify(S.clips));
+  seq.markers = [...S.markers];
+  seq.totalDur = S.totalDur;
+  seq.playhead = S.playhead;
+  seq.tlIn = S.tlIn;
+  seq.tlOut = S.tlOut;
+  seq.targetVideoTrack = S.targetVideoTrack;
+  seq.targetAudioTrack = S.targetAudioTrack;
+  seq.tracksMuted = Object.assign({}, S.tracksMuted);
+  seq.tracksLocked = Object.assign({}, S.tracksLocked);
+  seq.tracksSolo = Object.assign({}, S.tracksSolo);
+  seq.trackVolumes = Object.assign({}, S.trackVolumes);
+  seq.trackPans = Object.assign({}, S.trackPans);
+}
+
+function loadSequenceIntoState(seqId) {
+  ensureSequencesInitialized();
+  syncActiveSequenceToState();
+  const seq = S.sequences.find(s => s.id === seqId);
+  if (!seq) return;
+  S.activeSequenceId = seqId;
+  S.videoTracks = [...seq.videoTracks];
+  S.audioTracks = [...seq.audioTracks];
+  S.clips = JSON.parse(JSON.stringify(seq.clips || {}));
+  S.markers = [...(seq.markers || [])];
+  S.totalDur = Number(seq.totalDur) || 30;
+  S.playhead = Number(seq.playhead) || 0;
+  S.tlIn = seq.tlIn ?? null;
+  S.tlOut = seq.tlOut ?? null;
+  S.targetVideoTrack = seq.targetVideoTrack || "v1";
+  S.targetAudioTrack = seq.targetAudioTrack || "a1";
+  S.tracksMuted = Object.assign({}, seq.tracksMuted || {});
+  S.tracksLocked = Object.assign({}, seq.tracksLocked || {});
+  S.tracksSolo = Object.assign({}, seq.tracksSolo || {});
+  S.trackVolumes = Object.assign({}, seq.trackVolumes || {});
+  S.trackPans = Object.assign({}, seq.trackPans || {});
+  S.selectedClipId = null;
+  S.selectedClipTrack = null;
+  S.selectedGap = null;
+  S.undoStack = [];
+  S.redoStack = [];
+  recalcSequenceDuration();
+  renderAll();
+  toast(`Sequência "${seq.name}" carregada na Linha do Tempo.`);
+}
+
+function createNewSequence(customName = null) {
+  ensureSequencesInitialized();
+  syncActiveSequenceToState();
+  const defName = `Sequência ${S.sequences.length + 1}`;
+  const name = customName !== null ? customName : prompt("Nome da Nova Sequência / Linha do Tempo:", defName);
+  if (!name || !name.trim()) return null;
+  const newId = uid("seq_");
+  const newSeq = {
+    id: newId,
+    name: name.trim(),
+    videoTracks: ["v3", "v2", "v1"],
+    audioTracks: ["a1", "a2", "a3"],
+    clips: { v3: [], v2: [], v1: [], a1: [], a2: [], a3: [] },
+    markers: [],
+    totalDur: 30,
+    playhead: 0,
+    tlIn: null,
+    tlOut: null,
+    targetVideoTrack: "v1",
+    targetAudioTrack: "a1",
+    tracksMuted: { v3: false, v2: false, v1: false, a1: false, a2: false, a3: false },
+    tracksLocked: { v3: false, v2: false, v1: false, a1: false, a2: false, a3: false },
+    tracksSolo: { a1: false, a2: false, a3: false },
+    trackVolumes: { a1: 100, a2: 85, a3: 100, master: 100 },
+    trackPans: { a1: 0, a2: 0, a3: 0 }
+  };
+  S.sequences.push(newSeq);
+  S.isDirty = true;
+  loadSequenceIntoState(newId);
+  toast(`Nova Sequência "${newSeq.name}" criada!`);
+  return newSeq;
+}
+
+function duplicateActiveSequence() {
+  ensureSequencesInitialized();
+  syncActiveSequenceToState();
+  const curSeq = S.sequences.find(s => s.id === S.activeSequenceId);
+  if (!curSeq) return;
+  const dupId = uid("seq_");
+  const dupName = `${curSeq.name} (Cópia)`;
+  const dupSeq = JSON.parse(JSON.stringify(curSeq));
+  dupSeq.id = dupId;
+  dupSeq.name = dupName;
+  S.sequences.push(dupSeq);
+  S.isDirty = true;
+  loadSequenceIntoState(dupId);
+  toast(`Sequência duplicada: "${dupName}"`);
+}
+
+function closeSequence(seqId) {
+  ensureSequencesInitialized();
+  if (S.sequences.length <= 1) {
+    toast("O projeto precisa manter ao menos uma Sequência aberta.");
+    return;
+  }
+  const idx = S.sequences.findIndex(s => s.id === seqId);
+  if (idx < 0) return;
+  const seqName = S.sequences[idx].name;
+  if (!confirm(`Deseja realmente fechar a sequência "${seqName}"?`)) return;
+  S.sequences.splice(idx, 1);
+  S.isDirty = true;
+  if (S.activeSequenceId === seqId) {
+    const nextSeq = S.sequences[Math.max(0, idx - 1)];
+    loadSequenceIntoState(nextSeq.id);
+  } else {
+    renderSequenceTabs();
+  }
+  toast(`Sequência "${seqName}" fechada.`);
+}
+
+function renameSequence(seqId) {
+  ensureSequencesInitialized();
+  const seq = S.sequences.find(s => s.id === seqId);
+  if (!seq) return;
+  const newName = prompt("Renomear Sequência:", seq.name);
+  if (!newName || !newName.trim() || newName.trim() === seq.name) return;
+  seq.name = newName.trim();
+  S.isDirty = true;
+  renderSequenceTabs();
+  updateStatusBar();
+  toast(`Sequência renomeada para "${seq.name}"`);
+}
+
+function renderSequenceTabs() {
+  const bar = document.getElementById("tlSeqBar");
+  if (!bar) return;
+  ensureSequencesInitialized();
+  let html = "";
+  for (const seq of S.sequences) {
+    const isActive = seq.id === S.activeSequenceId;
+    const canClose = S.sequences.length > 1;
+    html += `<div class="tl-seq-tab${isActive ? " active" : ""}" data-seqid="${seq.id}" title="Sequência: ${escH(seq.name)} · Clique para alternar, duplo-clique para renomear, botão direito para opções">
+      <span class="tab-icon">${icon("seq", 14)}</span>
+      <span class="tab-title">${escH(seq.name)}</span>
+      ${canClose ? `<span class="tab-close" data-seqclose="${seq.id}" title="Fechar esta sequência">×</span>` : ""}
+    </div>`;
+  }
+  html += `<button type="button" class="tl-seq-add" id="btnAddSequence" title="Criar Nova Sequência de Montagem (Ctrl+N)">+</button>`;
+  bar.innerHTML = html;
+
+  bar.querySelectorAll(".tl-seq-tab").forEach(tab => {
+    tab.onclick = (e) => {
+      if (e.target.closest(".tab-close")) return;
+      const sid = tab.dataset.seqid;
+      if (sid && sid !== S.activeSequenceId) {
+        loadSequenceIntoState(sid);
+      }
+    };
+    tab.ondblclick = (e) => {
+      if (e.target.closest(".tab-close")) return;
+      const sid = tab.dataset.seqid;
+      if (sid) renameSequence(sid);
+    };
+    tab.oncontextmenu = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const sid = tab.dataset.seqid;
+      showSequenceContextMenu(sid, e.clientX, e.clientY);
+    };
+  });
+
+  bar.querySelectorAll(".tab-close").forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const sid = btn.dataset.seqclose;
+      if (sid) closeSequence(sid);
+    };
+  });
+
+  const btnAdd = document.getElementById("btnAddSequence");
+  if (btnAdd) {
+    btnAdd.onclick = () => createNewSequence();
+  }
+}
+
+function showSequenceContextMenu(seqId, x, y) {
+  const seq = S.sequences.find(s => s.id === seqId);
+  if (!seq) return;
+  closeMenus();
+  const m = document.createElement("div");
+  m.className = "menu";
+  m.innerHTML = `
+    <div style="font:bold 11px var(--font-ui);padding:3px 8px;background:var(--hi);color:#000;border-bottom:1px solid #808080">
+      Sequência: ${escH(seq.name)}
+    </div>
+    <button type="button" class="mi" data-act="open"><span class="ic">${icon("open", 16)}</span><span>Abrir Sequência</span></button>
+    <button type="button" class="mi" data-act="rename"><span class="ic">${icon("editor", 16)}</span><span>Renomear Sequência…</span></button>
+    <button type="button" class="mi" data-act="duplicate"><span class="ic">${icon("new", 16)}</span><span>Duplicar Sequência</span></button>
+    <button type="button" class="mi" data-act="new"><span class="ic">${icon("seq", 16)}</span><span>Nova Sequência…</span><span class="k">Ctrl+N</span></button>
+    <hr>
+    <button type="button" class="mi" data-act="close"><span class="ic">${icon("power", 16)}</span><span>Fechar Sequência</span></button>
+  `;
+  document.body.appendChild(m);
+  menuStack.push(m);
+  const w = m.offsetWidth, h = m.offsetHeight;
+  m.style.left = Math.max(4, Math.min(x, innerWidth - w - 4)) + "px";
+  m.style.top = Math.max(4, Math.min(y, innerHeight - h - 4)) + "px";
+  m.onclick = (e) => {
+    const b = e.target.closest("[data-act]");
+    if (!b) return;
+    const act = b.dataset.act;
+    closeMenus();
+    if (act === "open") loadSequenceIntoState(seqId);
+    else if (act === "rename") renameSequence(seqId);
+    else if (act === "duplicate") duplicateActiveSequence();
+    else if (act === "new") createNewSequence();
+    else if (act === "close") closeSequence(seqId);
+  };
+}
+
+/* ---------- Versão 1.0.6: Detecção e Eliminação de Ondulação de Espaço Vazio (Gap Selection & Ripple Delete) ---------- */
+function getTrackGaps(tk) {
+  const clips = (S.clips[tk] || []).slice().sort((a, b) => a.start - b.start);
+  const gaps = [];
+  let prevEnd = 0;
+  for (const c of clips) {
+    if (c.start - prevEnd >= 0.04) {
+      gaps.push({
+        track: tk,
+        start: Number(prevEnd.toFixed(2)),
+        end: Number(c.start.toFixed(2)),
+        dur: Number((c.start - prevEnd).toFixed(2))
+      });
+    }
+    prevEnd = Math.max(prevEnd, c.start + c.dur);
+  }
+  return gaps;
+}
+
+function rippleDeleteGap(gap, allTracks = false) {
+  if (!gap || gap.dur <= 0) return;
+  saveUndoSnapshot();
+  const dur = gap.dur;
+  const startPt = gap.start;
+  const tracksToShift = allTracks ? getAllTrackIds().filter(t => !S.tracksLocked[t]) : [gap.track];
+
+  tracksToShift.forEach(tk => {
+    const list = S.clips[tk] || [];
+    list.forEach(c => {
+      if (c.start >= startPt - 0.01) {
+        c.start = Number(Math.max(0, c.start - dur).toFixed(2));
+      }
+    });
+    resolveTrackOverlaps(tk);
+  });
+
+  S.selectedGap = null;
+  recalcSequenceDuration();
+  renderTimeline();
+  updateStatusBar();
+  playFoleySound("claquete", 0.04);
+  toast(`Espaço de ${dur.toFixed(2)}s fechado com ondulação (Ripple Delete)!`);
+}
+
+function showGapContextMenu(gap, clientX, clientY) {
+  closeMenus();
+  const m = document.createElement("div");
+  m.className = "menu";
+  m.innerHTML = `
+    <div style="font:bold 11px var(--font-ui);padding:3px 8px;background:var(--hi);color:#000;border-bottom:1px solid #808080">
+      Espaço Vazio [${gap.track.toUpperCase()}]: ${gap.dur.toFixed(2)}s (${mmss(gap.start)}–${mmss(gap.end)})
+    </div>
+    <button type="button" class="mi" data-act="ripple"><span class="ic">${icon("cut", 16)}</span><span>Eliminar Ondulação (Fechar Espaço)</span><span class="k">Delete</span></button>
+    <button type="button" class="mi" data-act="rippleAll"><span class="ic">${icon("cut", 16)}</span><span>Fechar Espaço em Todas as Faixas</span><span class="k">Shift+Del</span></button>
+    <hr>
+    <button type="button" class="mi" data-act="fillBars"><span class="ic">${icon("film", 16)}</span><span>Preencher com Barras de Cor / SMPTE…</span></button>
+    <button type="button" class="mi" data-act="fillGC"><span class="ic">${icon("tv", 16)}</span><span>Preencher com Cartela / Letreiro…</span></button>
+  `;
+  document.body.appendChild(m);
+  menuStack.push(m);
+  const w = m.offsetWidth, h = m.offsetHeight;
+  m.style.left = Math.max(4, Math.min(clientX, innerWidth - w - 4)) + "px";
+  m.style.top = Math.max(4, Math.min(clientY, innerHeight - h - 4)) + "px";
+  m.onclick = (e) => {
+    const b = e.target.closest("[data-act]");
+    if (!b) return;
+    const act = b.dataset.act;
+    closeMenus();
+    if (act === "ripple") rippleDeleteGap(gap, false);
+    else if (act === "rippleAll") rippleDeleteGap(gap, true);
+    else if (act === "fillBars") openGeneratorDialog();
+    else if (act === "fillGC") openChyronDialog();
+  };
+}
+
+/* ---------- Versão 1.0.6: Área de Trabalho & Pontos IN/OUT na Linha do Tempo ---------- */
+function setTimelineIn(sec = null) {
+  S.tlIn = Number((sec != null ? sec : S.playhead).toFixed(2));
+  if (S.tlOut != null && S.tlOut <= S.tlIn) S.tlOut = Number((S.tlIn + 1).toFixed(2));
+  saveUndoSnapshot();
+  renderTimeline();
+  toast(`Ponto de Entrada (IN) da Timeline: ${mmss(S.tlIn)}`);
+}
+
+function setTimelineOut(sec = null) {
+  S.tlOut = Number((sec != null ? sec : S.playhead).toFixed(2));
+  if (S.tlIn != null && S.tlIn >= S.tlOut) S.tlIn = Number(Math.max(0, S.tlOut - 1).toFixed(2));
+  saveUndoSnapshot();
+  renderTimeline();
+  toast(`Ponto de Saída (OUT) da Timeline: ${mmss(S.tlOut)}`);
+}
+
+function clearTimelineInOut() {
+  S.tlIn = null;
+  S.tlOut = null;
+  saveUndoSnapshot();
+  renderTimeline();
+  toast("Pontos IN e OUT da Linha do Tempo limpos (Alt+X).");
+}
+
+/* ---------- Versão 1.0.6: Snapping Magnético & Linhas Guia ---------- */
+function toggleSnap(forceVal = null) {
+  prefs.snap = forceVal !== null ? !!forceVal : !prefs.snap;
+  savePrefs();
+  const chk = document.getElementById("chkSnap");
+  if (chk) chk.checked = prefs.snap;
+  const btn = document.getElementById("btnSnapToggle");
+  if (btn) btn.classList.toggle("snap-on", prefs.snap);
+  toast(prefs.snap ? "Ímã Magnético de Encaixe ATIVADO (Tecla S)" : "Ímã Magnético DESATIVADO (Tecla S)");
+}
+
+function showSnapLine(sec) {
+  const area = document.getElementById("tlArea");
+  if (!area) return;
+  let line = area.querySelector(".tl-snap-line");
+  if (!line) {
+    line = document.createElement("div");
+    line.className = "tl-snap-line";
+    area.appendChild(line);
+  }
+  const pxPerSec = Number(prefs.tlZoom) || 10;
+  line.style.left = Math.round(sec * pxPerSec) + "px";
+  line.style.display = "block";
+}
+
+function hideSnapLine() {
+  const line = document.querySelector(".tl-snap-line");
+  if (line) line.style.display = "none";
+}
+
 /* ---------- Histórico Desfazer / Refazer (Undo / Redo de 40 passos) ---------- */
 function saveUndoSnapshot() {
   const snap = JSON.stringify({
@@ -414,13 +838,16 @@ function saveUndoSnapshot() {
     trackVolumes: S.trackVolumes,
     trackPans: S.trackPans,
     selectedClipId: S.selectedClipId,
-    selectedClipTrack: S.selectedClipTrack
+    selectedClipTrack: S.selectedClipTrack,
+    tlIn: S.tlIn,
+    tlOut: S.tlOut
   });
   if (S.undoStack.length && S.undoStack[S.undoStack.length - 1] === snap) return;
   S.undoStack.push(snap);
   if (S.undoStack.length > 40) S.undoStack.shift();
   S.redoStack = [];
   S.isDirty = true;
+  updateStatusBar();
 }
 
 function undoEdit() {
@@ -436,7 +863,9 @@ function undoEdit() {
     trackVolumes: S.trackVolumes,
     trackPans: S.trackPans,
     selectedClipId: S.selectedClipId,
-    selectedClipTrack: S.selectedClipTrack
+    selectedClipTrack: S.selectedClipTrack,
+    tlIn: S.tlIn,
+    tlOut: S.tlOut
   });
   S.redoStack.push(curSnap);
   const prev = JSON.parse(S.undoStack.pop());
@@ -448,6 +877,8 @@ function undoEdit() {
   S.clips = prev.clips;
   S.selectedClipId = prev.selectedClipId;
   S.selectedClipTrack = prev.selectedClipTrack;
+  if (prev.tlIn !== undefined) S.tlIn = prev.tlIn;
+  if (prev.tlOut !== undefined) S.tlOut = prev.tlOut;
   recalcSequenceDuration();
   renderAll();
   toast("Ação desfeita (Ctrl+Z).");
@@ -466,7 +897,9 @@ function redoEdit() {
     trackVolumes: S.trackVolumes,
     trackPans: S.trackPans,
     selectedClipId: S.selectedClipId,
-    selectedClipTrack: S.selectedClipTrack
+    selectedClipTrack: S.selectedClipTrack,
+    tlIn: S.tlIn,
+    tlOut: S.tlOut
   });
   S.undoStack.push(curSnap);
   const next = JSON.parse(S.redoStack.pop());
@@ -478,6 +911,8 @@ function redoEdit() {
   S.clips = next.clips;
   S.selectedClipId = next.selectedClipId;
   S.selectedClipTrack = next.selectedClipTrack;
+  if (next.tlIn !== undefined) S.tlIn = next.tlIn;
+  if (next.tlOut !== undefined) S.tlOut = next.tlOut;
   recalcSequenceDuration();
   renderAll();
   toast("Ação refeita (Ctrl+Y).");
@@ -576,6 +1011,7 @@ function addRecentProject(pathOrId, name) {
 function createStarterFreeProject(name = "PROJETO_LIVRE_01.PPJ", keepBin = false) {
   saveUndoSnapshot();
   S.projectName = name;
+  S.projectFilePath = null;
   prefs.presetMode = "livre";
   const pm = document.getElementById("presetModeSel");
   if (pm) pm.value = "livre";
@@ -598,8 +1034,36 @@ function createStarterFreeProject(name = "PROJETO_LIVRE_01.PPJ", keepBin = false
   S.isStarterDemo = false;
   S.selectedClipId = null;
   S.selectedClipTrack = null;
+  S.selectedGap = null;
+  S.tlIn = null;
+  S.tlOut = null;
   S.srcMedia = null;
   S.playhead = 0;
+
+  S.sequences = [
+    {
+      id: "seq_1",
+      name: "Sequência 1",
+      videoTracks: ["v3", "v2", "v1"],
+      audioTracks: ["a1", "a2", "a3"],
+      clips: { v3: [], v2: [], v1: [], a1: [], a2: [], a3: [] },
+      markers: [],
+      totalDur: 30,
+      playhead: 0,
+      tlIn: null,
+      tlOut: null,
+      targetVideoTrack: "v1",
+      targetAudioTrack: "a1",
+      tracksMuted: { v3: false, v2: false, v1: false, a1: false, a2: false, a3: false },
+      tracksLocked: { v3: false, v2: false, v1: false, a1: false, a2: false, a3: false },
+      tracksSolo: { a1: false, a2: false, a3: false },
+      trackVolumes: { a1: 100, a2: 85, a3: 100, master: 100 },
+      trackPans: { a1: 0, a2: 0, a3: 0 }
+    }
+  ];
+  S.activeSequenceId = "seq_1";
+  S.isDirty = false;
+
   recalcSequenceDuration();
   renderAll();
   addRecentProject(S.projectName, S.projectName);
@@ -3521,10 +3985,12 @@ function setTimelineTool(toolName) {
 }
 
 function snapTimelineSec(rawSec, ignoreClipId = null) {
-  if (!prefs.snap) return Math.max(0, Number(rawSec.toFixed(2)));
+  if (!prefs.snap) { hideSnapLine(); return Math.max(0, Number(rawSec.toFixed(2))); }
   const pxPerSec = Number(prefs.tlZoom) || 10;
   const thresholdSec = Math.max(0.22, 8 / pxPerSec);
   const candidates = [0, S.playhead, ...S.markers.map(m => m.time)];
+  if (S.tlIn != null) candidates.push(S.tlIn);
+  if (S.tlOut != null) candidates.push(S.tlOut);
   for (const tk of getAllTrackIds()) {
     for (const c of (S.clips[tk] || [])) {
       if (c.id === ignoreClipId) continue;
@@ -3533,21 +3999,27 @@ function snapTimelineSec(rawSec, ignoreClipId = null) {
   }
   let best = rawSec;
   let minDiff = thresholdSec;
+  let didSnap = false;
   for (const pt of candidates) {
     const d = Math.abs(rawSec - pt);
     if (d < minDiff) {
       minDiff = d;
       best = pt;
+      didSnap = true;
     }
   }
+  if (didSnap) showSnapLine(best);
+  else hideSnapLine();
   return Math.max(0, Number(best.toFixed(2)));
 }
 
 function snapTimelineSecForClip(rawStart, clipDur, ignoreClipId = null) {
-  if (!prefs.snap) return Math.max(0, Number(rawStart.toFixed(2)));
+  if (!prefs.snap) { hideSnapLine(); return Math.max(0, Number(rawStart.toFixed(2))); }
   const pxPerSec = Number(prefs.tlZoom) || 10;
   const thresholdSec = Math.max(0.25, 9 / pxPerSec);
   const candidates = [0, S.playhead, ...S.markers.map(m => m.time)];
+  if (S.tlIn != null) candidates.push(S.tlIn);
+  if (S.tlOut != null) candidates.push(S.tlOut);
   for (const tk of getAllTrackIds()) {
     for (const c of (S.clips[tk] || [])) {
       if (c.id === ignoreClipId) continue;
@@ -3556,20 +4028,25 @@ function snapTimelineSecForClip(rawStart, clipDur, ignoreClipId = null) {
   }
   let bestStart = rawStart;
   let minDiff = thresholdSec;
+  let snapTargetPt = null;
   for (const pt of candidates) {
     // Testa encaixe da borda esquerda (início do clipe)
     const dLeft = Math.abs(rawStart - pt);
     if (dLeft < minDiff) {
       minDiff = dLeft;
       bestStart = pt;
+      snapTargetPt = pt;
     }
     // Testa encaixe da borda direita (fim do clipe)
     const dRight = Math.abs((rawStart + clipDur) - pt);
     if (dRight < minDiff && pt - clipDur >= 0) {
       minDiff = dRight;
       bestStart = pt - clipDur;
+      snapTargetPt = pt;
     }
   }
+  if (snapTargetPt !== null) showSnapLine(snapTargetPt);
+  else hideSnapLine();
   return Math.max(0, Number(bestStart.toFixed(2)));
 }
 
@@ -3991,6 +4468,7 @@ function renderTimeline() {
   const scroller = document.getElementById("tlScroll");
   if (!ruler || !area || !hdrsEl || !tracksEl) return;
 
+  renderSequenceTabs();
   recalcSequenceDuration();
   const pxPerSec = Number(prefs.tlZoom) || 10;
   const viewW = scroller ? (scroller.clientWidth || 600) : 600;
@@ -4012,6 +4490,23 @@ function renderTimeline() {
     const colCls = `mk-${mk.color || "green"}`;
     rHtml += `<div class="tl-marker ${colCls}" data-mkid="${mk.id}" style="left:${mx}px" title="Marcador ${escH(mk.label)} [${(mk.color || "verde").toUpperCase()}] (${fmtSMPTE(mk.time)}) · Clique para ir / Duplo-clique para editar / Botão direito para remover">${escH(mk.label)}</div>`;
   }
+
+  // Versão 1.0.6: Área de Trabalho IN / OUT na régua
+  if (S.tlIn != null || S.tlOut != null) {
+    const wIn = S.tlIn != null ? S.tlIn : 0;
+    const wOut = S.tlOut != null ? S.tlOut : S.totalDur;
+    const wInX = Math.round(wIn * pxPerSec);
+    const wOutX = Math.round(wOut * pxPerSec);
+    const wBarW = Math.max(4, wOutX - wInX);
+    rHtml += `<div class="tl-work-area-bar" style="left:${wInX}px;width:${wBarW}px" title="Área de Trabalho (${(wOut - wIn).toFixed(2)}s) · Tecla Alt+X para limpar"></div>`;
+    if (S.tlIn != null) {
+      rHtml += `<div class="tl-work-bracket-in" style="left:${wInX}px" title="Ponto de Entrada (IN) da Timeline: ${mmss(S.tlIn)} · Alt+X para limpar">{</div>`;
+    }
+    if (S.tlOut != null) {
+      rHtml += `<div class="tl-work-bracket-out" style="left:${Math.max(0, wOutX - 8)}px" title="Ponto de Saída (OUT) da Timeline: ${mmss(S.tlOut)} · Alt+X para limpar">}</div>`;
+    }
+  }
+
   ruler.innerHTML = rHtml;
 
   ruler.querySelectorAll(".tl-marker").forEach(mel => {
@@ -4116,7 +4611,17 @@ function renderTimeline() {
     const isLocked = !!S.tracksLocked[tk];
     const tkTypeCls = isVid ? (tk === "v1" ? "v1" : "v2 v-overlay") : (tk === "a1" ? "a1" : "a2 a-track");
     trackEl.className = `tl-track ${tk}${tk === "v1" ? " v1-divider" : ""}${isLocked ? " locked" : ""}`;
-    trackEl.innerHTML = list.map(c => {
+
+    // Versão 1.0.6: Espaços vazios interativos (Gap Selection & Ripple Delete)
+    const gaps = getTrackGaps(tk);
+    const gapsHtml = gaps.map(gap => {
+      const isGapSel = S.selectedGap && S.selectedGap.track === tk && Math.abs(S.selectedGap.start - gap.start) < 0.04;
+      const gLeft = Math.round(gap.start * pxPerSec);
+      const gWidth = Math.max(6, Math.round(gap.dur * pxPerSec) - 1);
+      return `<div class="tl-gap${isGapSel ? " tl-gap-selected" : ""}" data-gap-tk="${tk}" data-gap-start="${gap.start}" data-gap-end="${gap.end}" data-gap-dur="${gap.dur}" style="left:${gLeft}px;width:${gWidth}px;position:absolute;top:1px;bottom:1px;cursor:pointer;z-index:3" title="Espaço Vazio (${gap.dur.toFixed(2)}s) · Clique para selecionar e tecle DELETE para fechar (Ripple Delete) ou clique com botão direito"></div>`;
+    }).join("");
+
+    const clipsHtml = list.map(c => {
       const left = Math.round(c.start * pxPerSec);
       const width = Math.max(16, Math.round(c.dur * pxPerSec) - 1);
       const isSel = S.selectedClipId === c.id;
@@ -4180,6 +4685,56 @@ function renderTimeline() {
         <span class="trim-r" data-trim="r"></span>
       </div>`;
     }).join("");
+
+    trackEl.innerHTML = gapsHtml + clipsHtml;
+  });
+
+  // Eventos de clique e menu nos Espaços Vazios (Gaps)
+  area.querySelectorAll(".tl-gap").forEach(gel => {
+    gel.addEventListener("pointerdown", (ev) => {
+      if (ev.button !== 0) return;
+      ev.stopPropagation();
+      closeMenus();
+      const tk = gel.dataset.gapTk;
+      const start = parseFloat(gel.dataset.gapStart);
+      const end = parseFloat(gel.dataset.gapEnd);
+      const dur = parseFloat(gel.dataset.gapDur);
+      S.selectedClipId = null;
+      S.selectedClipTrack = null;
+      S.selectedGap = { track: tk, start, end, dur };
+      renderTimeline();
+      updateStatusBar();
+      playFoleySound("bip", 0.02);
+    });
+
+    gel.addEventListener("contextmenu", (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      const tk = gel.dataset.gapTk;
+      const start = parseFloat(gel.dataset.gapStart);
+      const end = parseFloat(gel.dataset.gapEnd);
+      const dur = parseFloat(gel.dataset.gapDur);
+      S.selectedClipId = null;
+      S.selectedClipTrack = null;
+      const gapObj = { track: tk, start, end, dur };
+      S.selectedGap = gapObj;
+      renderTimeline();
+      updateStatusBar();
+      showGapContextMenu(gapObj, ev.clientX, ev.clientY);
+    });
+  });
+
+  // Clique no fundo vazio da faixa desmarca seleção
+  tracksEl.querySelectorAll(".tl-track").forEach(tel => {
+    tel.addEventListener("pointerdown", (ev) => {
+      if (ev.target.closest(".tl-clip") || ev.target.closest(".tl-gap")) return;
+      closeMenus();
+      S.selectedClipId = null;
+      S.selectedClipTrack = null;
+      S.selectedGap = null;
+      renderTimeline();
+      updateStatusBar();
+    });
   });
 
   // Atualiza visualmente todas as caixas de clipe no DOM sem recriar os elementos durante o arrasto
@@ -4471,6 +5026,7 @@ function renderTimeline() {
       const onUp = () => {
         el.removeEventListener("pointermove", onMove);
         el.removeEventListener("pointerup", onUp);
+        hideSnapLine();
         getAllTrackIds().forEach(k => resolveTrackOverlaps(k, k === tk ? clip.id : null));
         recalcSequenceDuration();
         renderTimeline();
@@ -4658,9 +5214,13 @@ function splitClipAtPlayhead() {
 }
 
 function deleteSelectedClip(ripple = false) {
+  if (S.selectedGap) {
+    rippleDeleteGap(S.selectedGap, ripple);
+    return;
+  }
   const sel = getSelectedClip();
   if (!sel) {
-    toast("Selecione um clipe na linha do tempo primeiro.");
+    toast("Selecione um clipe ou espaço vazio na linha do tempo primeiro.");
     return;
   }
   saveUndoSnapshot();
@@ -6845,11 +7405,33 @@ function openWindowDubDialog() {
 
 /* ---------- Modelo de Projeto Não-Destrutivo (.PPJ), Salvamento, Autosave & Crash Recovery ---------- */
 function buildProjectSnapshot() {
+  syncActiveSequenceToState();
   return {
     format: "ScriptEditor95-PPJ",
     version: APP_VERSAO,
     projectName: S.projectName,
     savedAt: new Date().toISOString(),
+    activeSequenceId: S.activeSequenceId,
+    sequences: S.sequences.map(seq => ({
+      id: seq.id,
+      name: seq.name,
+      totalDur: seq.totalDur,
+      playhead: seq.playhead,
+      tlIn: seq.tlIn,
+      tlOut: seq.tlOut,
+      targetVideoTrack: seq.targetVideoTrack,
+      targetAudioTrack: seq.targetAudioTrack,
+      videoTracks: seq.videoTracks,
+      audioTracks: seq.audioTracks,
+      tracksMuted: seq.tracksMuted,
+      tracksLocked: seq.tracksLocked,
+      tracksSolo: seq.tracksSolo,
+      trackVolumes: seq.trackVolumes,
+      trackPans: seq.trackPans,
+      markers: seq.markers,
+      clips: seq.clips
+    })),
+    // Compatibilidade com versões 1.0.0 a 1.0.5:
     totalDur: S.totalDur,
     playhead: S.playhead,
     targetVideoTrack: S.targetVideoTrack,
@@ -6863,6 +7445,8 @@ function buildProjectSnapshot() {
     trackPans: S.trackPans,
     markers: S.markers,
     clips: S.clips,
+    tlIn: S.tlIn,
+    tlOut: S.tlOut,
     mediaBin: S.mediaBin.map(m => ({
       id: m.id,
       name: m.name,
@@ -6898,10 +7482,21 @@ async function saveCurrentProject(asNew = false) {
       toast("Erro ao gravar arquivo de projeto no disco.");
     }
   } else {
-    // Fallback Web / LocalStorage
+    // Fallback Web / LocalStorage + Download direto do arquivo .PPJ
     localStorage.setItem("varguelia.scripteditor.currentProject", jsonStr);
+    try {
+      const fileName = S.projectName.toUpperCase().endsWith(".PPJ") ? S.projectName : `${S.projectName}.PPJ`;
+      const blob = new Blob([jsonStr], { type: "application/json" });
+      const dlLink = document.createElement("a");
+      dlLink.href = URL.createObjectURL(blob);
+      dlLink.download = fileName;
+      document.body.appendChild(dlLink);
+      dlLink.click();
+      setTimeout(() => { dlLink.remove(); URL.revokeObjectURL(dlLink.href); }, 1000);
+    } catch (_e) {}
     S.isDirty = false;
-    toast(`Projeto ${S.projectName} salvo localmente.`);
+    updateStatusBar();
+    toast(`Projeto ${S.projectName} salvo! Arquivo .PPJ baixado.`);
   }
 }
 
@@ -7133,7 +7728,7 @@ async function openProjectDialog() {
 }
 
 function loadProjectData(proj, filePath = null) {
-  if (!proj || !proj.clips) {
+  if (!proj || (!proj.clips && (!proj.sequences || !proj.sequences.length))) {
     toast("Projeto inválido ou vazio.");
     return;
   }
@@ -7145,17 +7740,66 @@ function loadProjectData(proj, filePath = null) {
     S.projectName = proj.projectName;
   }
   S.isStarterDemo = false;
-  if (proj.videoTracks) S.videoTracks = proj.videoTracks;
-  if (proj.audioTracks) S.audioTracks = proj.audioTracks;
-  if (proj.targetVideoTrack) S.targetVideoTrack = proj.targetVideoTrack;
-  if (proj.targetAudioTrack) S.targetAudioTrack = proj.targetAudioTrack;
-  if (proj.tracksMuted) S.tracksMuted = proj.tracksMuted;
-  if (proj.tracksLocked) S.tracksLocked = proj.tracksLocked;
-  if (proj.tracksSolo) S.tracksSolo = proj.tracksSolo;
-  if (proj.trackVolumes) S.trackVolumes = proj.trackVolumes;
-  if (proj.trackPans) S.trackPans = proj.trackPans;
-  if (proj.markers) S.markers = proj.markers;
-  S.clips = proj.clips;
+
+  if (Array.isArray(proj.sequences) && proj.sequences.length) {
+    S.sequences = proj.sequences.map(s => JSON.parse(JSON.stringify(s)));
+    S.activeSequenceId = proj.activeSequenceId || S.sequences[0].id;
+    const curSeq = S.sequences.find(s => s.id === S.activeSequenceId) || S.sequences[0];
+    S.videoTracks = [...curSeq.videoTracks];
+    S.audioTracks = [...curSeq.audioTracks];
+    S.clips = JSON.parse(JSON.stringify(curSeq.clips));
+    S.markers = [...(curSeq.markers || [])];
+    S.totalDur = Number(curSeq.totalDur) || 30;
+    S.playhead = Number(curSeq.playhead) || 0;
+    S.tlIn = curSeq.tlIn ?? null;
+    S.tlOut = curSeq.tlOut ?? null;
+    S.targetVideoTrack = curSeq.targetVideoTrack || "v1";
+    S.targetAudioTrack = curSeq.targetAudioTrack || "a1";
+    S.tracksMuted = Object.assign({}, curSeq.tracksMuted || {});
+    S.tracksLocked = Object.assign({}, curSeq.tracksLocked || {});
+    S.tracksSolo = Object.assign({}, curSeq.tracksSolo || {});
+    S.trackVolumes = Object.assign({}, curSeq.trackVolumes || {});
+    S.trackPans = Object.assign({}, curSeq.trackPans || {});
+  } else {
+    // Compatibilidade com arquivos .PPJ antigos (versões 1.0.0 a 1.0.5):
+    if (proj.videoTracks) S.videoTracks = proj.videoTracks;
+    if (proj.audioTracks) S.audioTracks = proj.audioTracks;
+    if (proj.targetVideoTrack) S.targetVideoTrack = proj.targetVideoTrack;
+    if (proj.targetAudioTrack) S.targetAudioTrack = proj.targetAudioTrack;
+    if (proj.tracksMuted) S.tracksMuted = proj.tracksMuted;
+    if (proj.tracksLocked) S.tracksLocked = proj.tracksLocked;
+    if (proj.tracksSolo) S.tracksSolo = proj.tracksSolo;
+    if (proj.trackVolumes) S.trackVolumes = proj.trackVolumes;
+    if (proj.trackPans) S.trackPans = proj.trackPans;
+    if (proj.markers) S.markers = proj.markers;
+    S.clips = proj.clips;
+    S.playhead = Number(proj.playhead) || 0;
+    S.tlIn = proj.tlIn ?? null;
+    S.tlOut = proj.tlOut ?? null;
+    S.sequences = [
+      {
+        id: "seq_1",
+        name: "Sequência 1",
+        videoTracks: [...S.videoTracks],
+        audioTracks: [...S.audioTracks],
+        clips: JSON.parse(JSON.stringify(S.clips)),
+        markers: [...S.markers],
+        totalDur: S.totalDur || 30,
+        playhead: S.playhead || 0,
+        tlIn: S.tlIn,
+        tlOut: S.tlOut,
+        targetVideoTrack: S.targetVideoTrack,
+        targetAudioTrack: S.targetAudioTrack,
+        tracksMuted: Object.assign({}, S.tracksMuted),
+        tracksLocked: Object.assign({}, S.tracksLocked),
+        tracksSolo: Object.assign({}, S.tracksSolo),
+        trackVolumes: Object.assign({}, S.trackVolumes),
+        trackPans: Object.assign({}, S.trackPans)
+      }
+    ];
+    S.activeSequenceId = "seq_1";
+  }
+
   if (Array.isArray(proj.mediaBin)) {
     S.mediaBin = proj.mediaBin;
     S.mediaBin.forEach(m => {
@@ -7164,7 +7808,6 @@ function loadProjectData(proj, filePath = null) {
       }
     });
   }
-  S.playhead = Number(proj.playhead) || 0;
   S.isDirty = false;
   recalcSequenceDuration();
   renderAll();
@@ -9016,7 +9659,18 @@ function aboutDialog() {
       <b style="margin-top:4px">Recursos da Edição 95 (Moldes Adobe Premiere 4.2)</b>
       <div class="listview vers" style="max-height:175px">
         <div class="ver-block">
-          <b>1.0.5 · Rubberbanding de Áudio, Calibração Broadcast, Relink 95 &amp; Window Dub</b><span class="chip95">você está nesta</span>
+          <b>1.0.6 · Multi-Sequências, Ripple Delete no Vazio e Salvamento Profissional</b><span class="chip95">você está nesta</span>
+          <ul>
+            <li>Múltiplas Timelines / Sequências no mesmo projeto (.PPJ) com abas 3D no topo da régua (Ctrl+N)</li>
+            <li>Seleção de Espaço Vazio &amp; Eliminar Ondulação (Ripple Delete) com a tecla Delete ou botão direito</li>
+            <li>Fluxo Profissional de Salvamento: Salvar direto com Ctrl+S, Salvar Como com Ctrl+Shift+S e indicador de asterisco (*)</li>
+            <li>Ímã Magnético de Snapping (Tecla S) com linhas guias verticais brancas em cortes, playhead e marcadores</li>
+            <li>Edição de 3 Pontos no Monitor de Origem: Tecla . (Sobrescrever) e Tecla , (Inserir com Ondulação)</li>
+            <li>Área de Trabalho &amp; Pontos IN / OUT na Linha do Tempo (Teclas I e O na régua, Alt+X para limpar)</li>
+          </ul>
+        </div>
+        <div class="ver-block">
+          <b>1.0.5 · Rubberbanding de Áudio, Calibração Broadcast, Relink 95 &amp; Window Dub</b>
           <ul>
             <li>Importação Limpa no Cesto de Mídia (Bin) sem poluição ou auto-inserção na Linha do Tempo</li>
             <li>Rubberbanding de Áudio na Timeline: Envelopes de volume com nós interativos arrastáveis e curva cosseno</li>
@@ -9160,7 +9814,18 @@ function openWhatsNewDialog() {
       </div>
       <div class="listview vers" style="max-height:220px;overflow:auto">
         <div class="ver-block">
-          <b>1.0.5 · Rubberbanding de Áudio, Calibração Broadcast, Relink 95 &amp; Window Dub</b><span class="chip95">versão instalada</span>
+          <b>1.0.6 · Multi-Sequências, Ripple Delete no Vazio e Salvamento Profissional</b><span class="chip95">versão instalada</span>
+          <ul>
+            <li><b>Múltiplas Linhas do Tempo / Sequências no Mesmo Projeto (Ctrl+N):</b> Crie, renomeie, duplique e feche diferentes sequências de montagem através de abas clássicas 3D no topo da régua, mantendo todas as sequências salvas no mesmo arquivo .PPJ.</li>
+            <li><b>Seleção de Espaço Vazio &amp; Eliminar Ondulação (Ripple Delete):</b> Clique diretamente em qualquer buraco entre clipes na timeline para selecioná-lo em hachura amarela e tecle DELETE ou use o menu do botão direito para fechar o espaço instantaneamente puxando os clipes seguintes.</li>
+            <li><b>Fluxo de Salvamento Profissional (.PPJ):</b> Salve diretamente no arquivo existente com Ctrl+S sem diálogos desnecessários, use Ctrl+Shift+S para Salvar Como, acompanhe alterações não salvas com asterisco (*) na barra de título e conte com download nativo no navegador.</li>
+            <li><b>Ímã Magnético de Snapping (Tecla S):</b> Ativação e desativação rápida de atração magnética com tecla de atalho S e linha guia vertical branca de alta precisão ao alinhar com cortes vizinhos, agulha, marcadores e área de trabalho.</li>
+            <li><b>Edição Rápida de 3 Pontos no Monitor de Origem:</b> Tecla . (Ponto) para Sobrescrever (Overwrite) e Tecla , (Vírgula) para Inserir com Ondulação (Insert) empurrando a montagem.</li>
+            <li><b>Área de Trabalho &amp; Pontos IN / OUT na Timeline (Teclas I e O):</b> Delimitação de trechos de montagem na régua com colchetes clássicos { e }, tecla Alt+X para limpar e exportação opcional da área selecionada.</li>
+          </ul>
+        </div>
+        <div class="ver-block">
+          <b>1.0.5 · Rubberbanding de Áudio, Calibração Broadcast, Relink 95 &amp; Window Dub</b>
           <ul>
             <li><b>Importação Limpa no Cesto de Mídia (Bin):</b> Mídias importadas (Ctrl+I, arrasto do Windows ou barra de ferramentas) vão exclusivamente para o Cesto de Mídia e monitor de origem, permitindo ao montador decidir quando e onde inseri-las.</li>
             <li><b>Rubberbanding de Volume de Áudio na Linha do Tempo:</b> Linhas de envelope de volume com nós interativos arrastáveis (0% a 150%) com interpolação suave de curva cosseno e de-click. Duplo clique no clipe cria novos nós.</li>
@@ -9630,11 +10295,24 @@ function switchMulticamCam(camNumber) {
 }
 
 function updateStatusBar() {
+  const dirtyMark = S.isDirty ? " *" : "";
+  const curSeq = (S.sequences || []).find(s => s.id === S.activeSequenceId);
+  const seqName = curSeq ? ` [${curSeq.name}]` : "";
   const winTitle = document.getElementById("winTitle");
-  if (winTitle) winTitle.textContent = `ScriptEditor 95 - [${S.projectName} · Ilha Não-Linear]`;
-  const sel = getSelectedClip();
+  if (winTitle) winTitle.textContent = `ScriptEditor 95 - [${S.projectName}${dirtyMark}${seqName} · Ilha Não-Linear]`;
+  const taskTitle = document.getElementById("taskTitle");
+  if (taskTitle) taskTitle.textContent = `ScriptEditor 95 — ${S.projectName}${dirtyMark}${seqName}`;
+  try { document.title = `ScriptEditor 95 - ${S.projectName}${dirtyMark}${seqName}`; } catch (_e) {}
+
   const sbClip = document.getElementById("sbClip");
-  if (sbClip) sbClip.textContent = sel ? `Clipe [${sel.track.toUpperCase()}]: ${sel.title.slice(0, 24)} (${sel.dur}s)` : `Faixas Alvo: ${(S.targetVideoTrack || "v1").toUpperCase()} / ${(S.targetAudioTrack || "a1").toUpperCase()}`;
+  if (sbClip) {
+    if (S.selectedGap) {
+      sbClip.textContent = `Espaço Vazio [${S.selectedGap.track.toUpperCase()}]: ${S.selectedGap.dur.toFixed(2)}s (DEL para fechar)`;
+    } else {
+      const sel = getSelectedClip();
+      sbClip.textContent = sel ? `Clipe [${sel.track.toUpperCase()}]: ${sel.title.slice(0, 24)} (${sel.dur}s)` : `Faixas Alvo: ${(S.targetVideoTrack || "v1").toUpperCase()} / ${(S.targetAudioTrack || "a1").toUpperCase()}`;
+    }
+  }
 }
 
 function renderAll() {
@@ -9646,10 +10324,22 @@ function renderAll() {
 }
 
 const CMD = {
-  novoProjetoLivre: { label: "Novo Projeto Livre (Comercial / Doméstico)", icon: "new", key: "Ctrl+N", run: () => { createStarterFreeProject(); toast("Novo projeto livre iniciado!"); } },
+  novaSequencia: { label: "Nova Sequência / Linha do Tempo…", icon: "seq", key: "Ctrl+N", run: () => createNewSequence() },
+  duplicarSequencia: { label: "Duplicar Sequência Atual", icon: "new", run: () => duplicateActiveSequence() },
+  novoProjetoLivre: { label: "Novo Projeto Livre…", icon: "new", key: "Ctrl+Shift+N", run: () => openNewProjectCustomDialog() },
   abrirProjeto: { label: "Abrir Projeto (.PPJ)…", icon: "open", key: "Ctrl+O", run: () => openProjectDialog() },
   salvarProjeto: { label: "Salvar Projeto (.PPJ)", icon: "save", key: "Ctrl+S", run: () => saveCurrentProject(false) },
   salvarProjetoComo: { label: "Salvar Projeto Como…", icon: "save", key: "Ctrl+Shift+S", run: () => saveCurrentProject(true) },
+  toggleSnap: { label: "Alternar Ímã Magnético de Encaixe", icon: "magnet", key: "S", run: () => toggleSnap() },
+  marcarInTimeline: { label: "Marcar Entrada (IN) na Timeline", key: "I", run: () => setTimelineIn() },
+  marcarOutTimeline: { label: "Marcar Saída (OUT) na Timeline", key: "O", run: () => setTimelineOut() },
+  limparInOutTimeline: { label: "Limpar Pontos IN e OUT da Timeline", key: "Alt+X", run: () => clearTimelineInOut() },
+  sobrescreverOrigem: { label: "Sobrescrever na Timeline (Overwrite)", key: ".", run: () => insertSourceIntoTimeline(undefined, "overwrite") },
+  inserirOrigem: { label: "Inserir com Ondulação (Insert)", key: ",", run: () => insertSourceIntoTimeline(undefined, "insert") },
+  rippleDeleteVazio: { label: "Eliminar Ondulação no Espaço Vazio", icon: "cut", key: "Delete", run: () => {
+    if (S.selectedGap) rippleDeleteGap(S.selectedGap);
+    else deleteSelectedClip(true);
+  }},
   importarMidia: { label: "Importar Vídeo, Áudio ou Imagem…", icon: "folder", key: "Ctrl+I", run: () => importMediaFiles("all", false) },
   importarSRT: { label: "Importar Legendas (.SRT)…", icon: "tv", run: () => importSrtSubtitles() },
   exportarSRT: { label: "Exportar Legendas (.SRT)…", icon: "tv", run: () => exportSrtSubtitles() },
@@ -9734,10 +10424,10 @@ const CMD = {
 };
 
 const MENUS = [
-  ["Arquivo", "A", ["telaInicial", "-", "novoProjetoLivre", "abrirProjeto", "salvarProjeto", "salvarProjetoComo", "-", "importarMidia", "relinkMidias", "importarEDL", "exportarEDL", "exportarCueSheet", "-", "importarSRT", "exportarSRT", "-", "gerarSinal", "geradorGC", "-", "importarSR", "salvarNoSR", "-", "exportarMaster", "filaRender", "-", "abrirScriptRoom", "-", "desligar"]],
-  ["Editar", "E", ["desfazer", "refazer", "-", "copiarClipe", "colarClipe", "duplicarClipe", "congelarQuadro", "-", "cortarAgulha", "excluirClipe", "excluirRipple", "-", "configTeclas"]],
-  ["Projeto", "P", ["importarMidia", "relinkMidias", "abrirProjeto", "salvarProjeto", "-", "gerarSinal", "geradorGC", "adicionarMarcador", "abaMarcadores", "-", "addVideoTrack", "addAudioTrack", "-", "mesaSom", "rackDinamica", "equalizadorDSP", "corretor3Way", "-", "importarSRT", "exportarSRT", "-", "importarSR"]],
-  ["Clipe", "C", ["velocidadeClipe", "congelarQuadro", "cortarAgulha", "duplicarClipe", "excluirClipe", "excluirRipple", "-", "addVideoTrack", "addAudioTrack", "-", "toolSelect", "toolTrack", "toolRazor", "toolTrim", "toolRipple", "toolRolling", "toolSlip", "toolSlide", "toolHand"]],
+  ["Arquivo", "A", ["telaInicial", "-", "novaSequencia", "novoProjetoLivre", "abrirProjeto", "salvarProjeto", "salvarProjetoComo", "-", "importarMidia", "relinkMidias", "importarEDL", "exportarEDL", "exportarCueSheet", "-", "importarSRT", "exportarSRT", "-", "gerarSinal", "geradorGC", "-", "importarSR", "salvarNoSR", "-", "exportarMaster", "filaRender", "-", "abrirScriptRoom", "-", "desligar"]],
+  ["Editar", "E", ["desfazer", "refazer", "-", "copiarClipe", "colarClipe", "duplicarClipe", "congelarQuadro", "-", "cortarAgulha", "excluirClipe", "excluirRipple", "rippleDeleteVazio", "-", "toggleSnap", "-", "configTeclas"]],
+  ["Projeto", "P", ["novaSequencia", "duplicarSequencia", "-", "importarMidia", "relinkMidias", "abrirProjeto", "salvarProjeto", "-", "gerarSinal", "geradorGC", "adicionarMarcador", "abaMarcadores", "-", "addVideoTrack", "addAudioTrack", "-", "mesaSom", "rackDinamica", "equalizadorDSP", "corretor3Way", "-", "importarSRT", "exportarSRT", "-", "importarSR"]],
+  ["Clipe", "C", ["sobrescreverOrigem", "inserirOrigem", "-", "marcarInTimeline", "marcarOutTimeline", "limparInOutTimeline", "-", "velocidadeClipe", "congelarQuadro", "cortarAgulha", "duplicarClipe", "excluirClipe", "excluirRipple", "rippleDeleteVazio", "-", "toggleSnap", "-", "addVideoTrack", "addAudioTrack", "-", "toolSelect", "toolTrack", "toolRazor", "toolTrim", "toolRipple", "toolRolling", "toolSlip", "toolSlide", "toolHand"]],
   ["Janela", "J", ["layDual", "layMulticam", "laySingle", "layScript", "-", "janelaDub", "multicamSwitcher", "filaRender", "-", "verPainel", "-", "desacoplarProgram", "desacoplarSource", "desacoplarSide", "desacoplarTimeline", "-", "reacoplarTodos", "resetLayout", "-", "esquema"]],
   ["Áudio/Vídeo", "V", ["mesaSom", "rackDinamica", "equalizadorDSP", "corretor3Way", "-", "janelaDub", "-", "addVideoTrack", "addAudioTrack", "-", "mesaFoley", "gravadorADR", "claqueteCam", "-", "exportarMaster", "filaRender"]],
   ["Ajuda", "u", ["atalhosAjuda", "dicaDoDia", "procurarAtualizacoes", "-", "oQueHaDeNovo", "telaAbertura", "sobre"]]
@@ -10241,7 +10931,9 @@ async function boot() {
     updateSourceMonitorUI(); renderSourceFrame();
   };
   document.getElementById("btnSrcPlay").onclick = () => toggleSourcePlay();
-  document.getElementById("btnInsertTimeline").onclick = () => insertSourceIntoTimeline(undefined, "append_or_playhead");
+  document.getElementById("btnInsertTimeline").onclick = () => insertSourceIntoTimeline(undefined, "insert");
+  const bOvr = document.getElementById("btnOverwriteTimeline");
+  if (bOvr) bOvr.onclick = () => insertSourceIntoTimeline(undefined, "overwrite");
   document.getElementById("btnOverlayTimeline").onclick = () => insertSourceIntoTimeline("overlay", "overwrite");
 
   // Monitor de Programa (Master Sequence)
@@ -10362,7 +11054,12 @@ async function boot() {
   const chkSnapEl = document.getElementById("chkSnap");
   if (chkSnapEl) {
     chkSnapEl.checked = prefs.snap !== false;
-    chkSnapEl.onchange = e => { prefs.snap = e.target.checked; savePrefs(); };
+    chkSnapEl.onchange = e => toggleSnap(e.target.checked);
+  }
+  const btnSnapEl = document.getElementById("btnSnapToggle");
+  if (btnSnapEl) {
+    btnSnapEl.onclick = () => toggleSnap();
+    btnSnapEl.classList.toggle("snap-on", prefs.snap !== false);
   }
   document.getElementById("layoutSel").onchange = e => setMonitorLayout(e.target.value);
   document.getElementById("btnCloseInlineScript").onclick = () => setMonitorLayout("dual");
@@ -10479,8 +11176,12 @@ async function boot() {
     else if (match("undo")) { e.preventDefault(); undoEdit(); }
     else if (match("redo")) { e.preventDefault(); redoEdit(); }
     else if (match("openProject") || combo.toLowerCase() === "ctrl+o") { e.preventDefault(); openProjectDialog(); }
-    else if (match("saveProject") || combo.toLowerCase() === "ctrl+s") { e.preventDefault(); saveCurrentProject(); }
-    else if (combo.toLowerCase() === "ctrl+n") { e.preventDefault(); createStarterFreeProject(); }
+    else if (match("saveProjectAs") || combo.toLowerCase() === "ctrl+shift+s") { e.preventDefault(); saveCurrentProject(true); }
+    else if (match("saveProject") || combo.toLowerCase() === "ctrl+s") { e.preventDefault(); saveCurrentProject(false); }
+    else if (match("newSequence") || combo.toLowerCase() === "ctrl+n") { e.preventDefault(); createNewSequence(); }
+    else if (combo.toLowerCase() === "ctrl+shift+n") { e.preventDefault(); openNewProjectCustomDialog(); }
+    else if (match("toggleSnap") || (!e.ctrlKey && !e.altKey && !e.metaKey && (e.key === "S" || e.key === "s"))) { e.preventDefault(); toggleSnap(); }
+    else if (match("clearInOut") || (e.altKey && (e.key === "X" || e.key === "x"))) { e.preventDefault(); clearTimelineInOut(); }
     else if (match("playPause")) { e.preventDefault(); togglePlay(1); }
     else if (match("shuttlePause")) { e.preventDefault(); if (S.playing) togglePlay(S.shuttleSpeed); }
     else if (match("shuttleFwd")) {
@@ -10499,12 +11200,38 @@ async function boot() {
     else if (match("toolSlip")) { e.preventDefault(); setTimelineTool("slip"); }
     else if (match("toolSlide")) { e.preventDefault(); setTimelineTool("slide"); }
     else if (match("toolHand")) { e.preventDefault(); setTimelineTool("hand"); }
-    else if (match("markIn")) { e.preventDefault(); document.getElementById("btnSrcIn").click(); toast(`Entrada IN marcada em ${mmss(S.srcIn)}`); }
-    else if (match("markOut")) { e.preventDefault(); document.getElementById("btnSrcOut").click(); toast(`Saída OUT marcada em ${mmss(S.srcOut)}`); }
-    else if (match("insertClip")) { e.preventDefault(); insertSourceIntoTimeline(undefined, "insert"); }
-    else if (match("overwriteClip")) { e.preventDefault(); insertSourceIntoTimeline(undefined, "overwrite"); }
-    else if (match("rippleDelete")) { e.preventDefault(); deleteSelectedClip(true); }
-    else if (match("deleteClip") || e.key === "Backspace") { e.preventDefault(); deleteSelectedClip(e.shiftKey); }
+    else if (match("markIn")) {
+      e.preventDefault();
+      if (e.target.closest("#timelineDock, #tlArea, #tlRuler, #tlTracks") || !S.srcItem) {
+        setTimelineIn();
+      } else {
+        const b = document.getElementById("btnSrcIn");
+        if (b) b.click();
+        toast(`Entrada IN do clipe marcada em ${mmss(S.srcIn)}`);
+      }
+    }
+    else if (match("markOut")) {
+      e.preventDefault();
+      if (e.target.closest("#timelineDock, #tlArea, #tlRuler, #tlTracks") || !S.srcItem) {
+        setTimelineOut();
+      } else {
+        const b = document.getElementById("btnSrcOut");
+        if (b) b.click();
+        toast(`Saída OUT do clipe marcada em ${mmss(S.srcOut)}`);
+      }
+    }
+    else if (match("insertClip") || (!e.ctrlKey && !e.altKey && e.key === ",")) { e.preventDefault(); insertSourceIntoTimeline(undefined, "insert"); }
+    else if (match("overwriteClip") || (!e.ctrlKey && !e.altKey && e.key === ".")) { e.preventDefault(); insertSourceIntoTimeline(undefined, "overwrite"); }
+    else if (match("rippleDelete")) {
+      e.preventDefault();
+      if (S.selectedGap) rippleDeleteGap(S.selectedGap, true);
+      else deleteSelectedClip(true);
+    }
+    else if (match("deleteClip") || e.key === "Backspace" || e.key === "Delete") {
+      e.preventDefault();
+      if (S.selectedGap) rippleDeleteGap(S.selectedGap, e.shiftKey);
+      else deleteSelectedClip(e.shiftKey);
+    }
     else if (match("stepBack") || (e.shiftKey && e.key === "ArrowLeft")) { e.preventDefault(); setPlayhead(S.playhead - (e.shiftKey ? 1 : 1 / FPS), false); }
     else if (match("stepFwd") || (e.shiftKey && e.key === "ArrowRight")) { e.preventDefault(); setPlayhead(S.playhead + (e.shiftKey ? 1 : 1 / FPS), false); }
     else if (match("prevCut")) { e.preventDefault(); document.getElementById("btnPrevCut").click(); }
@@ -10518,8 +11245,12 @@ async function boot() {
   setInterval(autoSaveProject, 60000);
   setTimeout(checkCrashRecovery, 800);
 
-  window.addEventListener("beforeunload", () => {
+  window.addEventListener("beforeunload", (e) => {
     localStorage.setItem("varguelia.scripteditor.session_unclean", "0");
+    if (S.isDirty) {
+      e.preventDefault();
+      e.returnValue = "Existem alterações não salvas no projeto. Deseja realmente sair?";
+    }
   });
 
   setupSplitters();

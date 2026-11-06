@@ -129,6 +129,7 @@
               </div>
               <div class="vtr-btns">
                 <button type="button" class="vtr-btn ins" id="btnInsertTimeline" title="Inserir na Linha do Tempo na posição da agulha (Tecla ,)">[ , Inserir na Timeline ]</button>
+                <button type="button" class="vtr-btn ovr" id="btnOverwriteTimeline" title="Sobrescrever na Linha do Tempo na posição da agulha (Tecla .)">[ . Sobrescrever ]</button>
                 <button type="button" class="vtr-btn" id="btnOverlayTimeline" title="Colocar na Faixa V2 (Superposição / PiP)">[ + Faixa V2 ]</button>
               </div>
             </div>
@@ -281,7 +282,8 @@
         </div>
 
         <div class="row" style="gap:5px">
-          <label class="row" style="gap:2px" title="Atração magnética de cortes e agulha (Snap)"><input type="checkbox" id="chkSnap" checked> Ímã (Snap)</label>
+          <button type="button" class="btn sm" id="btnSnapToggle" data-cmd="toggleSnap" title="Ímã Magnético de Encaixe / Snapping (Tecla S)">Ímã (S)</button>
+          <label class="row" style="gap:2px" title="Atração magnética de cortes e agulha (Snap)"><input type="checkbox" id="chkSnap" checked> Snap</label>
           <label class="row" style="gap:2px" title="Qualidade da Pré-visualização e Desempenho no Scrubbing">Prévia:
             <select id="previewResSel" style="height:20px">
               <option value="1" selected>1/1 Total</option>
@@ -321,6 +323,9 @@
           </div>
         </div>
       </div>
+
+      <!-- Barra de Abas de Linha do Tempo / Sequências (Multi-Timeline 95) -->
+      <div class="tl-seq-bar" id="tlSeqBar"></div>
 
       <div class="tl-body">
         <div class="tl-headers">

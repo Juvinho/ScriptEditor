@@ -2507,5 +2507,191 @@ body[data-tool="ripple"] .tl-clip {
   pointer-events: none;
 }
 
+/* ==========================================================================
+   VERSÃO 1.0.6: MULTI-SEQUÊNCIAS, GAP SELECTION, RIPPLE DELETE E SNAPPING
+   ========================================================================== */
+
+/* Barra de Abas de Linha do Tempo / Sequências (Estilo Win95 / Premiere 4.2) */
+.tl-seq-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  background: var(--bg);
+  padding: 3px 6px 0 6px;
+  border-bottom: 2px solid var(--hi);
+  overflow-x: auto;
+  min-height: 26px;
+  box-sizing: border-box;
+}
+
+.tl-seq-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg);
+  color: var(--txt);
+  font: 11px var(--font-ui);
+  padding: 3px 8px 3px 10px;
+  border: 1px solid var(--hi);
+  border-bottom: none;
+  border-radius: 3px 3px 0 0;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  box-shadow: inset 1px 1px 0 #fff;
+  transition: background 0.1s;
+}
+
+.tl-seq-tab:hover {
+  background: #D8D8D8;
+}
+
+.tl-seq-tab.active {
+  background: #E8E8E8;
+  font-weight: 700;
+  border-color: #000;
+  border-bottom: 2px solid #E8E8E8;
+  margin-bottom: -2px;
+  z-index: 2;
+  box-shadow: inset 1px 1px 0 #fff, inset -1px 0 0 var(--lo);
+}
+
+.tl-seq-tab .tab-icon {
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tl-seq-tab .tab-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  font: bold 10px monospace;
+  color: #606060;
+  border-radius: 2px;
+  margin-left: 2px;
+  cursor: pointer;
+}
+
+.tl-seq-tab .tab-close:hover {
+  background: #C00000;
+  color: #fff;
+}
+
+.tl-seq-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  border: 1px outset var(--hi);
+  width: 22px;
+  height: 20px;
+  font: bold 13px Tahoma, sans-serif;
+  color: #101010;
+  cursor: pointer;
+  margin-left: 4px;
+  margin-bottom: 2px;
+  box-shadow: 1px 1px 0 #000;
+}
+
+.tl-seq-add:hover {
+  background: #E0E0E0;
+}
+
+.tl-seq-add:active {
+  border-style: inset;
+}
+
+/* Espaço Vazio Selecionado na Timeline (Gap Selection) */
+.tl-gap-selected {
+  position: absolute;
+  top: 1px;
+  bottom: 1px;
+  background: repeating-linear-gradient(
+    -45deg,
+    rgba(255, 224, 64, 0.28) 0px,
+    rgba(255, 224, 64, 0.28) 6px,
+    rgba(0, 0, 0, 0.45) 6px,
+    rgba(0, 0, 0, 0.45) 12px
+  );
+  border: 1.5px dashed #FFE040;
+  cursor: pointer;
+  z-index: 4;
+  box-sizing: border-box;
+  animation: gapPulse 1.4s infinite alternate;
+}
+
+@keyframes gapPulse {
+  from { border-color: #FFE040; box-shadow: 0 0 4px rgba(255, 224, 64, 0.4); }
+  to { border-color: #00E5FF; box-shadow: 0 0 8px rgba(0, 229, 255, 0.5); }
+}
+
+.tl-gap-selected::after {
+  content: "ESPAÇO VAZIO (DEL PARA FECHAR)";
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #FFE040;
+  font: bold 10px monospace;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 2px #000;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* Linha Magnética de Snapping Vertical */
+.tl-snap-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1.5px;
+  background: #FFFFFF;
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.9), 0 0 2px #00FFFF;
+  pointer-events: none;
+  z-index: 90;
+}
+
+/* Barra da Área de Trabalho (Work Area Bar IN / OUT na Régua) */
+.tl-work-area-bar {
+  position: absolute;
+  top: 0;
+  height: 6px;
+  background: #00A0E0;
+  border-bottom: 1px solid #005080;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.tl-work-bracket-in,
+.tl-work-bracket-out {
+  position: absolute;
+  top: 0;
+  width: 8px;
+  height: 22px;
+  background: #FFE040;
+  border: 1px solid #000;
+  font: bold 11px monospace;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000;
+  cursor: ew-resize;
+  z-index: 12;
+  user-select: none;
+}
+
+/* Botão Snap Ativo */
+.tbtn.snap-on {
+  background: #405065 !important;
+  border: 1px inset #fff !important;
+  filter: drop-shadow(0 0 3px #00E5FF);
+}
+
+
 
 
