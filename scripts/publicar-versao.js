@@ -105,3 +105,4 @@ console.log(` Repositório: https://github.com/Juvinho/ScriptEditor`);
 console.log(` Release: https://github.com/Juvinho/ScriptEditor/releases/tag/${tag}`);
 console.log(` Instalador anexado: ${installerName}`);
 console.log(`========================================\n`);
+
