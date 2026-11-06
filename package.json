@@ -1,0 +1,74 @@
+{
+  "name": "scripteditor-95",
+  "productName": "ScriptEditor",
+  "version": "1.0.0",
+  "description": "ScriptEditor: ilha de edição de vídeo não-linear estilo 1995 integrada ao ScriptRoom. Edita vídeos, cortes, locuções, cartelas e trilhas seguindo o roteiro cena a cena.",
+  "main": "main.js",
+  "author": "Departamento de Montagem e Videografismo · C2",
+  "license": "UNLICENSED",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Juvinho/ScriptEditor.git"
+  },
+  "scripts": {
+    "start": "electron .",
+    "gerar-icone": "node scripts/gerar-build-assets.js",
+    "instalador": "node scripts/gerar-build-assets.js && electron-builder --win nsis",
+    "portatil": "node scripts/gerar-build-assets.js && electron-builder --win portable",
+    "publicar": "node scripts/publicar-versao.js"
+  },
+  "devDependencies": {
+    "electron": "33.4.11",
+    "electron-builder": "25.1.8"
+  },
+  "build": {
+    "appId": "br.c2.scripteditor95",
+    "productName": "ScriptEditor",
+    "copyright": "Departamento de Montagem e Videografismo · C2",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "app/**/*",
+      "build/icon.png"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "build/icon.ico"
+    },
+    "portable": {
+      "artifactName": "ScriptEditor_portatil.exe"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
+      "installerSidebar": "build/installerSidebar.bmp",
+      "uninstallerSidebar": "build/installerSidebar.bmp",
+      "installerHeader": "build/installerHeader.bmp",
+      "license": "build/licenca.txt",
+      "include": "build/installer.nsh",
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "ScriptEditor",
+      "menuCategory": "ScriptEditor",
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false,
+      "installerLanguages": [
+        "pt_BR"
+      ],
+      "language": "1046",
+      "artifactName": "SETUP_SCRIPTEDITOR_${version}.${ext}"
+    }
+  }
+}
+

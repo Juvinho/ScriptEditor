@@ -1,0 +1,21 @@
+SCRIPTEDITOR (EDIÇÃO 95) — CONTRATO DE LICENÇA DE USO
+
+LEIA COM ATENÇÃO. AO CLICAR EM "ACEITO", VOCÊ CONCORDA COM OS TERMOS ABAIXO.
+
+1. Este programa foi feito para montar, cortar, sonorizar e finalizar os episódios
+   escritos no ScriptRoom (Fundação Varguelia e qualquer outra série da emissora).
+
+2. O ScriptEditor lê diretamente os roteiros da pasta Documentos\ScriptRoom
+   e guarda seus cortes, fitas e projetos em Documentos\ScriptEditor.
+   Desinstalar o programa não apaga nenhuma dessas pastas.
+
+3. Ao usar o recurso "Sincronizar Minutagem com o ScriptRoom", os tempos de cena
+   [MM:SS-MM:SS] editados na linha do tempo atualizam o roteiro correspondente.
+
+4. O programa é fornecido "como está", otimizado para monitores SVGA 800x600 ou
+   superiores, placas Sound Blaster 16 e sinal NTSC 4:3 (29,97 quadros por segundo).
+
+5. Nunca rebobine a fita Master com o cabeçote de gravação travado.
+
+Departamento de Montagem e Videografismo · C2 — 1995
+

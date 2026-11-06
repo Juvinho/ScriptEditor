@@ -1,0 +1,6918 @@
+{
+ "id": "epwt1cm5",
+ "meta": {
+  "serie": "FUNDAÇÃO VARGUELIA",
+  "codigo": "ANS001",
+  "temporada": 1,
+  "episodio": 1,
+  "titulo": "A NOITE VERMELHA",
+  "duracao": "cerca de 60 minutos",
+  "estreia": "1983-10-24",
+  "canal": "C2",
+  "notas": [
+   "(título provisório)",
+   "Película 16 mm, 4:3. Efeitos práticos, miniaturas e pintura em vidro.",
+   "Rascunho de teste · primeira versão para avaliação"
+  ],
+  "serieId": "sr-ANS001",
+  "unidade": "episódio",
+  "prefixo": "EP",
+  "coment": [],
+  "beats": {
+   "items": [
+    {
+     "id": "btey4gj0",
+     "x": 24,
+     "y": 24,
+     "t": "Cena 1",
+     "txt": "Um corredor longo, escuro, vazio. Os secretários foram embora no fim da tarde. A única luz vem das placas verdes de SAÍDA, que pintam o piso com um brilho de aquário. DASKO, cinquenta e poucos anos, paletó aberto, gravata torta, atravessa o",
+     "sid": "o6th1s",
+     "cor": "#C8E0FF"
+    },
+    {
+     "id": "bthol4wd",
+     "x": 274,
+     "y": 24,
+     "t": "Cena 2",
+     "txt": "Vapor. NIUWË NAVSNÖDEN, vinte e poucos anos, sob o chuveiro, o cabelo loiro-queimado comprido colado nas costas. Ele canta junto com a caixa de som, em volume heroico e afinação nenhuma, um refrão que está inventando conforme vai.",
+     "sid": "ky0oed",
+     "cor": "#C8E0FF"
+    },
+    {
+     "id": "btzog9av",
+     "x": 524,
+     "y": 24,
+     "t": "Cena 3",
+     "txt": "Os corredores da Escola estão um caos: sombras correndo de um lado para o outro, ecos de passos, alunos que passam em pânico. Niuwë avança contra o fluxo, o celular tocando no ouvido, as botas desamarradas, os cadarços chicoteando o piso a ",
+     "sid": "7uzowt",
+     "cor": "#C8E0FF"
+    },
+    {
+     "id": "bt3skn5k",
+     "x": 774,
+     "y": 24,
+     "t": "Cena 4",
+     "txt": "Niuwë empurra a porta de saída com o ombro. O vento quente bate no rosto dele, carregando um cheiro metálico, como sangue misturado com poeira. O pátio central é uma panela de pressão: milhares de alunos, de pijama, de uniforme, de casaco p",
+     "sid": "qz9mow",
+     "cor": "#C8E0FF"
+    },
+    {
+     "id": "btxyifsq",
+     "x": 1024,
+     "y": 24,
+     "t": "Cena 5",
+     "txt": "Um quarto que parece ter sido assaltado por um filósofo com insônia: livros empilhados como torres, pratos com restos arqueológicos, um mapa-múndi riscado a lápis e, num canto, um pufe verde-musgo com um afundamento perfeito no formato de u",
+     "sid": "tu02s4",
+     "cor": "#C8E0FF"
+    },
+    {
+     "id": "bt1b3000",
+     "x": 1274,
+     "y": 24,
+     "t": "Cena 6",
+     "txt": "Os três saem correndo pela porta do bloco. A Escola ao redor está irreconhecível: fios soltos cuspindo faísca, vidros estourados, uma torre de iluminação caída de lado sobre o gramado, as paredes rachadas pelos tremores que o Sepharoth prov",
+     "sid": "3n0j5k",
+     "cor": "#C8E0FF"
+    },
+    {
+     "id": "btcl6xkj",
+     "x": 24,
+     "y": 224,
+     "t": "Cena 7",
+     "txt": "O quadriciclo para na beira do terreno, onde o asfalto acaba e o mato começa, e o motor morre sozinho, como se tivesse se recusado a chegar mais perto. Os três descem devagar. Niuwë fica parado ao lado do guidão, a tábua no ombro, olhando p",
+     "sid": "bbj25b",
+     "cor": "#C8E0FF"
+    },
+    {
+     "id": "btj3rxb4",
+     "x": 274,
+     "y": 224,
+     "t": "Cena 8",
+     "txt": "Taila puxa o manche e o helicóptero sobe de uma vez, deixando o estômago de todo mundo meio metro abaixo. A estação 4 fica para trás, solitária na escuridão vermelha.",
+     "sid": "nbj3vp",
+     "cor": "#C8E0FF"
+    },
+    {
+     "id": "btaoc0wp",
+     "x": 524,
+     "y": 224,
+     "t": "Cena 9",
+     "txt": "Do alto, a criatura levanta uma pata gigante e a baixa. Uma onda de poeira e árvores esmagadas ondula pelo chão, vindo na direção deles.",
+     "sid": "1slv9h",
+     "cor": "#C8E0FF"
+    },
+    {
+     "id": "btup2kj5",
+     "x": 774,
+     "y": 224,
+     "t": "Cena 10",
+     "txt": "Eles correm na direção dos passos. A floresta é densa, fechada, velha: troncos grossos e retorcidos se erguem por todos os lados, tão próximos que em alguns pontos é preciso passar de lado. Raízes saltam do chão como dedos tentando agarrar ",
+     "sid": "q12bz9",
+     "cor": "#C8E0FF"
+    },
+    {
+     "id": "bt2054dk",
+     "x": 1024,
+     "y": 224,
+     "t": "Cena 11",
+     "txt": "Ninguém se mexe. Por trás deles, acima deles, acima de tudo, o Sepharoth parou de andar. As três cabeças principais se viraram devagar. E as vinte e quatro auxiliares também. Todos os vinte e sete pares de olhos estão neles.",
+     "sid": "32oesg",
+     "cor": "#C8E0FF"
+    },
+    {
+     "id": "btp543wt",
+     "x": 1274,
+     "y": 224,
+     "t": "Cena 12",
+     "txt": "Niuwë leva a mão às costas e puxa o rifle. É a arma que esteve o tempo todo dentro do estojo longo de couro, ao lado da porta do quarto, desde antes de tudo isso começar. Comprida, pesada, de metal escuro e coronha gasta, as marcas de uso p",
+     "sid": "nzel2w",
+     "cor": "#C8E0FF"
+    },
+    {
+     "id": "bt8ynzjw",
+     "x": 24,
+     "y": 424,
+     "t": "Cena 13",
+     "txt": "Pedra clara, gasta, polida por séculos de passos que não eram dele. Um parapeito baixo corre dos dois lados até se perder de vista. Depois do parapeito, não há chão: só um abismo sem fundo e, por cima dele, até onde a vista alcança, um céu ",
+     "sid": "1i4dti",
+     "cor": "#C8E0FF"
+    },
+    {
+     "id": "btprdh7q",
+     "x": 274,
+     "y": 424,
+     "t": "Cena 14",
+     "txt": "Niuwë acorda num sobressalto, sentando-se na cama. Um quarto pequeno, de infância, com a cama estreita demais para os pés dele e uma rachadura em forma de rio no teto. A janela está aberta; a árvore do jardim balança o vento; no balanço de ",
+     "sid": "ldahwt",
+     "cor": "#C8E0FF"
+    },
+    {
+     "id": "bt3bkd3h",
+     "x": 524,
+     "y": 424,
+     "t": "Cena 15",
+     "txt": "Um branco absoluto, infinito, sem paredes, sem cantos, sem sombras, sem nada. Não dá para saber onde termina o chão e começa o resto. Não há luz vindo de lugar nenhum, e mesmo assim tudo está claro, claro demais. Niuwë está de joelhos, as m",
+     "sid": "3556ov",
+     "cor": "#C8E0FF"
+    },
+    {
+     "id": "btoxbnuv",
+     "x": 774,
+     "y": 424,
+     "t": "Cena 16",
+     "txt": "Do lado de fora, os fios invisíveis se cortam. O corpo de Niuwë despenca. Trinta metros. Sem um grito, sem um movimento, girando devagar no ar como uma folha, o cabelo loiro abrindo um rastro dourado contra o céu vermelho.",
+     "sid": "6c2m24",
+     "cor": "#C8E0FF"
+    }
+   ],
+   "links": []
+  }
+ },
+ "atualizado": 1793884361701,
+ "els": [
+  {
+   "id": "yrjiib",
+   "t": "act",
+   "x": "TEASER"
+  },
+  {
+   "id": "o6th1s",
+   "t": "scene",
+   "x": "INT. CORREDOR ADMINISTRATIVO / DIRETORIA — NOITE"
+  },
+  {
+   "id": "y8co3f",
+   "t": "time",
+   "x": "[0:00–3:00]"
+  },
+  {
+   "id": "rcgsqu",
+   "t": "note",
+   "x": "GRADE: azul-noite frio; o verde doente das placas de saída de emergência."
+  },
+  {
+   "id": "rjf4ry",
+   "t": "note",
+   "x": "SFX: sapatos sociais correndo num piso encerado. O eco é alto demais, quase obsceno."
+  },
+  {
+   "id": "lstbb0",
+   "t": "action",
+   "x": "Um corredor longo, escuro, vazio. Os secretários foram embora no fim da tarde. A única luz vem das placas verdes de SAÍDA, que pintam o piso com um brilho de aquário. DASKO, cinquenta e poucos anos, paletó aberto, gravata torta, atravessa o corredor correndo como quem não corre desde a faculdade. O celular está colado no ouvido.",
+   "plant": {
+    "id": "plwss9va",
+    "nome": "Corredor da antessala"
+   }
+  },
+  {
+   "id": "datoil",
+   "t": "character",
+   "x": "VIGIA (V.O., no celular)"
+  },
+  {
+   "id": "e3ke91",
+   "t": "paren",
+   "x": "(sem fôlego, com estática)"
+  },
+  {
+   "id": "pphhx2",
+   "t": "dialogue",
+   "x": "Diretor, o céu tá mudando de cor, e tem uma coisa mexendo na floresta, e eu nunca vi isso, eu juro por tudo que nunca vi isso."
+  },
+  {
+   "id": "oh4no3",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "2hvuzs",
+   "t": "dialogue",
+   "x": "Que coisa? Fala direito, homem!"
+  },
+  {
+   "id": "xt86bf",
+   "t": "character",
+   "x": "VIGIA (V.O.)"
+  },
+  {
+   "id": "438r0y",
+   "t": "dialogue",
+   "x": "É grande. É muito grande. Eu parei de contar na terceira cabeça."
+  },
+  {
+   "id": "53c7y6",
+   "t": "action",
+   "x": "Dasko para. O sapato social derrapa meio metro no piso encerado."
+  },
+  {
+   "id": "mr9e21",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "zgvqck",
+   "t": "dialogue",
+   "x": "Na terceira o quê?"
+  },
+  {
+   "id": "fcpd54",
+   "t": "character",
+   "x": "VIGIA (V.O.)"
+  },
+  {
+   "id": "t2sx7t",
+   "t": "dialogue",
+   "x": "Cabeça, Diretor."
+  },
+  {
+   "id": "myq8uq",
+   "t": "note",
+   "x": "SFX: a linha chia, engasga e cai. Só o tom de chamada encerrada."
+  },
+  {
+   "id": "nkox45",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "vfxqct",
+   "t": "dialogue",
+   "x": "Alô? Alô!"
+  },
+  {
+   "id": "vo9cvb",
+   "t": "action",
+   "x": "Ele olha a tela do celular. Olha o corredor. E volta a correr, agora mais depressa, com a certeza fria de quem acabou de ouvir uma frase que nenhum diretor de escola deveria ouvir numa quinta-feira à noite."
+  },
+  {
+   "id": "mf4nbv",
+   "t": "action",
+   "x": "A porta da DIRETORIA emperra na primeira tentativa. Na segunda, ele a empurra com o ombro, e ela bate na parede com um estrondo que faz tremer os quadros: fotografias de turmas formadas, certificados emoldurados, o retrato oficial dos fundadores da Varguën, que parecem observá-lo com uma reprovação silenciosa."
+  },
+  {
+   "id": "t9kak5",
+   "t": "action",
+   "x": "Dasko não acende a luz. Atravessa a sala no escuro, tropeça na quina da poltrona de visitas, solta um palavrão abafado e se joga na cadeira diante de um painel de comunicação embutido na parede. É uma relíquia: botões de metal gastos, alavancas com etiquetas escritas à mão, um microfone de haste curvada que ninguém usa desde o último aviso de início de semestre."
+  },
+  {
+   "id": "kllvsv",
+   "t": "action",
+   "x": "PLANO DETALHE: as etiquetas. AVISO GERAL. CARDÁPIO. SIRENE. CORAL (NÃO USAR). Os dedos de Dasko procuram o interruptor geral no escuro, erram uma vez, erram duas. Na terceira, o painel desperta com um zumbido grave e uma fileira de luzes âmbar se acende, iluminando o rosto dele por baixo: suor nas têmporas, barba por fazer, olheiras de quem já não dorme direito há semanas."
+  },
+  {
+   "id": "7bsk34",
+   "t": "action",
+   "x": "Ele ergue os olhos para a janela. Além dos telhados dos dormitórios e das torres de iluminação, a muralha corta o horizonte como uma linha negra. E o céu atrás dela está mudando. Começa discreto, um tom de ferrugem tingindo a borda, como se o sol tivesse decidido nascer pelo lado errado e na hora errada. Mas se espalha. Devagar, constante, faminto, engolindo o azul escuro e as estrelas, uma a uma."
+  },
+  {
+   "id": "k93qe6",
+   "t": "action",
+   "x": "Dasko engole seco. Puxa o microfone, a haste rangendo, e aperta o botão com tanta força que o polegar fica branco. Respira uma vez. A respiração sai trêmula. Ele aperta o botão errado."
+  },
+  {
+   "id": "zmnoyt",
+   "t": "note",
+   "x": "SFX: estática. Uma gravação antiga, animada, alto-falantes por toda a Escola:"
+  },
+  {
+   "id": "ns1buh",
+   "t": "character",
+   "x": "GRAVAÇÃO (V.O., alto-falantes)"
+  },
+  {
+   "id": "cxjkid",
+   "t": "dialogue",
+   "x": "Hoje no almoço: lasanha de berinjela e pudim de leite!"
+  },
+  {
+   "id": "zqwgb6",
+   "t": "action",
+   "x": "Dasko fecha os olhos. Encosta a testa no painel."
+  },
+  {
+   "id": "vijz2d",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "s8hpsx",
+   "t": "paren",
+   "x": "(baixíssimo)"
+  },
+  {
+   "id": "lgx4jc",
+   "t": "dialogue",
+   "x": "Eu mando isso trocar por um botão de verdade desde 2041."
+  },
+  {
+   "id": "8x7kep",
+   "t": "action",
+   "x": "Ele endireita o corpo. Acha o botão certo, o do meio, AVISO GERAL. Pressiona."
+  },
+  {
+   "id": "juzbji",
+   "t": "note",
+   "x": "SFX: o clique grave, seco, de um circuito que acorda."
+  },
+  {
+   "id": "gyxx6u",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "zmiqaw",
+   "t": "dialogue",
+   "x": "Alerta de toque de recolher em todo o território da Varguën! Atenção, repito: toque de recolher em toda a área da Varguën!"
+  },
+  {
+   "id": "jghm4x",
+   "t": "action",
+   "x": "A voz grave e rígida explode pelos alto-falantes espalhados pela Escola, distorcida pelo volume máximo, chiando nos aparelhos mais antigos. Atravessa cada corredor, cada sala de aula vazia, cada quarto onde alunos estudavam, dormiam ou riam de alguma bobagem. Dasko mantém a postura firme diante do microfone, porque é isso que se espera dele. Mas sabe, com uma certeza fria assentada no fundo do estômago, que a situação já está à beira do colapso. E que aquela mensagem não vai segurar nada por muito tempo."
+  },
+  {
+   "id": "wb9qi0",
+   "t": "action",
+   "x": "CORTE PARA:"
+  },
+  {
+   "id": "mrbz7b",
+   "t": "action",
+   "x": "INT. DORMITÓRIOS / ESCADARIAS — NOITE. Por um instante depois da última palavra, a Escola inteira parece prender a respiração. Então as portas se escancaram quase ao mesmo tempo e uma onda de alunos se derrama pelos corredores. Gente de pijama. Gente descalça. Um garoto ainda segurando a escova de dentes. Uma garota com o controle do videogame na mão, como se alguém fosse pedir que ela continuasse a partida."
+  },
+  {
+   "id": "szk9ww",
+   "t": "action",
+   "x": "Eles se empurram, tropeçam uns nos outros, descem as escadas de dois em dois degraus sem saber exatamente para onde, só sabendo que precisam sair de onde estão. No patamar do terceiro andar alguém cai e quase é pisoteado antes que dois colegas o puxem pelo braço. Alguém grita um nome, várias vezes, sem resposta."
+  },
+  {
+   "id": "b0pw4e",
+   "t": "note",
+   "x": "SFX: o alarme, estridente, cortante, reverberando pelas paredes de concreto como um sino de morte que se recusa a parar de tocar."
+  },
+  {
+   "id": "7o7ihg",
+   "t": "action",
+   "x": "CORTE PARA:"
+  },
+  {
+   "id": "miilbo",
+   "t": "action",
+   "x": "INT. DIRETORIA — CONTÍNUO. O som chega pela janela fechada como o eco de uma tragédia que acontece em outro lugar. Dasko solta o botão de transmissão e desaba no encosto da cadeira, como se o anúncio tivesse arrancado dele toda a força que restava. O couro velho range sob o peso. Ele fica ali, imóvel, os olhos presos no vidro, vendo o vermelho devorar o céu pedaço por pedaço. Lá embaixo, alunos pequenos demais e frágeis demais correm em todas as direções, e não há nada que ele possa fazer daquela sala além de olhar."
+  },
+  {
+   "id": "8bza83",
+   "t": "action",
+   "x": "Uma desconfiança amarga corre pelas veias dele, fria e venenosa. Talvez fosse ali que tudo acabasse. Não só a Escola, nem só a Varguën. Tudo."
+  },
+  {
+   "id": "s9ddzi",
+   "t": "action",
+   "x": "Ele fecha os olhos. Os lábios se movem quase sem som."
+  },
+  {
+   "id": "3h9jvy",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "hfgc3n",
+   "t": "dialogue",
+   "x": "Que Deus… Häita… o que quer que esteja olhando por nós…"
+  },
+  {
+   "id": "b4orqc",
+   "t": "paren",
+   "x": "(a voz falha; ele engole e tenta de novo)"
+  },
+  {
+   "id": "qck6ne",
+   "t": "dialogue",
+   "x": "Proteja este planeta."
+  },
+  {
+   "id": "uqa94h",
+   "t": "action",
+   "x": "Não há resposta. Apenas o zumbido do painel e, lá fora, o alarme que ninguém consegue calar."
+  },
+  {
+   "id": "2fjd1l",
+   "t": "note",
+   "x": "TRILHA: um acorde grave, sustentado, que não resolve."
+  },
+  {
+   "id": "56qoya",
+   "t": "note",
+   "x": "CARTELA: FUNDAÇÃO VARGUELIA. Em seguida, em letras menores: “A NOITE VERMELHA”."
+  },
+  {
+   "id": "kuuth2",
+   "t": "act",
+   "x": "ATO UM"
+  },
+  {
+   "id": "ky0oed",
+   "t": "scene",
+   "x": "INT. QUARTO / BANHEIRO DO NIUWË — NOITE"
+  },
+  {
+   "id": "z3pal7",
+   "t": "time",
+   "x": "[3:00–7:00]"
+  },
+  {
+   "id": "u2q8c5",
+   "t": "note",
+   "x": "SFX: água de chuveiro. Uma caixa de som no balcão toca um refrão qualquer, animado, alto demais."
+  },
+  {
+   "id": "tael1t",
+   "t": "action",
+   "x": "Vapor. NIUWË NAVSNÖDEN, vinte e poucos anos, sob o chuveiro, o cabelo loiro-queimado comprido colado nas costas. Ele canta junto com a caixa de som, em volume heroico e afinação nenhuma, um refrão que está inventando conforme vai."
+  },
+  {
+   "id": "xuz200",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "crlfhy",
+   "t": "paren",
+   "x": "(cantando)"
+  },
+  {
+   "id": "ncialq",
+   "t": "dialogue",
+   "x": "Laiá-laiá, o mundo não merece, laiá-laiá, mas eu estou lindo…"
+  },
+  {
+   "id": "f0qfq2",
+   "t": "action",
+   "x": "Pela janelinha do banheiro entra um pedaço de céu: azul escuro, limpo, cheio de estrelas. Ele nem olha. Desliga a água."
+  },
+  {
+   "id": "73wag7",
+   "t": "action",
+   "x": "Sai enrolado numa toalha na cintura, limpa o espelho embaçado com a palma da mão e inspeciona o cabelo com a gravidade de um cirurgião. Joga a juba pra trás num gesto de comercial de xampu e deixa escapar o meio sorriso convencido de quem acha que o espelho é seu melhor amigo."
+  },
+  {
+   "id": "qjk2cd",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "7elbtx",
+   "t": "paren",
+   "x": "(para o espelho)"
+  },
+  {
+   "id": "iji1pq",
+   "t": "dialogue",
+   "x": "Se existe justiça no mundo, ela mora nessa cabeleira."
+  },
+  {
+   "id": "lrc72b",
+   "t": "action",
+   "x": "Ele volta ao QUARTO. Uma cama desarrumada, uma caneca vazia na escrivaninha, uma toalha de rosto largada no chão. Encostado ao lado da porta, um estojo longo de couro gasto, fechado por fivelas. Na parede do espelho, preso na moldura, o canto de uma fotografia: um gramado, um homem de costas largas e uma menininha de cabelo loiro nos ombros dele, rindo com um dente da frente faltando."
+  },
+  {
+   "id": "zon6ku",
+   "t": "note",
+   "x": "SFX: o celular vibra na cama, arrastando-se pelo colchão."
+  },
+  {
+   "id": "cpcirk",
+   "t": "action",
+   "x": "Ele olha a tela. PLANO DETALHE: JORGENSSEN. Niuwë joga a cabeça para trás, encarando o teto como quem pede paciência aos céus."
+  },
+  {
+   "id": "2ymbse",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "m0zfaj",
+   "t": "dialogue",
+   "x": "Ah… qual é? O que essa donzela quer de mim agora?"
+  },
+  {
+   "id": "htkssz",
+   "t": "action",
+   "x": "Atende, no viva-voz, enquanto procura uma cueca limpa numa gaveta."
+  },
+  {
+   "id": "pi6o7e",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "876m9m",
+   "t": "dialogue",
+   "x": "Fala, donzela."
+  },
+  {
+   "id": "zem312",
+   "t": "action",
+   "x": "INTERCALADO — INT. QUARTO DO ROGER — NOITE. JORGENSSEN, no vão da janela, o celular colado no rosto, a luz estranha do lado de fora iluminando a metade dele. Atrás, ROGER está deitado de barriga pra cima na cama, as mãos entrelaçadas sobre o peito e uma caneca equilibrada ali, olhando o teto com a serenidade de um homem que já aceitou o fim de tudo e agora só espera passar a hora."
+  },
+  {
+   "id": "z7183t",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "x89x7r",
+   "t": "dialogue",
+   "x": "Niuwë. Você tá perto de uma janela?"
+  },
+  {
+   "id": "ci6pb7",
+   "t": "character",
+   "x": "NIUWË (V.O.)"
+  },
+  {
+   "id": "g4tecm",
+   "t": "dialogue",
+   "x": "Tô pelado, Jorgenssen. Se for pra me ver pelado, tem jeito mais barato."
+  },
+  {
+   "id": "fkbaa2",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "7ohkzf",
+   "t": "dialogue",
+   "x": "Olha pra fora."
+  },
+  {
+   "id": "xbugl9",
+   "t": "action",
+   "x": "Niuwë caminha até a janela com a cueca numa mão e o celular na outra. Puxa a cortina. O sorriso morre devagar."
+  },
+  {
+   "id": "pl7oum",
+   "t": "action",
+   "x": "PONTO DE VISTA: o céu. O azul escuro que ele viu pela janelinha do banheiro, minutos antes, sumiu. No lugar dele, uma cor de ferida aberta, de ferrugem molhada, escorrendo pelo horizonte. Lá fora, os alunos já correm."
+  },
+  {
+   "id": "0al7y7",
+   "t": "character",
+   "x": "JORGENSSEN (V.O.)"
+  },
+  {
+   "id": "6ac05q",
+   "t": "dialogue",
+   "x": "Sepharoth, Niuwë."
+  },
+  {
+   "id": "r633a6",
+   "t": "action",
+   "x": "Silêncio no quarto. Niuwë congela no meio do movimento, a cueca ainda na mão. A outra mão aperta o celular com tanta força que a capinha estala. Os nós dos dedos vão ficando brancos, um por um."
+  },
+  {
+   "id": "mct8i9",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "8up1q0",
+   "t": "paren",
+   "x": "(num fio de voz)"
+  },
+  {
+   "id": "hh6jnx",
+   "t": "dialogue",
+   "x": "Nem fudendo."
+  },
+  {
+   "id": "yn6kds",
+   "t": "character",
+   "x": "JORGENSSEN (V.O.)"
+  },
+  {
+   "id": "w08oy2",
+   "t": "dialogue",
+   "x": "Fodendo… e muito."
+  },
+  {
+   "id": "6b6cwy",
+   "t": "action",
+   "x": "Nenhum dos dois ri."
+  },
+  {
+   "id": "r7ggie",
+   "t": "action",
+   "x": "Niuwë fecha os olhos. Por um momento o quarto parece distante: o calor da toalha caída, o vermelho da cortina, até o som da própria respiração. Ele já sabia. Desde a janelinha, desde o primeiro vislumbre daquele céu. Só não queria que ninguém dissesse em voz alta, porque dita em voz alta a coisa deixa de ser suspeita e vira fato."
+  },
+  {
+   "id": "i4j4wq",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "i4mvq6",
+   "t": "dialogue",
+   "x": "É coisa da Häita, não é? Ela mandou visita."
+  },
+  {
+   "id": "5mbed2",
+   "t": "character",
+   "x": "JORGENSSEN (V.O.)"
+  },
+  {
+   "id": "8zr4cx",
+   "t": "dialogue",
+   "x": "Não. (pausa) Tá mais pra reencarnação."
+  },
+  {
+   "id": "m8yypg",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "mulmmd",
+   "t": "paren",
+   "x": "(seco, sem um pingo de entusiasmo)"
+  },
+  {
+   "id": "1gimep",
+   "t": "dialogue",
+   "x": "Que maravilha. Eu mato o desgraçado uma vez e ele volta. Nem minha ex insiste tanto."
+  },
+  {
+   "id": "atpw1i",
+   "t": "character",
+   "x": "JORGENSSEN (V.O.)"
+  },
+  {
+   "id": "qgdppu",
+   "t": "dialogue",
+   "x": "Você não tem uma ex."
+  },
+  {
+   "id": "us4q0p",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "d7j1c8",
+   "t": "dialogue",
+   "x": "Exatamente. Olha o nível de insistência."
+  },
+  {
+   "id": "lg99us",
+   "t": "action",
+   "x": "Do outro lado, Jorgenssen bufa algo que, numa noite normal, teria sido uma risada. Atrás dele, Roger, sem mexer a cabeça:"
+  },
+  {
+   "id": "pnbuqv",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "2o95jn",
+   "t": "paren",
+   "x": "(do travesseiro)"
+  },
+  {
+   "id": "f430nw",
+   "t": "dialogue",
+   "x": "Se for o fim do mundo, me avisa. Eu não vou levantar."
+  },
+  {
+   "id": "egf2xn",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "79betm",
+   "t": "paren",
+   "x": "(tampando o celular)"
+  },
+  {
+   "id": "snbx1s",
+   "t": "dialogue",
+   "x": "ROGER!"
+  },
+  {
+   "id": "u3bgjw",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "947jts",
+   "t": "dialogue",
+   "x": "O pufe aguenta."
+  },
+  {
+   "id": "3i4oa0",
+   "t": "action",
+   "x": "Jorgenssen destapa o celular. De repente, a respiração dele muda."
+  },
+  {
+   "id": "bjuwvo",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "5wcd2d",
+   "t": "dialogue",
+   "x": "Parece que ele tá sozinho… (hesita) Ou não."
+  },
+  {
+   "id": "21norc",
+   "t": "note",
+   "x": "SFX: um ronco grave, contínuo, vindo de muito longe, que faz o microfone do celular chiar. Algo enorme se movendo."
+  },
+  {
+   "id": "slfi4r",
+   "t": "action",
+   "x": "A cabeça de Jorgenssen se volta para o horizonte. Atrás dele, Roger, pela primeira vez, vira o rosto."
+  },
+  {
+   "id": "xoshsz",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "e690yk",
+   "t": "dialogue",
+   "x": "Merda… ele tem três cabeças."
+  },
+  {
+   "id": "lguz1y",
+   "t": "action",
+   "x": "Niuwë abre os olhos devagar."
+  },
+  {
+   "id": "dr8e7w",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "frlidp",
+   "t": "dialogue",
+   "x": "Três."
+  },
+  {
+   "id": "6jil3y",
+   "t": "character",
+   "x": "JORGENSSEN (V.O.)"
+  },
+  {
+   "id": "oc30sc",
+   "t": "dialogue",
+   "x": "Três."
+  },
+  {
+   "id": "b6ooz6",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "7qp0qr",
+   "t": "dialogue",
+   "x": "Da última vez ele tinha duas e já era insuportável."
+  },
+  {
+   "id": "26q0ri",
+   "t": "paren",
+   "x": "(esfregando o rosto com a mão livre)"
+  },
+  {
+   "id": "zujue1",
+   "t": "dialogue",
+   "x": "Agora ele vai poder fazer uma assembleia."
+  },
+  {
+   "id": "tb3i3a",
+   "t": "character",
+   "x": "JORGENSSEN (V.O.)"
+  },
+  {
+   "id": "7zxf39",
+   "t": "dialogue",
+   "x": "Niuwë…"
+  },
+  {
+   "id": "r5hq9e",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "dzueej",
+   "t": "dialogue",
+   "x": "Eu sei."
+  },
+  {
+   "id": "6dn8e3",
+   "t": "action",
+   "x": "Ele não precisa ouvir mais nada. Desliga."
+  },
+  {
+   "id": "w7rym2",
+   "t": "action",
+   "x": "Num salto está de pé. A calça sobe com as pernas ainda molhadas, grudando na pele. A camiseta entra do avesso, e ele nem percebe. Calça as botas com a ponta dos pés, sem amarrar. O cabelo, ainda pingando nas costas, é preso num coque torto com um elástico que ele acha no próprio pulso."
+  },
+  {
+   "id": "ho1g9d",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "ip5yt2",
+   "t": "paren",
+   "x": "(olhando o próprio reflexo, no limite do desespero)"
+  },
+  {
+   "id": "3m8ryf",
+   "t": "dialogue",
+   "x": "Isso vai frizzar inteiro. O Sepharoth vai pagar por isso também."
+  },
+  {
+   "id": "nqpa6n",
+   "t": "action",
+   "x": "Ajoelha ao lado da porta e destrava as fivelas do estojo de couro. O couro gasto range ao abrir, e o que há lá dentro reflete o vermelho da janela num brilho frio, metálico. Armas, uma por uma: ele confere, encaixa, prende. Um rifle longo, de coronha gasta, vai para as costas. As mãos sabem exatamente o que fazer, mesmo quando a cabeça ainda não alcançou."
+  },
+  {
+   "id": "aukybl",
+   "t": "action",
+   "x": "Ele já está de pé quando para. Volta à escrivaninha. Abre a gaveta de cima. Dentro, sozinho, um envelope branco, com letra cuidadosa: PARA A LALA. Fica um segundo olhando. Depois o guarda no bolso interno da jaqueta, do lado esquerdo. Puxa a fotografia da moldura do espelho e a enfia no bolso direito. Nenhuma piada. Nenhum comentário."
+  },
+  {
+   "id": "0ntn76",
+   "t": "action",
+   "x": "Olha o quarto uma última vez: a cama desarrumada, a caneca vazia, a caixa de som muda, a toalha no chão. Estende a mão ao interruptor."
+  },
+  {
+   "id": "gstaq0",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "gpml0p",
+   "t": "dialogue",
+   "x": "Fim do mundo ou não, a conta de luz continua existindo."
+  },
+  {
+   "id": "12kt71",
+   "t": "note",
+   "x": "SFX: clique do interruptor. Escuridão. A porta bate na parede quando ele sai disparando, e fica escancarada."
+  },
+  {
+   "id": "7uzowt",
+   "t": "scene",
+   "x": "INT. CORREDORES / ESCADARIA — NOITE"
+  },
+  {
+   "id": "qy15u3",
+   "t": "time",
+   "x": "[7:00–9:00]"
+  },
+  {
+   "id": "fr38ix",
+   "t": "note",
+   "x": "SFX: passos apressados, vozes nervosas, o alarme em loop."
+  },
+  {
+   "id": "xna0dv",
+   "t": "action",
+   "x": "Os corredores da Escola estão um caos: sombras correndo de um lado para o outro, ecos de passos, alunos que passam em pânico. Niuwë avança contra o fluxo, o celular tocando no ouvido, as botas desamarradas, os cadarços chicoteando o piso a cada passada."
+  },
+  {
+   "id": "jm35bn",
+   "t": "action",
+   "x": "Ele passa por uma parede de recados, pisando em panfletos e em um chinelo solitário. Um aluno de pijama tenta puxá-lo pelo braço, perguntando se aquilo é treino. Niuwë desvia sem parar de andar."
+  },
+  {
+   "id": "z89xzz",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "qu884i",
+   "t": "dialogue",
+   "x": "Não é treino. Mas corre como se fosse."
+  },
+  {
+   "id": "xfks1a",
+   "t": "action",
+   "x": "Ele chega ao elevador. Aperta o botão. A luz do painel não acende. Aperta de novo, três vezes, como se a insistência fosse consertar a eletricidade."
+  },
+  {
+   "id": "4lju2x",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "58nkjk",
+   "t": "dialogue",
+   "x": "Merda. Escada."
+  },
+  {
+   "id": "gu942e",
+   "t": "action",
+   "x": "Ele dá meia-volta, já discando outro número. O telefone toca. Toca. Toca."
+  },
+  {
+   "id": "qmr811",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "jx8dnk",
+   "t": "paren",
+   "x": "(para o telefone)"
+  },
+  {
+   "id": "xslwwg",
+   "t": "dialogue",
+   "x": "Mensa-Viktör, atende. ATENDE!"
+  },
+  {
+   "id": "kqm1j3",
+   "t": "action",
+   "x": "CORTE PARA:"
+  },
+  {
+   "id": "nqocgp",
+   "t": "action",
+   "x": "INT. QUARTO DA TAILA — NOITE. Cortinas grossas fechadas, penumbra quente. Uma cama de casal em desordem; sob o edredom, DUAS formas. TAILA MENSA-VIKTÖR, trinta e poucos, enfia a mão para fora das cobertas, apalpa a mesa de cabeceira até achar o celular, e atende sem abrir os olhos."
+  },
+  {
+   "id": "oi9aql",
+   "t": "character",
+   "x": "TAILA"
+  },
+  {
+   "id": "71tn28",
+   "t": "paren",
+   "x": "(rouca, sonolenta)"
+  },
+  {
+   "id": "3hof7l",
+   "t": "dialogue",
+   "x": "Ah… o que você quer, Niuwë?"
+  },
+  {
+   "id": "pa1ydd",
+   "t": "character",
+   "x": "NIUWË (V.O.)"
+  },
+  {
+   "id": "ocy9vc",
+   "t": "dialogue",
+   "x": "Taila? Você tava dormindo?"
+  },
+  {
+   "id": "gzp9f6",
+   "t": "character",
+   "x": "TAILA"
+  },
+  {
+   "id": "sj9pev",
+   "t": "dialogue",
+   "x": "E o que você achava que eu estaria fazendo num dia nublado como esse?"
+  },
+  {
+   "id": "31g03x",
+   "t": "action",
+   "x": "Atrás dela, no escuro, a segunda forma se mexe e puxa o edredom para cima da cabeça, com um resmungo feliz de quem não acordou de verdade."
+  },
+  {
+   "id": "5l7gay",
+   "t": "character",
+   "x": "TAILA"
+  },
+  {
+   "id": "004u8h",
+   "t": "dialogue",
+   "x": "Eu só tô esperando a chuva começar a cair…"
+  },
+  {
+   "id": "im7s79",
+   "t": "character",
+   "x": "NIUWË (V.O.)"
+  },
+  {
+   "id": "ob39z6",
+   "t": "dialogue",
+   "x": "É noite, Mensa. E o céu é vermelho."
+  },
+  {
+   "id": "uqx47e",
+   "t": "character",
+   "x": "TAILA"
+  },
+  {
+   "id": "o6ivud",
+   "t": "dialogue",
+   "x": "Eu fecho a cortina. Evita decepção."
+  },
+  {
+   "id": "v2i1oi",
+   "t": "character",
+   "x": "NIUWË (V.O.)"
+  },
+  {
+   "id": "1n2afk",
+   "t": "dialogue",
+   "x": "Sepharoth."
+  },
+  {
+   "id": "zj3l4p",
+   "t": "action",
+   "x": "Silêncio na linha. Alguns segundos de chiado. Taila abre os olhos, um de cada vez."
+  },
+  {
+   "id": "nth1o0",
+   "t": "character",
+   "x": "TAILA"
+  },
+  {
+   "id": "5dflu5",
+   "t": "paren",
+   "x": "(murmurando para o teto)"
+  },
+  {
+   "id": "nx56zk",
+   "t": "dialogue",
+   "x": "Ah, não… esse demônio de novo."
+  },
+  {
+   "id": "d1r9f5",
+   "t": "action",
+   "x": "O farfalhar das cobertas. Ela se senta na cama. Ao lado dela, o edredom reclama."
+  },
+  {
+   "id": "9apz7o",
+   "t": "character",
+   "x": "NIUWË (V.O.)"
+  },
+  {
+   "id": "9qo0g9",
+   "t": "dialogue",
+   "x": "Levanta."
+  },
+  {
+   "id": "gfhtiz",
+   "t": "character",
+   "x": "TAILA"
+  },
+  {
+   "id": "mcslk1",
+   "t": "paren",
+   "x": "(o sono sumindo)"
+  },
+  {
+   "id": "nd40qi",
+   "t": "dialogue",
+   "x": "O que você quer?"
+  },
+  {
+   "id": "243tw2",
+   "t": "character",
+   "x": "NIUWË (V.O.)"
+  },
+  {
+   "id": "gwdxuy",
+   "t": "dialogue",
+   "x": "Pega o helicóptero e voa até a estação 4. Eu chego em dez minutos."
+  },
+  {
+   "id": "tslzzt",
+   "t": "character",
+   "x": "TAILA"
+  },
+  {
+   "id": "lvafn3",
+   "t": "dialogue",
+   "x": "Você sabe que eu não chego lá em dez minutos, né?"
+  },
+  {
+   "id": "a30muf",
+   "t": "action",
+   "x": "INTERCALADO: Niuwë desce a escada de dois em dois degraus, desviando de alunos, empurrando gente sem nenhuma cerimônia, o telefone no ouvido."
+  },
+  {
+   "id": "t4yiph",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "bwcgwb",
+   "t": "dialogue",
+   "x": "Então corre, Mensa."
+  },
+  {
+   "id": "sn0sc4",
+   "t": "action",
+   "x": "Taila fica um segundo em silêncio. Suspira um suspiro longo, de quem já fez isso antes."
+  },
+  {
+   "id": "l1doox",
+   "t": "character",
+   "x": "TAILA"
+  },
+  {
+   "id": "j8u4wo",
+   "t": "dialogue",
+   "x": "Isso tá virando rotina."
+  },
+  {
+   "id": "jj1y6x",
+   "t": "action",
+   "x": "Ela desliga. Joga o celular na cama, ergue o edredom e fala para a segunda forma:"
+  },
+  {
+   "id": "3gb94r",
+   "t": "character",
+   "x": "TAILA"
+  },
+  {
+   "id": "g9ds8w",
+   "t": "dialogue",
+   "x": "Acorda. Hoje a gente trabalha."
+  },
+  {
+   "id": "ijur04",
+   "t": "action",
+   "x": "Uma mão sai de baixo das cobertas e levanta um dedo, pedindo mais cinco minutos. Taila puxa o edredom inteiro."
+  },
+  {
+   "id": "ldlm10",
+   "t": "character",
+   "x": "SELENNA (O.S.)"
+  },
+  {
+   "id": "wldb57",
+   "t": "paren",
+   "x": "(protestando, mais para o travesseiro)"
+  },
+  {
+   "id": "ld2td4",
+   "t": "dialogue",
+   "x": "Mas eu tava sonhando que a gente tinha um cachorro…"
+  },
+  {
+   "id": "qz9mow",
+   "t": "scene",
+   "x": "EXT. PÁTIO CENTRAL — NOITE"
+  },
+  {
+   "id": "2jtj9f",
+   "t": "time",
+   "x": "[9:00–13:30]"
+  },
+  {
+   "id": "7u4uxb",
+   "t": "note",
+   "x": "SFX: o alarme, vento quente, uma multidão enorme gritando em muitas vozes."
+  },
+  {
+   "id": "c5g0wz",
+   "t": "action",
+   "x": "Niuwë empurra a porta de saída com o ombro. O vento quente bate no rosto dele, carregando um cheiro metálico, como sangue misturado com poeira. O pátio central é uma panela de pressão: milhares de alunos, de pijama, de uniforme, de casaco por cima de nada, correm sem direção. Colidem, caem, se levantam, tornam a colidir. Uma garota corre com um gato embaixo do braço, o outro braço erguendo um notebook acima da cabeça como um troféu."
+  },
+  {
+   "id": "96vuot",
+   "t": "action",
+   "x": "No horizonte, além da muralha, o céu pulsa num vermelho cada vez mais escuro. E algo se move debaixo dele, algo muito grande, ainda pequeno demais para ser entendido."
+  },
+  {
+   "id": "hfwfpd",
+   "t": "action",
+   "x": "Niuwë olha em volta. Vê, encostado numa parede, um caixote de madeira apodrecida que deve ter servido de cadeira para o jardineiro durante vinte anos. Arrasta-o até o meio do pátio, sobe nele e tenta gritar."
+  },
+  {
+   "id": "zq5nyr",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "kdq6bo",
+   "t": "dialogue",
+   "x": "ESCUTEM! POR FAVOR! ESCUTEM!"
+  },
+  {
+   "id": "qp8s1i",
+   "t": "action",
+   "x": "Ninguém ouve. A multidão passa por ele como um rio passa por uma pedra. Um aluno bate no caixote com o ombro, sem pedir desculpa."
+  },
+  {
+   "id": "1l7kge",
+   "t": "action",
+   "x": "Niuwë enfia dois dedos na boca e assobia. O som é agudo, perfurante, absolutamente profissional. As cabeças mais próximas se viram. Depois mais algumas. Em ondas, o pátio inteiro vai se calando."
+  },
+  {
+   "id": "5onj2l",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "64e25o",
+   "t": "dialogue",
+   "x": "Obrigado. Eu sou o Niuwë."
+  },
+  {
+   "id": "c8od7s",
+   "t": "character",
+   "x": "ALUNO (O.S.)"
+  },
+  {
+   "id": "0gqkd6",
+   "t": "paren",
+   "x": "(do fundo)"
+  },
+  {
+   "id": "r7dvpn",
+   "t": "dialogue",
+   "x": "O Niuwë? O que MATOU o Sepharoth?"
+  },
+  {
+   "id": "j9nrsv",
+   "t": "action",
+   "x": "Murmúrios, um arrepio. Niuwë faz uma pausa mínima, só o suficiente para parecer modesto."
+  },
+  {
+   "id": "zd3ro8",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "tkxc5o",
+   "t": "dialogue",
+   "x": "Em parte. E agora eu vou fazer de novo, mas preciso que vocês colaborem. Todo mundo para o bunker do setor Sul 5. EM FILA. O bunker tá aberto."
+  },
+  {
+   "id": "oh17xr",
+   "t": "character",
+   "x": "ALUNA (O.S.)"
+  },
+  {
+   "id": "bzmi5f",
+   "t": "dialogue",
+   "x": "Aberto?! Quem abriu?"
+  },
+  {
+   "id": "rl2y9k",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "lr71mm",
+   "t": "paren",
+   "x": "(sem piscar)"
+  },
+  {
+   "id": "ulwfsa",
+   "t": "dialogue",
+   "x": "Eu mesmo, agora há pouco. Fui lá e abri. Foi um sacrifício."
+  },
+  {
+   "id": "ai7jna",
+   "t": "action",
+   "x": "Por um segundo, o silêncio reina. Milhares de rostos vermelhos e suados o encaram, processando a informação com a velocidade de quem acordou de um pesadelo e descobriu que o pesadelo continuava acordado também."
+  },
+  {
+   "id": "vxqjov",
+   "t": "note",
+   "x": "SFX: um estalo, como uma corrente elétrica atravessando a multidão de ponta a ponta."
+  },
+  {
+   "id": "quno0b",
+   "t": "action",
+   "x": "Então todos se lançam ao mesmo tempo na direção que ele aponta. É uma debandada, não uma evacuação: empurrões, tropeços, gente saltando canteiro, alguém carregando um amigo nas costas. Mas pelo menos é uma debandada com destino. Já é alguma coisa."
+  },
+  {
+   "id": "m93oqw",
+   "t": "action",
+   "x": "Niuwë salta do caixote. O caixote, que esperava só esse momento, desmonta sob o peso dele com um estalo de madeira podre."
+  },
+  {
+   "id": "74ogt6",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "bmi14s",
+   "t": "paren",
+   "x": "(para os destroços)"
+  },
+  {
+   "id": "53iehv",
+   "t": "dialogue",
+   "x": "Valeu, parceiro. Morreu como herói."
+  },
+  {
+   "id": "d8b0nt",
+   "t": "action",
+   "x": "Ele se abaixa e puxa do meio dos escombros uma tábua comprida, de uns oitenta centímetros, cheia de farpas. Pesa na mão. Gira. Assente, satisfeito, como quem acaba de achar a ferramenta certa. Põe a tábua no ombro."
+  },
+  {
+   "id": "qycdj7",
+   "t": "action",
+   "x": "Ele sabe que aquilo não é suficiente. Dar uma direção é fácil. Fazer trinta mil pessoas em pânico chegarem inteiras a ela é outra história. E há o detalhe pequeno, minúsculo, insignificante, de que ele acaba de prometer um bunker aberto sem ter a menor ideia se é verdade."
+  },
+  {
+   "id": "p2qcm4",
+   "t": "action",
+   "x": "Puxa o celular. Disca. Toca uma vez. Duas. Na terceira, quando Niuwë já formulava mentalmente uma lista de xingamentos em ordem alfabética, atendem."
+  },
+  {
+   "id": "wtngmr",
+   "t": "action",
+   "x": "CORTE PARA:"
+  },
+  {
+   "id": "nl4eds",
+   "t": "action",
+   "x": "INT. DIRETORIA — CONTÍNUO. Dasko, ao telefone, de pé junto à janela, o rosto banhado pelo vermelho do céu."
+  },
+  {
+   "id": "b476l1",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "adp5rt",
+   "t": "dialogue",
+   "x": "Niuwë! Qual a situação aí embaixo?"
+  },
+  {
+   "id": "sms2oh",
+   "t": "character",
+   "x": "NIUWË (V.O.)"
+  },
+  {
+   "id": "or5hnu",
+   "t": "dialogue",
+   "x": "A situação é uma merda, senhor, obrigado por perguntar. (andando, seguindo o fluxo) Escuta. O bunker do setor Sul 5. Tá aberto, né?"
+  },
+  {
+   "id": "wyyqc1",
+   "t": "action",
+   "x": "Silêncio. Dasko vira o corpo devagar, a testa franzida."
+  },
+  {
+   "id": "ivnhft",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "1wtovn",
+   "t": "dialogue",
+   "x": "Niuwë…"
+  },
+  {
+   "id": "mpgyyd",
+   "t": "character",
+   "x": "NIUWË (V.O.)"
+  },
+  {
+   "id": "afod48",
+   "t": "dialogue",
+   "x": "Fala que tá aberto."
+  },
+  {
+   "id": "xbb061",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "xpyj41",
+   "t": "dialogue",
+   "x": "Por que você quer saber se o bunker tá aberto?"
+  },
+  {
+   "id": "dry50o",
+   "t": "character",
+   "x": "NIUWË (V.O.)"
+  },
+  {
+   "id": "nlf393",
+   "t": "dialogue",
+   "x": "Por nada. Curiosidade acadêmica."
+  },
+  {
+   "id": "g61644",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "t90mmn",
+   "t": "dialogue",
+   "x": "Niuwë. O que você fez?"
+  },
+  {
+   "id": "d4i3gx",
+   "t": "character",
+   "x": "NIUWË (V.O.)"
+  },
+  {
+   "id": "gm09py",
+   "t": "dialogue",
+   "x": "Eu posso ter dito pra metade da Escola correr pra lá."
+  },
+  {
+   "id": "ujue29",
+   "t": "note",
+   "x": "SFX: um baque seco. Depois outro. Depois outro. Dasko, de olhos fechados, batendo a testa na mesa, com a regularidade de um metrônomo."
+  },
+  {
+   "id": "ju4e2u",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "nakr5r",
+   "t": "dialogue",
+   "x": "Puta que pariu, Niuwë."
+  },
+  {
+   "id": "pscjpu",
+   "t": "character",
+   "x": "NIUWË (V.O.)"
+  },
+  {
+   "id": "tatc06",
+   "t": "dialogue",
+   "x": "Olha a boca, diretor. Tem criança ouvindo."
+  },
+  {
+   "id": "ochp5f",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "v73nzt",
+   "t": "dialogue",
+   "x": "Tem trinta mil crianças correndo pra uma porta de aço trancada, isso sim!"
+  },
+  {
+   "id": "0h9uc7",
+   "t": "paren",
+   "x": "(a voz sobe meia oitava e racha no meio)"
+  },
+  {
+   "id": "3i9nbo",
+   "t": "dialogue",
+   "x": "Você tem noção do que tá me pedindo? Organizar uma evacuação dessas, nesse caos, com essa coisa vindo? O pânico transforma gente em manada. Manada não pensa. Manada pisoteia. Como diabos a gente faz isso sem virar uma tragédia?"
+  },
+  {
+   "id": "9gu09w",
+   "t": "action",
+   "x": "Niuwë para no meio do pátio e deixa a multidão passar por ele dos dois lados, como água contornando uma pedra. Fecha os olhos com força. O alarme grita, o vento uiva, alguém atrás dele chora alto, e o céu pulsa num ritmo que ele começa a sentir no próprio peito. Ele empurra tudo para longe, um barulho de cada vez, até sobrar só a mente, fria e afiada. Não há espaço para dúvida. Não agora."
+  },
+  {
+   "id": "s1y3sh",
+   "t": "action",
+   "x": "Abre os olhos. Encontrou a resposta."
+  },
+  {
+   "id": "xfronz",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "bcbd54",
+   "t": "dialogue",
+   "x": "Convoca o Conselho Estudantil. Mobiliza os líderes de cada setor pra ajudar na evacuação. Monitores, representantes de turma, aquele pessoal chato que adora ter crachá: hoje é o dia deles. Usa os alto-falantes, usa os professores, usa os seguranças, usa todo mundo que tiver duas pernas e um pingo de juízo. Organiza em filas, por setor, nada de manada."
+  },
+  {
+   "id": "c8idw1",
+   "t": "paren",
+   "x": "(respira fundo)"
+  },
+  {
+   "id": "7ztkkd",
+   "t": "dialogue",
+   "x": "E, pelo amor de Häita, manda alguém abrir a porra do bunker."
+  },
+  {
+   "id": "ur21k3",
+   "t": "action",
+   "x": "Dasko fica um instante calado. Quando fala, a voz dele já é a do diretor outra vez."
+  },
+  {
+   "id": "is0v8t",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "j4gq48",
+   "t": "dialogue",
+   "x": "Certo. Eu cuido disso."
+  },
+  {
+   "id": "cblwi2",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "dlp3xy",
+   "t": "dialogue",
+   "x": "E depois pega o helicóptero da Taila. Ela passa no heliponto da diretoria em cinco minutos. Me encontra na estação 4."
+  },
+  {
+   "id": "633n36",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "e25vpd",
+   "t": "paren",
+   "x": "(devagar, quase para si mesmo)"
+  },
+  {
+   "id": "73oj8d",
+   "t": "dialogue",
+   "x": "Eu… não gosto de helicóptero."
+  },
+  {
+   "id": "km5p6q",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "yl3yvo",
+   "t": "dialogue",
+   "x": "Ninguém gosta, Daskão. É por isso que tem cinto."
+  },
+  {
+   "id": "dhaels",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "ca1hqq",
+   "t": "dialogue",
+   "x": "Quanto tempo a gente tem, você sabe?"
+  },
+  {
+   "id": "7xnnzp",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "a27rw5",
+   "t": "dialogue",
+   "x": "Eu ia te perguntar isso. A coisa tá onde?"
+  },
+  {
+   "id": "bh8ohd",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "awr05y",
+   "t": "dialogue",
+   "x": "A coisa acabou de acordar, se isso te conforta."
+  },
+  {
+   "id": "xg6k6c",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "dd2slr",
+   "t": "dialogue",
+   "x": "Não conforta, não."
+  },
+  {
+   "id": "fliryp",
+   "t": "action",
+   "x": "Uma pausa curta na linha. Nos alto-falantes, o alarme. Na voz do diretor, algo que não é medo, é pior: é carinho."
+  },
+  {
+   "id": "d79s03",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "j998we",
+   "t": "dialogue",
+   "x": "Niuwë… se cuida."
+  },
+  {
+   "id": "pw2cb7",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "gus67g",
+   "t": "dialogue",
+   "x": "Eu não vou morrer, Dasko."
+  },
+  {
+   "id": "ioj243",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "g8a3k5",
+   "t": "dialogue",
+   "x": "Eu ia dizer pra amarrar a bota."
+  },
+  {
+   "id": "7n399b",
+   "t": "note",
+   "x": "SFX: clique. A linha cai."
+  },
+  {
+   "id": "54rbcc",
+   "t": "action",
+   "x": "Niuwë para. Olha para baixo. A bota continua desamarrada, o cadarço chicoteando o chão."
+  },
+  {
+   "id": "znda4g",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "f4pjr9",
+   "t": "paren",
+   "x": "(para o telefone morto)"
+  },
+  {
+   "id": "ckbpql",
+   "t": "dialogue",
+   "x": "Caralho? Que porra de ouvido é esse, hein, Daskão?"
+  },
+  {
+   "id": "gkg0hu",
+   "t": "action",
+   "x": "Bufa. Guarda o celular. E não amarra coisa nenhuma, porque não há tempo para isso."
+  },
+  {
+   "id": "dbhjda",
+   "t": "action",
+   "x": "Olha uma última vez para a Escola, o lugar que um dia chamou de lar, se desfazendo ao redor dele como um formigueiro pisado. Depois enfia a tábua debaixo do braço e dispara pelo pátio, contra a correnteza, na direção dos dormitórios do Bloco C."
+  },
+  {
+   "id": "t4i406",
+   "t": "action",
+   "x": "Ele ainda não vai para a estação 4. Antes, tem uma parada."
+  },
+  {
+   "id": "g9z6wz",
+   "t": "act",
+   "x": "ATO DOIS"
+  },
+  {
+   "id": "tu02s4",
+   "t": "scene",
+   "x": "INT. QUARTO DO ROGER — NOITE"
+  },
+  {
+   "id": "jbbqtb",
+   "t": "time",
+   "x": "[13:30–19:00]"
+  },
+  {
+   "id": "exbtgy",
+   "t": "note",
+   "x": "GRADE: âmbar fraco de um abajur, cortado pelo vermelho da janela."
+  },
+  {
+   "id": "trsj3v",
+   "t": "action",
+   "x": "Um quarto que parece ter sido assaltado por um filósofo com insônia: livros empilhados como torres, pratos com restos arqueológicos, um mapa-múndi riscado a lápis e, num canto, um pufe verde-musgo com um afundamento perfeito no formato de um homem. Na escrivaninha, uma caneca de chá que está ali há tanto tempo que poderia reivindicar cidadania."
+  },
+  {
+   "id": "w1qmbo",
+   "t": "action",
+   "x": "ROGER continua deitado, de barriga pra cima, sobre a cama, como o deixamos. JORGENSSEN, no vão da janela, observa o horizonte com o celular apertado na mão. A porta se escancara com um chute. NIUWË entra com a tábua no ombro, as botas desamarradas, o cabelo preso num coque que já está começando a desistir."
+  },
+  {
+   "id": "u7bcc7",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "8tafst",
+   "t": "dialogue",
+   "x": "Levantem."
+  },
+  {
+   "id": "5ueirr",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "qpoyia",
+   "t": "paren",
+   "x": "(sem mexer a cabeça)"
+  },
+  {
+   "id": "3ag0fp",
+   "t": "dialogue",
+   "x": "Eu não."
+  },
+  {
+   "id": "q6cj2i",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "ziajs4",
+   "t": "dialogue",
+   "x": "Roger."
+  },
+  {
+   "id": "odmgfj",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "8e33g8",
+   "t": "dialogue",
+   "x": "Pensei bastante e cheguei a uma conclusão. O universo vai foder com a gente de qualquer jeito, Niuwë. De pé ou deitado. Eu prefiro deitado."
+  },
+  {
+   "id": "2bwx5y",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "4cp1vz",
+   "t": "dialogue",
+   "x": "Ele tá assim desde que eu entrei."
+  },
+  {
+   "id": "4ajfpi",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "uukxjf",
+   "t": "dialogue",
+   "x": "Eu tô em paz. Tenho o pufe, tenho o chá. O pufe nunca me julgou."
+  },
+  {
+   "id": "dhnb7e",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "b71li0",
+   "t": "dialogue",
+   "x": "É um pufe, Roger."
+  },
+  {
+   "id": "gjhcpn",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "77d64n",
+   "t": "dialogue",
+   "x": "Isso é preconceito de espécie."
+  },
+  {
+   "id": "zxtprk",
+   "t": "action",
+   "x": "Niuwë joga uma olhada de cima a baixo em Jorgenssen e estaciona o olhar no ombro dele."
+  },
+  {
+   "id": "xevhau",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "b5ym8c",
+   "t": "dialogue",
+   "x": "Donzela, sua ombreira tá de cabeça pra baixo."
+  },
+  {
+   "id": "lyu0u0",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "ugz8hs",
+   "t": "paren",
+   "x": "(ajeitando, ofendido)"
+  },
+  {
+   "id": "oox6cf",
+   "t": "dialogue",
+   "x": "Vai tomar no cu."
+  },
+  {
+   "id": "k0kqa4",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "jelzb6",
+   "t": "dialogue",
+   "x": "Você tá lindo. Me emocionei."
+  },
+  {
+   "id": "fkhryz",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "odf50a",
+   "t": "paren",
+   "x": "(para Niuwë)"
+  },
+  {
+   "id": "9uaxee",
+   "t": "dialogue",
+   "x": "Ele não tá bem."
+  },
+  {
+   "id": "te91bj",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "5vafzv",
+   "t": "dialogue",
+   "x": "Ninguém aqui tá bem. Mas ele tá deitado."
+  },
+  {
+   "id": "hr5fdb",
+   "t": "action",
+   "x": "Niuwë se aproxima da cama. Fica de pé olhando para Roger por um tempo longo. Roger olha o teto."
+  },
+  {
+   "id": "gahdpg",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "yqxmbk",
+   "t": "paren",
+   "x": "(calmo, quase gentil)"
+  },
+  {
+   "id": "4zx64k",
+   "t": "dialogue",
+   "x": "Roger. Tem um demônio de três cabeças lá fora. Eu sou o segundo da lista dele. Você, o terceiro, porque o primeiro é o Jorgenssen, e ele odeia chorar em público."
+  },
+  {
+   "id": "djxsz4",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "idcogu",
+   "t": "dialogue",
+   "x": "Eu não sou o primeiro da lista de ninguém!"
+  },
+  {
+   "id": "oe0whv",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "t3tnt5",
+   "t": "dialogue",
+   "x": "Você é o primeiro da minha."
+  },
+  {
+   "id": "pmlvyw",
+   "t": "action",
+   "x": "Niuwë gira a tábua na mão, devagar, e a encosta no pé da cama. Roger finalmente vira o rosto."
+  },
+  {
+   "id": "61t4ud",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "d2atei",
+   "t": "dialogue",
+   "x": "O que é isso?"
+  },
+  {
+   "id": "idf37f",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "xy7ps5",
+   "t": "dialogue",
+   "x": "O diálogo."
+  },
+  {
+   "id": "z33z15",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "jfg1wh",
+   "t": "dialogue",
+   "x": "O quê?"
+  },
+  {
+   "id": "x2tj6a",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "3qm8o5",
+   "t": "paren",
+   "x": "(para Roger, baixo, o tom de quem alerta um turista)"
+  },
+  {
+   "id": "oz8vax",
+   "t": "dialogue",
+   "x": "Ele mata demônio por esporte, Roger. E já ensinou umas crianças a se comportar com isso."
+  },
+  {
+   "id": "qwmia6",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "wstsfh",
+   "t": "dialogue",
+   "x": "Eu só dialogo quando preciso. E o diálogo tá ficando impaciente. Anda."
+  },
+  {
+   "id": "pwk8c6",
+   "t": "action",
+   "x": "Num segundo Roger estava deitado, filosofando sobre a futilidade da existência. No seguinte, está de pé, ereto, com a postura de um soldado em revista e o entusiasmo repentino de um homem que redescobriu o valor da vida."
+  },
+  {
+   "id": "oza22s",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "oo5uze",
+   "t": "paren",
+   "x": "(a voz subindo uma oitava)"
+  },
+  {
+   "id": "4i7djq",
+   "t": "dialogue",
+   "x": "Ótimo. Excelente. Eu tava mesmo pensando que o mundo merece uma segunda chance."
+  },
+  {
+   "id": "oibp58",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "7qct83",
+   "t": "dialogue",
+   "x": "Que bom que a gente concorda."
+  },
+  {
+   "id": "e5zpv7",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "8lf2z1",
+   "t": "dialogue",
+   "x": "Posso pelo menos calçar o tênis?"
+  },
+  {
+   "id": "yu781b",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "191hsg",
+   "t": "dialogue",
+   "x": "Trinta segundos."
+  },
+  {
+   "id": "77ozk7",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "gj4vdx",
+   "t": "dialogue",
+   "x": "Você é um monstro, sabia?"
+  },
+  {
+   "id": "9i2zmx",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "nywygx",
+   "t": "dialogue",
+   "x": "Tem um de três cabeças lá fora. Eu sou o segundo da lista."
+  },
+  {
+   "id": "b70htr",
+   "t": "action",
+   "x": "Roger calça os tênis em doze segundos. Faz questão de contar em voz alta."
+  },
+  {
+   "id": "5uaf58",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "0cqnuw",
+   "t": "dialogue",
+   "x": "Vai pro corredor."
+  },
+  {
+   "id": "6d56ul",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "mdgjau",
+   "t": "dialogue",
+   "x": "Quê?"
+  },
+  {
+   "id": "c3kenp",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "zzfom8",
+   "t": "dialogue",
+   "x": "Corredor. Lá fora. Do outro lado da porta."
+  },
+  {
+   "id": "zxthoh",
+   "t": "paren",
+   "x": "(o polegar por cima do ombro)"
+  },
+  {
+   "id": "u4m9s9",
+   "t": "dialogue",
+   "x": "Quero falar com o Jorgenssen a sós."
+  },
+  {
+   "id": "zskt4a",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "q4lwml",
+   "t": "dialogue",
+   "x": "Não. Esse quarto é meu. Eu pago o chá."
+  },
+  {
+   "id": "saais0",
+   "t": "action",
+   "x": "Niuwë se vira devagar. Levanta a tábua e a coloca a poucos centímetros do nariz de Roger. As farpas quase fazem cócegas."
+  },
+  {
+   "id": "lqh65g",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "y0pv4r",
+   "t": "paren",
+   "x": "(seco)"
+  },
+  {
+   "id": "5n3g4g",
+   "t": "dialogue",
+   "x": "Corredor."
+  },
+  {
+   "id": "wh6svw",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "dwr0w9",
+   "t": "paren",
+   "x": "(depois de uma pausa)"
+  },
+  {
+   "id": "4tpdu8",
+   "t": "dialogue",
+   "x": "Tô saindo."
+  },
+  {
+   "id": "qwltu7",
+   "t": "action",
+   "x": "Roger sai de lado, sem tirar os olhos da tábua, e fecha a porta devagar, como quem deixa uma criança dormindo. Silêncio. O som do alarme fica abafado. Os dois amigos, sozinhos, no âmbar fraco do abajur."
+  },
+  {
+   "id": "dtvzks",
+   "t": "action",
+   "x": "Niuwë joga a tábua no chão. O barulho da madeira soa estranhamente final. Do bolso interno da jaqueta, tira o envelope branco e o segura à frente do corpo, com as duas mãos."
+  },
+  {
+   "id": "jzinsz",
+   "t": "note",
+   "x": "TRILHA: um piano muito suave, quase inaudível, entra por baixo do alarme."
+  },
+  {
+   "id": "ujwdsn",
+   "t": "action",
+   "x": "Abre a boca. Fecha. Passa a mão livre pela nuca, desconfortável. É a primeira vez naquela noite, talvez em muito tempo, que ele não tem uma piada pronta."
+  },
+  {
+   "id": "rbzr8w",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "m3bt23",
+   "t": "dialogue",
+   "x": "Jorgenssen…"
+  },
+  {
+   "id": "7l696t",
+   "t": "paren",
+   "x": "(pigarreia)"
+  },
+  {
+   "id": "fc78x8",
+   "t": "dialogue",
+   "x": "Eu fico zoando com a tua cara. Te sacaneando, te chamando de donzela, fazendo você passar vergonha na frente de todo mundo. Eu sei. Eu faço isso direto."
+  },
+  {
+   "id": "5zgo8k",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "tdxs4x",
+   "t": "dialogue",
+   "x": "Faz mesmo."
+  },
+  {
+   "id": "i7am5q",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "qydrtl",
+   "t": "dialogue",
+   "x": "Mas você sabe que eu gosto muito de você, né?"
+  },
+  {
+   "id": "edo35s",
+   "t": "paren",
+   "x": "(ergue os olhos)"
+  },
+  {
+   "id": "diql83",
+   "t": "dialogue",
+   "x": "Tipo… de verdade. Você é o irmão que eu nunca tive, cara."
+  },
+  {
+   "id": "wes53c",
+   "t": "action",
+   "x": "Jorgenssen não diz nada. A boca dele se mexe, como se uma resposta sarcástica estivesse ali, na ponta da língua. Ela não sai."
+  },
+  {
+   "id": "19dkn1",
+   "t": "action",
+   "x": "Niuwë empurra o envelope um pouco mais pra frente."
+  },
+  {
+   "id": "0ku6n5",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "ollx8v",
+   "t": "dialogue",
+   "x": "Essa carta aqui… eu quero que você entregue pra uma pessoa especial."
+  },
+  {
+   "id": "ufpepp",
+   "t": "paren",
+   "x": "(respira fundo)"
+  },
+  {
+   "id": "7dhhpx",
+   "t": "dialogue",
+   "x": "Eu não sei se vocês vão se conhecer algum dia. Talvez não. Talvez sim. Mas eu sinto…"
+  },
+  {
+   "id": "81vcog",
+   "t": "paren",
+   "x": "(a voz falha; ele aperta o maxilar)"
+  },
+  {
+   "id": "ku5g1b",
+   "t": "dialogue",
+   "x": "Eu sinto, lá no fundo, que eu posso não voltar dessa vez."
+  },
+  {
+   "id": "ggsb27",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "g6n0z3",
+   "t": "dialogue",
+   "x": "Para com isso."
+  },
+  {
+   "id": "95x1i7",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "wn0fpv",
+   "t": "dialogue",
+   "x": "Jorgën…"
+  },
+  {
+   "id": "3lsduq",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "vf9p1m",
+   "t": "paren",
+   "x": "(a voz sobe, rachada)"
+  },
+  {
+   "id": "01tvtv",
+   "t": "dialogue",
+   "x": "Para com essa merda, Niuwë. Você sempre volta. Você voltou da última vez, voltou de todas as outras vezes. Você vai lá, mata o bicho, volta reclamando do cabelo, e a gente vai comer alguma coisa gordurosa às três da manhã. É assim que funciona."
+  },
+  {
+   "id": "3mvfnm",
+   "t": "action",
+   "x": "Niuwë sorri. Um sorriso pequeno, triste, que não tem nada a ver com o meio sorriso convencido do espelho."
+  },
+  {
+   "id": "c6i316",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "66yt70",
+   "t": "dialogue",
+   "x": "Então guarda por precaução."
+  },
+  {
+   "id": "d4bsug",
+   "t": "paren",
+   "x": "(segura o envelope estendido entre os dois)"
+  },
+  {
+   "id": "cgezp1",
+   "t": "dialogue",
+   "x": "Por favor. Fica com isso."
+  },
+  {
+   "id": "ybg02m",
+   "t": "action",
+   "x": "Jorgenssen olha o papel por um longo segundo. Lá fora, o céu ronca de novo, mais perto."
+  },
+  {
+   "id": "nvh4q2",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "9knr7w",
+   "t": "paren",
+   "x": "(a voz quase sumindo)"
+  },
+  {
+   "id": "bqe3rr",
+   "t": "dialogue",
+   "x": "Pra quem é?"
+  },
+  {
+   "id": "pxg2dq",
+   "t": "action",
+   "x": "Niuwë baixa os olhos para o envelope. Quando responde, o nome sai com um cuidado que Jorgenssen nunca ouviu nele antes, como se fosse algo frágil que pudesse quebrar se dito alto demais."
+  },
+  {
+   "id": "w9qlra",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "24fb6d",
+   "t": "dialogue",
+   "x": "Pra minha irmã."
+  },
+  {
+   "id": "n69rqm",
+   "t": "paren",
+   "x": "(pausa)"
+  },
+  {
+   "id": "x0xy5u",
+   "t": "dialogue",
+   "x": "A Lala."
+  },
+  {
+   "id": "wyn8a4",
+   "t": "action",
+   "x": "Jorgenssen pega o envelope. Segura com as duas mãos, do mesmo jeito que Niuwë segurou. PLANO DETALHE: é leve. Leve demais para tudo o que carrega. Por dentro, dá para sentir uma folha dobrada e o papel mais grosso de um desenho."
+  },
+  {
+   "id": "137bb5",
+   "t": "action",
+   "x": "Ele abre a jaqueta e guarda o envelope no bolso interno, do lado esquerdo, em cima do coração. Fecha o zíper até o fim."
+  },
+  {
+   "id": "h4pxzr",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "gti2ab",
+   "t": "dialogue",
+   "x": "Eu entrego. Mas só porque você vai voltar e pedir de volta. Aí eu vou poder te zoar pelo resto da vida por ter ficado sentimental."
+  },
+  {
+   "id": "ac619i",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "y32yza",
+   "t": "dialogue",
+   "x": "Fechado."
+  },
+  {
+   "id": "yarc40",
+   "t": "action",
+   "x": "Os dois ficam parados, um de frente pro outro. Sem abraço. Sem aperto de mão. Do jeito deles."
+  },
+  {
+   "id": "oeb36l",
+   "t": "character",
+   "x": "ROGER (O.S., abafado, atrás da porta)"
+  },
+  {
+   "id": "igpwm2",
+   "t": "dialogue",
+   "x": "Vocês já terminaram de se beijar? O mundo tá acabando aqui fora!"
+  },
+  {
+   "id": "pgojns",
+   "t": "action",
+   "x": "Niuwë fecha os olhos e solta uma risada curta pelo nariz. A armadura volta ao lugar, peça por peça."
+  },
+  {
+   "id": "ctxux0",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "3g018x",
+   "t": "dialogue",
+   "x": "Já, Roger."
+  },
+  {
+   "id": "93aw8a",
+   "t": "action",
+   "x": "Ele se abaixa, pega a tábua do chão e a apoia no ombro. Olha para Jorgenssen e abre a porta com o pé."
+  },
+  {
+   "id": "ipc2em",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "njg10f",
+   "t": "dialogue",
+   "x": "Bora. A gente tem um demônio pra matar."
+  },
+  {
+   "id": "3n0j5k",
+   "t": "scene",
+   "x": "EXT. CAMPUS / QUADRICICLO — NOITE"
+  },
+  {
+   "id": "4eul4d",
+   "t": "time",
+   "x": "[19:00–21:30]"
+  },
+  {
+   "id": "0dvs3g",
+   "t": "note",
+   "x": "SFX: passos, a respiração dos três, o alarme ao longe como um relógio de pânico."
+  },
+  {
+   "id": "92v323",
+   "t": "action",
+   "x": "Os três saem correndo pela porta do bloco. A Escola ao redor está irreconhecível: fios soltos cuspindo faísca, vidros estourados, uma torre de iluminação caída de lado sobre o gramado, as paredes rachadas pelos tremores que o Sepharoth provoca a cada passo. Ao longe, filas desordenadas de alunos descem para o setor Sul, empurradas por monitores de crachá."
+  },
+  {
+   "id": "cbmvw3",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "vofuem",
+   "t": "dialogue",
+   "x": "Eu nunca vi nada assim na minha vida."
+  },
+  {
+   "id": "ew5b9y",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "xq6o38",
+   "t": "dialogue",
+   "x": "Você nunca viu nada na vida. Mas concordo."
+  },
+  {
+   "id": "wjaszy",
+   "t": "action",
+   "x": "Roger estaca. Aponta, sem fôlego."
+  },
+  {
+   "id": "6bsvta",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "r3oqeb",
+   "t": "dialogue",
+   "x": "Ali! Um quadriciclo!"
+  },
+  {
+   "id": "v32hm3",
+   "t": "action",
+   "x": "Um quadriciclo de manutenção, amarelo, com um 23 pintado a mão no para-lama, encostado numa parede entre duas pilhas de caixas. Niuwë avalia o veículo com ar de profissional."
+  },
+  {
+   "id": "ccjegb",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "hg26uh",
+   "t": "dialogue",
+   "x": "Isso vai ser fácil."
+  },
+  {
+   "id": "wfa207",
+   "t": "action",
+   "x": "Eles sobem: Niuwë na frente, Jorgenssen no meio, Roger dependurado atrás como uma mochila. Niuwë apalpa o contato. Nada."
+  },
+  {
+   "id": "hfdomv",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "lgpo3n",
+   "t": "dialogue",
+   "x": "Tá sem a chave."
+  },
+  {
+   "id": "ec81a7",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "mf85me",
+   "t": "dialogue",
+   "x": "Tá, né."
+  },
+  {
+   "id": "uea3kg",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "5n6ivs",
+   "t": "dialogue",
+   "x": "Então não tem jeito. A gente vai a pé e morre cansado. Antes de chegar."
+  },
+  {
+   "id": "dta2sv",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "pj8lod",
+   "t": "dialogue",
+   "x": "Você ficou louco?"
+  },
+  {
+   "id": "yfb7d3",
+   "t": "action",
+   "x": "Niuwë se debruça sobre o painel. Arranca a tampa do contato com a ponta da unha, puxa dois fios, encosta um no outro. Uma faísca. O motor tosse, falha, tosse de novo. Pega."
+  },
+  {
+   "id": "hxuybj",
+   "t": "note",
+   "x": "SFX: o rugido áspero de um motor velho acordando contra a vontade."
+  },
+  {
+   "id": "alblxu",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "gvr818",
+   "t": "dialogue",
+   "x": "Como é que você sabe fazer isso?"
+  },
+  {
+   "id": "pd3qtc",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "1cph5g",
+   "t": "dialogue",
+   "x": "Passei um semestre fuçando na fiação dos quadriciclos dessa Escola. Era isso ou estudar."
+  },
+  {
+   "id": "8wxmf4",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "q8af7d",
+   "t": "dialogue",
+   "x": "Isso é crime."
+  },
+  {
+   "id": "pfc2er",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "4z9sa5",
+   "t": "dialogue",
+   "x": "Isso é um serviço público."
+  },
+  {
+   "id": "56w3xb",
+   "t": "action",
+   "x": "O quadriciclo arranca em um solavanco, quase derrubando Roger. A câmera acompanha os três atravessando o campus em ruínas, entre fumaça e faíscas. Roger, agarrado em Jorgenssen, tira o celular do bolso e mostra uma tela com um radar: um ponto vermelho gigantesco no meio de uma moldura de círculos."
+  },
+  {
+   "id": "3zrfk9",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "a66pr4",
+   "t": "dialogue",
+   "x": "Cinquenta e dois minutos."
+  },
+  {
+   "id": "oevk9v",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "l3nqb0",
+   "t": "dialogue",
+   "x": "Pra quê?"
+  },
+  {
+   "id": "rdcjb0",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "aftyzl",
+   "t": "dialogue",
+   "x": "Pra ele chegar na Escola. E nesse ritmo, se a gente fosse a pé, sobraria quase nada. Ele já tá perto demais da muralha."
+  },
+  {
+   "id": "4z5kly",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "cs50n0",
+   "t": "dialogue",
+   "x": "Você pode não narrar o relógio?"
+  },
+  {
+   "id": "1rw02v",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "2k6esj",
+   "t": "dialogue",
+   "x": "Eu só leio o radar."
+  },
+  {
+   "id": "xkfzsz",
+   "t": "paren",
+   "x": "(pausa)"
+  },
+  {
+   "id": "61k6zd",
+   "t": "dialogue",
+   "x": "Cinquenta e um."
+  },
+  {
+   "id": "b3th4u",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "e60w49",
+   "t": "dialogue",
+   "x": "Roger."
+  },
+  {
+   "id": "5aej4p",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "kjvm9k",
+   "t": "dialogue",
+   "x": "Cinquenta."
+  },
+  {
+   "id": "dt7vys",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "0955r5",
+   "t": "dialogue",
+   "x": "Eu vou te empurrar desse negócio."
+  },
+  {
+   "id": "ilqdcj",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "o6j3wy",
+   "t": "dialogue",
+   "x": "Aí você vai ter que passar o resto da vida com a certeza de que eu estava certo."
+  },
+  {
+   "id": "ae7zpv",
+   "t": "action",
+   "x": "Roger fica em silêncio por um momento. Algo lhe ocorreu. A cor desce do rosto dele."
+  },
+  {
+   "id": "88jik5",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "bi1pg9",
+   "t": "dialogue",
+   "x": "Gente. Eu esqueci a minha arma."
+  },
+  {
+   "id": "h81uk5",
+   "t": "action",
+   "x": "Os dois viram a cabeça ao mesmo tempo."
+  },
+  {
+   "id": "9dq8cl",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "6mms8g",
+   "t": "dialogue",
+   "x": "Como você esquece a arma?"
+  },
+  {
+   "id": "odiygf",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "g3f3xw",
+   "t": "dialogue",
+   "x": "Eu estava ocupado com o pufe."
+  },
+  {
+   "id": "ae0kts",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "i7249i",
+   "t": "paren",
+   "x": "(suspirando, resignado)"
+  },
+  {
+   "id": "xoykuk",
+   "t": "dialogue",
+   "x": "Eu te empresto parte da minha."
+  },
+  {
+   "id": "h2h9f5",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "eylgof",
+   "t": "paren",
+   "x": "(sem tirar os olhos da estrada)"
+  },
+  {
+   "id": "3ek4r9",
+   "t": "dialogue",
+   "x": "Relaxa. Se faltar arma, tem o diálogo."
+  },
+  {
+   "id": "15qchv",
+   "t": "action",
+   "x": "Niuwë bate de leve com a ponta da tábua no próprio ombro. Jorgenssen dá uma risadinha. Roger olha para ele com a cara de quem acabou de ser ameaçado, e rebaixado, ao mesmo tempo."
+  },
+  {
+   "id": "bbj25b",
+   "t": "scene",
+   "x": "EXT. ESTAÇÃO 4 — NOITE"
+  },
+  {
+   "id": "rsitm6",
+   "t": "time",
+   "x": "[21:30–26:30]"
+  },
+  {
+   "id": "asqady",
+   "t": "note",
+   "x": "SFX: o vento assobiando por janelas vazias. O quadriciclo morre com um último engasgo."
+  },
+  {
+   "id": "zp3td7",
+   "t": "action",
+   "x": "O quadriciclo para na beira do terreno, onde o asfalto acaba e o mato começa, e o motor morre sozinho, como se tivesse se recusado a chegar mais perto. Os três descem devagar. Niuwë fica parado ao lado do guidão, a tábua no ombro, olhando para cima."
+  },
+  {
+   "id": "0xv91s",
+   "t": "action",
+   "x": "De perto, a ESTAÇÃO 4 é ainda pior: uma torre abandonada de concreto escuro, uns trinta metros, com uma escada em espiral que sobe pelo lado de fora e desaparece antes do último andar. O mato alto em volta da base se curva ao vento como se a torre respirasse. Na janela mais alta, um pedaço de cortina rasgada acena devagar."
+  },
+  {
+   "id": "lv8q7k",
+   "t": "action",
+   "x": "Roger e Jorgenssen só conhecem a estação 4 de ouvir falar. Niuwë conhece por dentro, e é isso que o faz calar. Ele não tira os olhos da janela mais alta, e o rosto dele fica vazio de qualquer piada."
+  },
+  {
+   "id": "2lbh49",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "39qf7v",
+   "t": "paren",
+   "x": "(baixo)"
+  },
+  {
+   "id": "kiy5ux",
+   "t": "dialogue",
+   "x": "Niuwë?"
+  },
+  {
+   "id": "3nwtqp",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "v6pqrs",
+   "t": "paren",
+   "x": "(sem olhar)"
+  },
+  {
+   "id": "2ahsr3",
+   "t": "dialogue",
+   "x": "Tô bem."
+  },
+  {
+   "id": "elm5fu",
+   "t": "action",
+   "x": "Ele não está. Ele sabe o que vem. E nenhuma piada do mundo vai tornar aquilo mais fácil."
+  },
+  {
+   "id": "oa1kl3",
+   "t": "note",
+   "x": "SFX: um som grave, que vem do céu, vibrando no peito: o rotor de um helicóptero."
+  },
+  {
+   "id": "s7br4u",
+   "t": "action",
+   "x": "Um HELICÓPTERO de pequeno porte rompe a escuridão vermelha. Em vez de pousar, dá uma volta completa em torno da torre, inclinado, tão baixo que as hélices quase raspam a escada em espiral. Depois sobe, gira no próprio eixo como um pião e desce de lado, balançando a cauda numa dancinha aérea absolutamente desnecessária. Pela janela da cabine, dá para ver o sorriso de TAILA."
+  },
+  {
+   "id": "aeec3r",
+   "t": "action",
+   "x": "Niuwë puxa o celular e liga. Na cabine, ela toca o fone do capacete."
+  },
+  {
+   "id": "9pgtza",
+   "t": "character",
+   "x": "TAILA (V.O., celular)"
+  },
+  {
+   "id": "j30vya",
+   "t": "dialogue",
+   "x": "Gostou? Ensaiei essa no simulador."
+  },
+  {
+   "id": "c1z5vg",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "qlu9sf",
+   "t": "paren",
+   "x": "(gritando por cima das hélices)"
+  },
+  {
+   "id": "i8us0x",
+   "t": "dialogue",
+   "x": "PARA DE GRAÇA, MENSA! O DASKO TÁ AÍ DENTRO!"
+  },
+  {
+   "id": "178m1l",
+   "t": "character",
+   "x": "TAILA (V.O.)"
+  },
+  {
+   "id": "4y1pe1",
+   "t": "dialogue",
+   "x": "Eu sei. Por isso que é engraçado."
+  },
+  {
+   "id": "uahven",
+   "t": "action",
+   "x": "PLANO DETALHE: no banco do passageiro, DASKO, agarrado à alça do teto com as duas mãos, os olhos arregalados, a pele num tom de verde que nenhuma luz vermelha consegue disfarçar. Ele parece estar rezando. Possivelmente para Häita. Possivelmente para qualquer coisa que esteja ouvindo."
+  },
+  {
+   "id": "hprkjq",
+   "t": "action",
+   "x": "Taila ri, desliga e, enfim, pousa. E pousa bonito, isso é preciso admitir: reto, firme, com a suavidade de uma pena. O vento do rotor bate neles como uma onda e leva o que restava do coque de Niuwë, que finalmente desiste da vida e se desmancha de vez."
+  },
+  {
+   "id": "226xks",
+   "t": "action",
+   "x": "Niuwë espera de braços cruzados, a tábua pendurada na mão, encarando Taila pelo vidro com o olhar mais debochado que já fez na vida. Ela tira o capacete, sacode o cabelo e o encara de volta. A porta lateral desliza."
+  },
+  {
+   "id": "v71apk",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "efkc7d",
+   "t": "dialogue",
+   "x": "Atrasada."
+  },
+  {
+   "id": "06czud",
+   "t": "character",
+   "x": "TAILA"
+  },
+  {
+   "id": "xxtmho",
+   "t": "paren",
+   "x": "(descendo num pulo, a jaqueta de voo claramente vestida no escuro)"
+  },
+  {
+   "id": "my8q08",
+   "t": "dialogue",
+   "x": "Você disse dez minutos. Eu cheguei em dezoito. Pra quem tava dormindo, é recorde."
+  },
+  {
+   "id": "t48prn",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "8lqs0w",
+   "t": "dialogue",
+   "x": "Falando nisso, me tira uma dúvida, Mensa. É realmente necessário dormir pelada?"
+  },
+  {
+   "id": "kdtq4p",
+   "t": "action",
+   "x": "Taila nem pisca."
+  },
+  {
+   "id": "zk458s",
+   "t": "character",
+   "x": "TAILA"
+  },
+  {
+   "id": "8ocun7",
+   "t": "dialogue",
+   "x": "Liberdade, Niuwë. Você devia experimentar. Talvez ajude a tirar esse cabo de vassoura que você tem enfiado em algum lugar."
+  },
+  {
+   "id": "2o0nbf",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "28cuvw",
+   "t": "dialogue",
+   "x": "Eu tenho uma tábua, na verdade."
+  },
+  {
+   "id": "i30abi",
+   "t": "character",
+   "x": "TAILA"
+  },
+  {
+   "id": "5q5sok",
+   "t": "dialogue",
+   "x": "Combina com você."
+  },
+  {
+   "id": "phbm3k",
+   "t": "action",
+   "x": "Niuwë estreita os olhos."
+  },
+  {
+   "id": "bxmpk6",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "ac939h",
+   "t": "dialogue",
+   "x": "E de quem era aquela voz no seu quarto?"
+  },
+  {
+   "id": "116lkl",
+   "t": "action",
+   "x": "Taila abre a boca. Fecha. Mas não é ela quem responde. Do fundo da cabine, alguém ergue o rosto: cabelo bagunçado, cara amassada de sono, um casaco grande demais que definitivamente não é dela e uma pistola de laser apoiada no colo, com a naturalidade de quem segura uma xícara de café."
+  },
+  {
+   "id": "a4694o",
+   "t": "character",
+   "x": "SELENNA"
+  },
+  {
+   "id": "tjqp0k",
+   "t": "paren",
+   "x": "(acenando, animada demais para a situação)"
+  },
+  {
+   "id": "exubz9",
+   "t": "dialogue",
+   "x": "Oi, meninos! Eu tava na casa da Taila quando você ligou, Niuwë."
+  },
+  {
+   "id": "b66fo3",
+   "t": "action",
+   "x": "O silêncio que se segue é tão denso que dá para cortar com a tábua."
+  },
+  {
+   "id": "593dsy",
+   "t": "character",
+   "x": "TAILA"
+  },
+  {
+   "id": "ny00uh",
+   "t": "paren",
+   "x": "(dando de ombros, num suspiro teatral)"
+  },
+  {
+   "id": "ukdksm",
+   "t": "dialogue",
+   "x": "Você esqueceu que ela é minha vizinha? Você precisa me visitar mais."
+  },
+  {
+   "id": "h592v3",
+   "t": "action",
+   "x": "Niuwë não olha para Taila. Olha para Selenna. Fixamente. Com a expressão de um investigador diante do principal suspeito."
+  },
+  {
+   "id": "u317lc",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "uhbvot",
+   "t": "dialogue",
+   "x": "Albin."
+  },
+  {
+   "id": "83zi8u",
+   "t": "character",
+   "x": "SELENNA"
+  },
+  {
+   "id": "qoty5b",
+   "t": "dialogue",
+   "x": "Oi?"
+  },
+  {
+   "id": "aeijll",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "j0agc4",
+   "t": "dialogue",
+   "x": "Você dorme pelada?"
+  },
+  {
+   "id": "47hwev",
+   "t": "action",
+   "x": "Selenna pisca. Pela primeira vez, o sorriso dela vacila. Ela ergue o queixo, ofendida, e vira o rosto para a janela."
+  },
+  {
+   "id": "duwg93",
+   "t": "character",
+   "x": "SELENNA"
+  },
+  {
+   "id": "8ri0mk",
+   "t": "dialogue",
+   "x": "Que pergunta mais descabida, Niuwë. Eu não vou responder isso."
+  },
+  {
+   "id": "vur2zl",
+   "t": "action",
+   "x": "Niuwë não diz nada. Só continua olhando. Ergue uma sobrancelha. Depois a outra. Inclina a cabeça, a expressão cada vez mais paciente e insuportável, como um cachorro esperando pão debaixo da mesa. Cinco segundos. Dez."
+  },
+  {
+   "id": "km988k",
+   "t": "action",
+   "x": "Selenna aguenta até o doze."
+  },
+  {
+   "id": "jb26du",
+   "t": "character",
+   "x": "SELENNA"
+  },
+  {
+   "id": "vjt3ft",
+   "t": "paren",
+   "x": "(encolhendo os ombros)"
+  },
+  {
+   "id": "rcs6f2",
+   "t": "dialogue",
+   "x": "…Sim. Durmo. Feliz?"
+  },
+  {
+   "id": "2m1t43",
+   "t": "action",
+   "x": "Niuwë abre a boca. Liga os pontos. A Taila dorme pelada. A Selenna dorme pelada. A Selenna estava no quarto da Taila. Às dez da noite. Ele para. Fica um segundo inteiro congelado, olhando para o nada."
+  },
+  {
+   "id": "j5uv94",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "4zkjtu",
+   "t": "paren",
+   "x": "(erguendo a mão)"
+  },
+  {
+   "id": "rmgiwz",
+   "t": "dialogue",
+   "x": "Deixa. Passou."
+  },
+  {
+   "id": "h45ye1",
+   "t": "action",
+   "x": "Atrás dele, Jorgenssen tosse para disfarçar uma risada."
+  },
+  {
+   "id": "uro0zm",
+   "t": "character",
+   "x": "TAILA"
+  },
+  {
+   "id": "bmdic8",
+   "t": "dialogue",
+   "x": "Eu peguei o diretor no caminho. Ele vomitou duas vezes no heliponto. Foi muito cavalheiro."
+  },
+  {
+   "id": "72nedh",
+   "t": "action",
+   "x": "Niuwë apoia um pé no degrau da aeronave, a tábua no ombro, e a mão de Taila aparece na frente dele, espalmada, bloqueando a passagem."
+  },
+  {
+   "id": "shpsuo",
+   "t": "character",
+   "x": "TAILA"
+  },
+  {
+   "id": "0ckpz7",
+   "t": "dialogue",
+   "x": "Nem pensar."
+  },
+  {
+   "id": "d2yw59",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "yhwh21",
+   "t": "dialogue",
+   "x": "Quê?"
+  },
+  {
+   "id": "945tnx",
+   "t": "character",
+   "x": "TAILA"
+  },
+  {
+   "id": "whj377",
+   "t": "paren",
+   "x": "(apontando com o queixo para a tábua)"
+  },
+  {
+   "id": "jmdqkm",
+   "t": "dialogue",
+   "x": "Isso aí. Fica do lado de fora."
+  },
+  {
+   "id": "rj25ea",
+   "t": "action",
+   "x": "Niuwë olha para a madeira. Depois para ela. Ofendido."
+  },
+  {
+   "id": "t8tdmx",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "z5aob8",
+   "t": "dialogue",
+   "x": "Isso não é “isso aí”, Mensa. É o diálogo."
+  },
+  {
+   "id": "xi1a2c",
+   "t": "character",
+   "x": "TAILA"
+  },
+  {
+   "id": "i4qjfx",
+   "t": "dialogue",
+   "x": "Eu não quero saber o nome que você deu pra esse pedaço de lixo. É uma tábua podre cheia de farpa, e o meu helicóptero já tá com gente demais. Deixa no mato."
+  },
+  {
+   "id": "njhsd3",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "3evya0",
+   "t": "dialogue",
+   "x": "Eu preciso dele."
+  },
+  {
+   "id": "tu80pe",
+   "t": "character",
+   "x": "TAILA"
+  },
+  {
+   "id": "p5ezrs",
+   "t": "dialogue",
+   "x": "Pra quê, pelo amor de Häita?"
+  },
+  {
+   "id": "y45xrc",
+   "t": "action",
+   "x": "Niuwë se inclina e baixa a voz, como quem compartilha um segredo pedagógico de extrema importância, e inclina a cabeça na direção do banco de trás, onde Roger e Jorgenssen se acotovelam, xingando em sussurros."
+  },
+  {
+   "id": "3ziyo3",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "g1pfz0",
+   "t": "dialogue",
+   "x": "Pra educar as crianças."
+  },
+  {
+   "id": "7d4m0k",
+   "t": "action",
+   "x": "Lá de trás, a discussão para na hora. Roger olha a tábua e engole em seco. Jorgenssen se encolhe uns cinco centímetros, devolvendo espaço sem que ninguém precise pedir."
+  },
+  {
+   "id": "c8ygdf",
+   "t": "action",
+   "x": "Taila olha os dois, quietos e comportados de repente, depois a tábua, depois Niuwë. Os lábios se apertam numa linha fina. Dá para ver a luta interna entre o princípio e o resultado."
+  },
+  {
+   "id": "yifz16",
+   "t": "action",
+   "x": "O resultado vence."
+  },
+  {
+   "id": "ulpuwr",
+   "t": "character",
+   "x": "TAILA"
+  },
+  {
+   "id": "5nscoo",
+   "t": "dialogue",
+   "x": "…Tá bom."
+  },
+  {
+   "id": "ynv81r",
+   "t": "paren",
+   "x": "(tirando a mão da frente)"
+  },
+  {
+   "id": "j9hsyv",
+   "t": "dialogue",
+   "x": "Mas se arranhar o meu banco, quem vai dialogar com você sou eu."
+  },
+  {
+   "id": "fnqruq",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "tukr6g",
+   "t": "dialogue",
+   "x": "Justo."
+  },
+  {
+   "id": "t1qs32",
+   "t": "action",
+   "x": "Ela volta ao banco do piloto, resmungando algo sobre homens e madeira. Niuwë sobe por último, olha para o banco de trás, onde não cabe mais nem um pensamento, e se senta no chão da cabine, ao lado da porta, com o diálogo atravessado nos joelhos."
+  },
+  {
+   "id": "1nk8od",
+   "t": "character",
+   "x": "TAILA"
+  },
+  {
+   "id": "u8i3wr",
+   "t": "paren",
+   "x": "(olhando por cima do ombro, colocando o capacete)"
+  },
+  {
+   "id": "airpz5",
+   "t": "dialogue",
+   "x": "Confortável?"
+  },
+  {
+   "id": "568ul2",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "l0l8q4",
+   "t": "dialogue",
+   "x": "Nunca estive melhor."
+  },
+  {
+   "id": "iy0uz5",
+   "t": "action",
+   "x": "Ele puxa a porta lateral, que se fecha com um ruído metálico seco, e que soa, de algum modo, definitivo. A câmera se afasta da torre. Na cauda do helicóptero, em letras brancas apagadas, lê-se VG-23."
+  },
+  {
+   "id": "owexn4",
+   "t": "act",
+   "x": "ATO TRÊS"
+  },
+  {
+   "id": "nbj3vp",
+   "t": "scene",
+   "x": "INT. HELICÓPTERO (EM VOO) — NOITE"
+  },
+  {
+   "id": "shpka7",
+   "t": "time",
+   "x": "[26:30–32:00]"
+  },
+  {
+   "id": "1b0peq",
+   "t": "note",
+   "x": "SFX: o rugido do rotor, que não deixa ninguém falar sem fone; o vento assobiando pelas janelas."
+  },
+  {
+   "id": "w8ulq2",
+   "t": "action",
+   "x": "Taila puxa o manche e o helicóptero sobe de uma vez, deixando o estômago de todo mundo meio metro abaixo. A estação 4 fica para trás, solitária na escuridão vermelha."
+  },
+  {
+   "id": "4uqyto",
+   "t": "action",
+   "x": "Taila estende um fone para ele. Ele coloca. Todos agora se falam por um intercomunicador, com o chiado de rádio."
+  },
+  {
+   "id": "bi26d0",
+   "t": "action",
+   "x": "Dasko, no banco da frente, continua agarrado à alça do teto, num verde digno de quem fez as pazes com a própria morte."
+  },
+  {
+   "id": "93yv8o",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "5ohsrd",
+   "t": "paren",
+   "x": "(fraco, no fone, mas carregado de indignação que o enjoo não consegue apagar)"
+  },
+  {
+   "id": "jwz175",
+   "t": "dialogue",
+   "x": "E o que você esperava? Você subiu num caixote e mandou trinta mil adolescentes correrem pro mesmo lugar ao mesmo tempo, Niuwë."
+  },
+  {
+   "id": "ya17hm",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "6qr2p9",
+   "t": "dialogue",
+   "x": "Eu dei uma direção."
+  },
+  {
+   "id": "q93nk8",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "zdxbf4",
+   "t": "dialogue",
+   "x": "Você deu um estouro de boiada."
+  },
+  {
+   "id": "nv4v7c",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "tp1lr4",
+   "t": "dialogue",
+   "x": "Tá bom. Você tinha uma ideia melhor?"
+  },
+  {
+   "id": "y0b6in",
+   "t": "action",
+   "x": "Dasko abre a boca. Fecha. À luz vermelha do apocalipse, o plano dele já não parece tão brilhante quanto meia hora antes."
+  },
+  {
+   "id": "lsjuy0",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "4ylfii",
+   "t": "dialogue",
+   "x": "Eu ia deixar os portões abertos."
+  },
+  {
+   "id": "hsbcit",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "wyxqq1",
+   "t": "dialogue",
+   "x": "Os portões da muralha?"
+  },
+  {
+   "id": "ilygpi",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "zd3uuq",
+   "t": "dialogue",
+   "x": "É."
+  },
+  {
+   "id": "2aeyct",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "ov0fqi",
+   "t": "dialogue",
+   "x": "Pra eles irem pra onde?"
+  },
+  {
+   "id": "o6o5oy",
+   "t": "action",
+   "x": "Dasko não responde."
+  },
+  {
+   "id": "rnmspx",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "3yatal",
+   "t": "paren",
+   "x": "(a voz subindo um tom)"
+  },
+  {
+   "id": "yphh1l",
+   "t": "dialogue",
+   "x": "Pra FORA? Na direção do bicho de três cabeças? É isso? Abrir a porteira e deixar as crianças correrem pro meio do mato, em direção ao Sepharoth, pra ver quem chega primeiro?"
+  },
+  {
+   "id": "rg8gka",
+   "t": "action",
+   "x": "No banco de trás, Roger ri pelo nariz. Jorgenssen dá uma cotovelada nele. Roger devolve. Niuwë bate a tábua no chão e os dois se calam."
+  },
+  {
+   "id": "xhx5i0",
+   "t": "action",
+   "x": "Dasko aperta a ponte do nariz: está perdendo uma discussão para um aluno em pleno fim do mundo."
+  },
+  {
+   "id": "5gphqr",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "2j6ngi",
+   "t": "dialogue",
+   "x": "…Tá. Tudo bem. O bunker foi uma boa ideia."
+  },
+  {
+   "id": "9yu47l",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "jeecn3",
+   "t": "dialogue",
+   "x": "Obrigado."
+  },
+  {
+   "id": "fhm002",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "1w05dx",
+   "t": "dialogue",
+   "x": "Mas você devia ter falado comigo antes."
+  },
+  {
+   "id": "9x51vd",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "h66ig9",
+   "t": "dialogue",
+   "x": "Eu falei. Logo depois."
+  },
+  {
+   "id": "u292xv",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "xetd8p",
+   "t": "dialogue",
+   "x": "Antes, Niuwë. Antes é quando a gente fala com o diretor. Depois é quando a gente pede desculpa."
+  },
+  {
+   "id": "gui3ej",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "ytns73",
+   "t": "dialogue",
+   "x": "Então desculpa."
+  },
+  {
+   "id": "ntht21",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "ap0g75",
+   "t": "dialogue",
+   "x": "Não tá parecendo uma desculpa."
+  },
+  {
+   "id": "ambcz7",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "zsro82",
+   "t": "paren",
+   "x": "(sorrindo de canto)"
+  },
+  {
+   "id": "j83d3m",
+   "t": "dialogue",
+   "x": "É porque não é. Mas eu sei que você gosta quando eu tento."
+  },
+  {
+   "id": "rt0bxz",
+   "t": "action",
+   "x": "Dasko murmura algo que o intercomunicador, por piedade, não capta. No manche, Taila morde o lábio para não rir."
+  },
+  {
+   "id": "w45fwt",
+   "t": "action",
+   "x": "Niuwë tira o fone. O rugido do rotor volta e a piada vai embora com o barulho. Ele encosta a testa no vidro frio e vê, lá embaixo, o lugar que chamou de lar agonizando como um formigueiro pisado."
+  },
+  {
+   "id": "rsasce",
+   "t": "action",
+   "x": "A mão dele desce ao bolso direito da jaqueta. Tira a fotografia: o gramado, o homem de costas largas e a menininha no ombro, rindo com o dente da frente faltando. Olha por um segundo. Guarda."
+  },
+  {
+   "id": "5ykgne",
+   "t": "action",
+   "x": "Do outro lado, SELENNA cantarola uma música sem letra, a pistola de laser no colo. Jorgenssen a observa, incrédulo, e recoloca o fone."
+  },
+  {
+   "id": "ui3rdg",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "cm7p2j",
+   "t": "paren",
+   "x": "(no fone)"
+  },
+  {
+   "id": "qijnc2",
+   "t": "dialogue",
+   "x": "Albin. Como é que você consegue?"
+  },
+  {
+   "id": "zamcxe",
+   "t": "character",
+   "x": "SELENNA"
+  },
+  {
+   "id": "rq46h6",
+   "t": "paren",
+   "x": "(parando de cantarolar, surpresa)"
+  },
+  {
+   "id": "rjotdl",
+   "t": "dialogue",
+   "x": "Como é que eu consigo o quê?"
+  },
+  {
+   "id": "c8lpwm",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "cbfb4b",
+   "t": "dialogue",
+   "x": "Isso. Ficar feliz. A gente tá voando na direção de um demônio."
+  },
+  {
+   "id": "umk7ex",
+   "t": "action",
+   "x": "Selenna pensa de verdade, a testa franzida, como quem responde uma prova."
+  },
+  {
+   "id": "wsajqy",
+   "t": "character",
+   "x": "SELENNA"
+  },
+  {
+   "id": "40hhu0",
+   "t": "dialogue",
+   "x": "Eu gosto de levar a vida com sorrisos. Se o mundo acabar hoje, pelo menos eu fui feliz até o último segundo. Se não acabar, eu fui feliz do mesmo jeito."
+  },
+  {
+   "id": "z007lh",
+   "t": "paren",
+   "x": "(encolhe os ombros)"
+  },
+  {
+   "id": "wu2joc",
+   "t": "dialogue",
+   "x": "Nos dois casos, eu ganho."
+  },
+  {
+   "id": "i0d11j",
+   "t": "action",
+   "x": "Jorgenssen não encontra o que dizer. Do chão da cabine, Niuwë sorri sozinho, sem tirar os olhos da janela."
+  },
+  {
+   "id": "9cjss0",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "rsiypd",
+   "t": "paren",
+   "x": "(baixo, só para Jorgenssen, no fone dividido)"
+  },
+  {
+   "id": "zygmbs",
+   "t": "dialogue",
+   "x": "Ela me lembra a Lala."
+  },
+  {
+   "id": "m4jam1",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "246hn2",
+   "t": "paren",
+   "x": "(baixo)"
+  },
+  {
+   "id": "sqztye",
+   "t": "dialogue",
+   "x": "Feliz?"
+  },
+  {
+   "id": "c5p8ps",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "9x3ncv",
+   "t": "dialogue",
+   "x": "Feliz. Mas dura quando precisa."
+  },
+  {
+   "id": "uta4ml",
+   "t": "action",
+   "x": "Roger, que tinha o fone mal colocado, ouve tudo e finge que não."
+  },
+  {
+   "id": "vb03f9",
+   "t": "character",
+   "x": "TAILA"
+  },
+  {
+   "id": "6d6zng",
+   "t": "paren",
+   "x": "(no fone, de repente, séria)"
+  },
+  {
+   "id": "daypnf",
+   "t": "dialogue",
+   "x": "Gente. Olhem pra frente."
+  },
+  {
+   "id": "lj622h",
+   "t": "action",
+   "x": "Todas as cabeças se viram."
+  },
+  {
+   "id": "t18po1",
+   "t": "note",
+   "x": "TRILHA: um tom grave, sustentado, que sobe devagar, devagar, devagar."
+  },
+  {
+   "id": "c02jkk",
+   "t": "action",
+   "x": "PONTO DE VISTA DO PARA-BRISA: a floresta, um oceano de sombras sob o céu vermelho. No meio dela se levanta uma montanha negra de uns cem metros, de pele rachada como carvão, que se move como se algo lá dentro tentasse escapar. No topo, três cabeças principais, de bocas que não se fecham; ao redor, vinte e quatro cabeças menores se contorcem sozinhas, como se discutissem entre si. E vinte e sete pares de olhos vermelhos, sugadores de luz, como buracos onde a realidade se desfaz."
+  },
+  {
+   "id": "w37oph",
+   "t": "action",
+   "x": "Aos pés da criatura, sobre árvores derrubadas, um rio negro de formas menores se arrasta em todas as direções."
+  },
+  {
+   "id": "gy8eyc",
+   "t": "action",
+   "x": "Dasko é o primeiro a quebrar o silêncio."
+  },
+  {
+   "id": "9dauez",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "k4qfb0",
+   "t": "dialogue",
+   "x": "Mas que merda é essa?!"
+  },
+  {
+   "id": "zqb1gy",
+   "t": "action",
+   "x": "Niuwë se levanta, deixa a tábua encostada e se enfia entre os bancos da frente, a mão no encosto de Taila, olhando pelo para-brisa."
+  },
+  {
+   "id": "eldj6a",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "vpd221",
+   "t": "dialogue",
+   "x": "Licença, diretor."
+  },
+  {
+   "id": "444xuw",
+   "t": "action",
+   "x": "Dasko se encolhe, abrindo espaço. A palavra “grande” não serve. “Gigante” também não. O corpo de Niuwë está tenso, mas não é medo: é a certeza de que aquela luta não vai ser justa."
+  },
+  {
+   "id": "xs4aug",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "i4656j",
+   "t": "paren",
+   "x": "(firme, mas carregado de incredulidade)"
+  },
+  {
+   "id": "rz65jw",
+   "t": "dialogue",
+   "x": "Não é possível. Quando a gente encontrou essa coisa pela primeira vez… ela tinha duas cabeças."
+  },
+  {
+   "id": "rjvay5",
+   "t": "character",
+   "x": "TAILA"
+  },
+  {
+   "id": "e2ykwx",
+   "t": "dialogue",
+   "x": "Ela evoluiu."
+  },
+  {
+   "id": "h1wlc4",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "diqbyt",
+   "t": "dialogue",
+   "x": "Ela se reproduziu. Reencarnou com acréscimo. É o único demônio do mundo que cresce no currículo."
+  },
+  {
+   "id": "y3ljed",
+   "t": "action",
+   "x": "Atrás deles, um barulho de algo pesado deslizando no banco. Jorgenssen estende os braços. Selenna, pálida, os olhos virados, acaba de desmaiar sem querer em cima dele."
+  },
+  {
+   "id": "j2hco0",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "fxd1pc",
+   "t": "dialogue",
+   "x": "Albin! Albin, olha pra mim! Ela apagou!"
+  },
+  {
+   "id": "cav22k",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "vv08ys",
+   "t": "paren",
+   "x": "(calmo, aterrorizado)"
+  },
+  {
+   "id": "06297b",
+   "t": "dialogue",
+   "x": "Ela desmaiou bem. Eu quero fazer o mesmo, mas ainda não encontrei a posição."
+  },
+  {
+   "id": "8ykavf",
+   "t": "character",
+   "x": "TAILA"
+  },
+  {
+   "id": "j7kqu7",
+   "t": "paren",
+   "x": "(apertando o manche, a voz firme demais)"
+  },
+  {
+   "id": "r0acb9",
+   "t": "dialogue",
+   "x": "Alguém quer sugerir um plano antes que eu faça uma curva muito idiota?"
+  },
+  {
+   "id": "h08wrz",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "3hnbdy",
+   "t": "dialogue",
+   "x": "Plano: a gente chega perto. Eu atiro nas cabeças. Vocês fazem barulho. Ele olha pra gente, e a Escola ganha tempo."
+  },
+  {
+   "id": "z1d1ad",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "iruqzr",
+   "t": "dialogue",
+   "x": "Isso é um plano?"
+  },
+  {
+   "id": "2wvldt",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "jkbo5f",
+   "t": "dialogue",
+   "x": "É um esboço."
+  },
+  {
+   "id": "eis2yg",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "p3d4qw",
+   "t": "dialogue",
+   "x": "Eu proponho um plano melhor: não."
+  },
+  {
+   "id": "urv9m5",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "w2ppse",
+   "t": "dialogue",
+   "x": "Rejeitado."
+  },
+  {
+   "id": "c5fxi5",
+   "t": "action",
+   "x": "Dasko solta uma risada curta, sem humor, as mãos agarradas na alça do teto."
+  },
+  {
+   "id": "wthxp8",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "4jah7m",
+   "t": "dialogue",
+   "x": "Eu tô rezando desde que entrei nesse helicóptero, Taila."
+  },
+  {
+   "id": "kb54ln",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "fuutzk",
+   "t": "paren",
+   "x": "(ainda segurando os tornozelos de Selenna com todo o cuidado)"
+  },
+  {
+   "id": "potki6",
+   "t": "dialogue",
+   "x": "Eu não sei rezar. Mas, se alguém começar, eu finjo que sei."
+  },
+  {
+   "id": "mbpzai",
+   "t": "action",
+   "x": "Jorgenssen aperta Selenna contra o ombro e fecha os olhos por um segundo. Niuwë continua olhando pelo para-brisa. Quando fala, a voz sai baixa, seca, quase uma risada amarga."
+  },
+  {
+   "id": "czci0x",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "uph9j3",
+   "t": "dialogue",
+   "x": "Rezar pra quem, Mensa?"
+  },
+  {
+   "id": "4t2tpz",
+   "t": "action",
+   "x": "Ela não responde."
+  },
+  {
+   "id": "2hd5lz",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "cybwxp",
+   "t": "paren",
+   "x": "(sem tirar os olhos da criatura)"
+  },
+  {
+   "id": "yxfn64",
+   "t": "dialogue",
+   "x": "Pra Häita? Foi ela que mandou essa porra pra cá."
+  },
+  {
+   "id": "9e4sfs",
+   "t": "action",
+   "x": "O silêncio que vem depois é o pior da noite inteira."
+  },
+  {
+   "id": "ie1idb",
+   "t": "action",
+   "x": "Nesse silêncio, Selenna começa a voltar: um gemido baixo, as pálpebras tremendo, os dedos procurando algo que não está ali."
+  },
+  {
+   "id": "p5l8ez",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "7n19ty",
+   "t": "dialogue",
+   "x": "Ei… ei, Albin."
+  },
+  {
+   "id": "7pw232",
+   "t": "character",
+   "x": "SELENNA"
+  },
+  {
+   "id": "bxr3t4",
+   "t": "paren",
+   "x": "(rouca, sem saber onde está)"
+  },
+  {
+   "id": "7scq9m",
+   "t": "dialogue",
+   "x": "Onde eu tô?"
+  },
+  {
+   "id": "kwild8",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "neqogo",
+   "t": "dialogue",
+   "x": "Num helicóptero."
+  },
+  {
+   "id": "m509jn",
+   "t": "character",
+   "x": "SELENNA"
+  },
+  {
+   "id": "txfdaj",
+   "t": "dialogue",
+   "x": "Eu senti que tava num inferno."
+  },
+  {
+   "id": "1b6hey",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "kuc1n5",
+   "t": "dialogue",
+   "x": "A gente tá quase num. Mas ainda não exatamente."
+  },
+  {
+   "id": "5diu0v",
+   "t": "action",
+   "x": "Selenna olha para a frente. Vê o monstro crescendo mais e mais no para-brisa. A boca dela se abre num grito."
+  },
+  {
+   "id": "1vlg5m",
+   "t": "action",
+   "x": "Niuwë é mais rápido: em dois passos, a mão dele cobre a boca de Selenna antes do primeiro som. Olho no olho, sem violência, mas sem espaço para negociação."
+  },
+  {
+   "id": "h32lqd",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "nguvbe",
+   "t": "dialogue",
+   "x": "Foco. Calma. Respira."
+  },
+  {
+   "id": "dyfsz5",
+   "t": "action",
+   "x": "Selenna respira pelo nariz, os olhos arregalados em cima da mão dele. Ele a tira devagar."
+  },
+  {
+   "id": "wuzgmy",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "5q1owt",
+   "t": "dialogue",
+   "x": "Cadê a alegria?"
+  },
+  {
+   "id": "chopn0",
+   "t": "character",
+   "x": "SELENNA"
+  },
+  {
+   "id": "ippsdr",
+   "t": "paren",
+   "x": "(ainda sem fôlego, honesta)"
+  },
+  {
+   "id": "lvxela",
+   "t": "dialogue",
+   "x": "A alegria passou. Depois que eu vi essa coisa colossal."
+  },
+  {
+   "id": "6og1az",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "wbnzts",
+   "t": "dialogue",
+   "x": "Justo."
+  },
+  {
+   "id": "sbf3im",
+   "t": "action",
+   "x": "Ela fecha os olhos, respira fundo e aperta a pistola com as duas mãos. O sorriso não volta, mas o queixo sobe."
+  },
+  {
+   "id": "1slv9h",
+   "t": "scene",
+   "x": "INT./EXT. HELICÓPTERO / FLORESTA — NOITE — A QUEDA"
+  },
+  {
+   "id": "gzxkmk",
+   "t": "time",
+   "x": "[32:00–37:30]"
+  },
+  {
+   "id": "p47wh8",
+   "t": "note",
+   "x": "SFX: BUM. Um passo do Sepharoth. Distante ainda, mas o suficiente para fazer a estrutura da aeronave vibrar."
+  },
+  {
+   "id": "iiuh7f",
+   "t": "action",
+   "x": "Do alto, a criatura levanta uma pata gigante e a baixa. Uma onda de poeira e árvores esmagadas ondula pelo chão, vindo na direção deles."
+  },
+  {
+   "id": "415qf3",
+   "t": "character",
+   "x": "TAILA"
+  },
+  {
+   "id": "qjqt9m",
+   "t": "dialogue",
+   "x": "Segurem!"
+  },
+  {
+   "id": "xijjwd",
+   "t": "note",
+   "x": "SFX: BUM. Mais forte."
+  },
+  {
+   "id": "1uvru7",
+   "t": "action",
+   "x": "A onda de choque atinge o helicóptero de lado. A cabine inclina sessenta graus. Os alarmes acendem em coro. O rotor emite um gemido de metal torturado."
+  },
+  {
+   "id": "1evmr4",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "nlyp53",
+   "t": "paren",
+   "x": "(gritando)"
+  },
+  {
+   "id": "kso3ed",
+   "t": "dialogue",
+   "x": "Taila!"
+  },
+  {
+   "id": "2i7ui4",
+   "t": "character",
+   "x": "TAILA"
+  },
+  {
+   "id": "yudk90",
+   "t": "paren",
+   "x": "(entre dentes)"
+  },
+  {
+   "id": "o1r05g",
+   "t": "dialogue",
+   "x": "Eu sei! Eu sei! Eu sei!"
+  },
+  {
+   "id": "o86joi",
+   "t": "action",
+   "x": "O helicóptero perde sustentação. Despenca. As copas das árvores sobem para engoli-los."
+  },
+  {
+   "id": "ujb8gw",
+   "t": "note",
+   "x": "SFX: galhos estalando, folhas estourando contra o vidro, o rotor cortando madeira."
+  },
+  {
+   "id": "id6c94",
+   "t": "action",
+   "x": "A aeronave bate numa copa grossa, roda, e fica presa ali, a quinze metros do chão, inclinada, balançando. O rotor para. O silêncio é repentino. Só o estalo da madeira e o pingar de alguma coisa líquida."
+  },
+  {
+   "id": "n2z5gm",
+   "t": "note",
+   "x": "SFX: tic… tic… tic…"
+  },
+  {
+   "id": "b3nvvp",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "kjbte3",
+   "t": "paren",
+   "x": "(tossindo)"
+  },
+  {
+   "id": "7a8u49",
+   "t": "dialogue",
+   "x": "Todo mundo vivo?"
+  },
+  {
+   "id": "wzt7il",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "stq9p1",
+   "t": "dialogue",
+   "x": "Eu tô. A Albin tá. Eu acho que o Roger também."
+  },
+  {
+   "id": "uxr2sr",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "35bxv5",
+   "t": "paren",
+   "x": "(piscando, atordoado, de pé num canto)"
+  },
+  {
+   "id": "r33cj2",
+   "t": "dialogue",
+   "x": "Eu estou. E estou chocado."
+  },
+  {
+   "id": "ohfyiw",
+   "t": "action",
+   "x": "Niuwë vira o rosto para o banco do piloto."
+  },
+  {
+   "id": "4mtvpz",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "luybq8",
+   "t": "dialogue",
+   "x": "Mensa? Taila?"
+  },
+  {
+   "id": "66047y",
+   "t": "action",
+   "x": "Nada. Ele sobe pela cabine, de quatro, e se debruça sobre o banco dela. E para."
+  },
+  {
+   "id": "spfjoz",
+   "t": "action",
+   "x": "Um galho grosso como um braço entrou pela lateral da cabine e atravessou o banco do piloto. Taila está sentada, imóvel, as duas mãos ainda no manche, os olhos abertos, a respiração curta e molhada. O capacete rachou ao meio. Uma mancha escura se espalha pela jaqueta de voo, devagar, silenciosa."
+  },
+  {
+   "id": "hdtl3q",
+   "t": "character",
+   "x": "TAILA"
+  },
+  {
+   "id": "5ksh0i",
+   "t": "paren",
+   "x": "(num fio de voz, quase tranquila)"
+  },
+  {
+   "id": "6y6e6d",
+   "t": "dialogue",
+   "x": "Eu… acho que isso aqui não era pra estar aí."
+  },
+  {
+   "id": "138k62",
+   "t": "action",
+   "x": "Selenna rasteja pelo chão inclinado, o casaco grande demais arrastando, e chega ao lado de Taila."
+  },
+  {
+   "id": "l1qb4g",
+   "t": "character",
+   "x": "SELENNA"
+  },
+  {
+   "id": "u2xr0l",
+   "t": "dialogue",
+   "x": "Taila. Taila, olha pra mim."
+  },
+  {
+   "id": "fviwup",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "rf5gmn",
+   "t": "paren",
+   "x": "(levantando, cambaleando)"
+  },
+  {
+   "id": "m61nri",
+   "t": "dialogue",
+   "x": "NÃO TIRA! Selenna, NÃO TIRA O GALHO! Se tirar, ela sangra até…"
+  },
+  {
+   "id": "1mho5w",
+   "t": "action",
+   "x": "Ele não termina a frase. Não precisa."
+  },
+  {
+   "id": "318qsb",
+   "t": "action",
+   "x": "Selenna segura o rosto de Taila com as mãos ensanguentadas. Os olhos de Taila vão perdendo o foco, mas, quando encontram os dela, ficam ali, presos, como se aquele fosse o único ponto fixo que restou no mundo."
+  },
+  {
+   "id": "1pxyg5",
+   "t": "character",
+   "x": "TAILA"
+  },
+  {
+   "id": "65hbaf",
+   "t": "paren",
+   "x": "(sussurro)"
+  },
+  {
+   "id": "1f19u2",
+   "t": "dialogue",
+   "x": "Oi…"
+  },
+  {
+   "id": "8duy99",
+   "t": "action",
+   "x": "E, absurdamente, inacreditavelmente, um canto da boca dela sobe, num sorriso torto e manchado de vermelho."
+  },
+  {
+   "id": "oqy68z",
+   "t": "character",
+   "x": "TAILA"
+  },
+  {
+   "id": "hhw4ig",
+   "t": "dialogue",
+   "x": "Eu disse… que queria dormir mais… hoje…"
+  },
+  {
+   "id": "u3gqxp",
+   "t": "character",
+   "x": "SELENNA"
+  },
+  {
+   "id": "dp91k3",
+   "t": "dialogue",
+   "x": "Não. Não, não, não. Você não vai dormir, você tá me ouvindo? Você não vai dormir!"
+  },
+  {
+   "id": "98ocvi",
+   "t": "paren",
+   "x": "(a voz quebra inteira)"
+  },
+  {
+   "id": "jco72s",
+   "t": "dialogue",
+   "x": "Alguém faz alguma coisa! Niuwë! NIUWË, FAZ ALGUMA COISA!"
+  },
+  {
+   "id": "6i1b9z",
+   "t": "action",
+   "x": "Niuwë está de joelhos no chão inclinado e não consegue se mexer. Foi ele quem ligou. Foi ele quem a acordou. Foi ele quem disse “então corre, Mensa”. Brincou com ela sobre dormir pelada vinte minutos antes. E não há nada, absolutamente nada, que possa fazer."
+  },
+  {
+   "id": "et6lbw",
+   "t": "action",
+   "x": "Taila não tira os olhos de Selenna. Mesmo com a luz indo embora deles, devagar, como uma vela que se apaga sem vento, ela continua olhando. Os dedos ensanguentados soltam o manche, um por um, e sobem com esforço, tremendo, até encontrar a mão de Selenna no próprio rosto. Apertam. Fraco. Quase nada. Mas apertam."
+  },
+  {
+   "id": "jmtjjf",
+   "t": "action",
+   "x": "Os lábios se mexem. A voz sai tão baixa que só Selenna ouve de verdade. Os outros só vão saber depois, quando ela contar."
+  },
+  {
+   "id": "s0up3i",
+   "t": "character",
+   "x": "TAILA"
+  },
+  {
+   "id": "r7wwh8",
+   "t": "dialogue",
+   "x": "Irmãzinha…"
+  },
+  {
+   "id": "lsul5r",
+   "t": "action",
+   "x": "Selenna soluça."
+  },
+  {
+   "id": "dq48wu",
+   "t": "character",
+   "x": "TAILA"
+  },
+  {
+   "id": "9e8by2",
+   "t": "dialogue",
+   "x": "Vá… sem mim…"
+  },
+  {
+   "id": "orvz0h",
+   "t": "action",
+   "x": "E Taila para de respirar. Não há último suspiro dramático. Nem estremecimento final. O peito sobe uma última vez, desce, e não sobe mais. O som molhado e borbulhante cessa. Os dedos na mão de Selenna afrouxam. Os olhos continuam abertos, ainda virados para ela, mas não há mais ninguém olhando por trás deles."
+  },
+  {
+   "id": "w9dju2",
+   "t": "note",
+   "x": "SFX: tic… tic…"
+  },
+  {
+   "id": "hydzvm",
+   "t": "action",
+   "x": "E então até o pingar para."
+  },
+  {
+   "id": "r5uiti",
+   "t": "action",
+   "x": "Por um segundo, Selenna não entende. Espera a próxima respiração, a próxima piada preguiçosa, o próximo “você precisa me visitar mais”. Nada vem."
+  },
+  {
+   "id": "yzhgoh",
+   "t": "character",
+   "x": "SELENNA"
+  },
+  {
+   "id": "2epbro",
+   "t": "dialogue",
+   "x": "Taila?"
+  },
+  {
+   "id": "7ldgrq",
+   "t": "paren",
+   "x": "(baixinho)"
+  },
+  {
+   "id": "4ljrsh",
+   "t": "dialogue",
+   "x": "Taila…"
+  },
+  {
+   "id": "vvnpyj",
+   "t": "action",
+   "x": "Selenna encosta a testa na testa de Taila, devagar, como se ainda tivesse medo de machucá-la, e chora. Não é choro de susto: é um choro fundo, de anos de vizinhança, de portas sempre abertas e segredos sussurrados no escuro. De quem perdeu a própria irmã."
+  },
+  {
+   "id": "r8abbc",
+   "t": "note",
+   "x": "TRILHA: um violoncelo, sozinho, sem acompanhamento. Uma nota. Depois outra."
+  },
+  {
+   "id": "me7w0q",
+   "t": "note",
+   "x": "SFX: BUM. Mais perto."
+  },
+  {
+   "id": "ho13xj",
+   "t": "action",
+   "x": "Roger tira o celular do bolso. A tela está rachada, mas o radar funciona. Ele olha. A cor some do rosto dele."
+  },
+  {
+   "id": "iljxzi",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "s5kflk",
+   "t": "paren",
+   "x": "(rouco)"
+  },
+  {
+   "id": "c11utn",
+   "t": "dialogue",
+   "x": "Ele não parou. Não parou pra nada. Tá vindo direto pra cá."
+  },
+  {
+   "id": "xt1293",
+   "t": "action",
+   "x": "Niuwë fecha os olhos por um segundo. Só um. Depois enxuga o rosto com as costas da mão e olha em volta: o helicóptero preso numa árvore que está cedendo, Dasko pendurado, Jorgenssen sangrando, Roger tremendo, Selenna abraçada à melhor amiga. A tristeza vai ter que esperar."
+  },
+  {
+   "id": "maruol",
+   "t": "note",
+   "x": "SFX: BUM."
+  },
+  {
+   "id": "rw7s0t",
+   "t": "action",
+   "x": "A árvore decide por eles. O galho principal, grosso como um tronco, parte de uma vez com um estalo que soa como um tiro."
+  },
+  {
+   "id": "74tpw4",
+   "t": "action",
+   "x": "O helicóptero despenca, escorregando pela copa, de lado, batendo de galho em galho como uma bola de fliperama, e cada impacto arranca um grito diferente de dentro da cabine."
+  },
+  {
+   "id": "r26un4",
+   "t": "action",
+   "x": "E bate no chão de ponta-cabeça."
+  },
+  {
+   "id": "uircq0",
+   "t": "note",
+   "x": "SFX: um impacto surdo, pesado, abafado pela terra macia e pelas folhas. O metal amassa. A poeira sobe numa nuvem espessa."
+  },
+  {
+   "id": "m96blu",
+   "t": "action",
+   "x": "Silêncio, entrecortado pelos estalos da fuselagem e pelo zumbido nos ouvidos. O teto agora é o chão. Dasko está pendurado de cabeça para baixo, ainda preso ao cinto, sem os óculos."
+  },
+  {
+   "id": "7h685a",
+   "t": "action",
+   "x": "Roger levou a pior: foi arremessado contra o teto com a cabeça na frente, e agora está sentado no meio dos destroços, piscando, atordoado, com um filete de sangue escorrendo da testa até o nariz."
+  },
+  {
+   "id": "6ubo6i",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "dmpa5h",
+   "t": "dialogue",
+   "x": "Ai… Isso é sangue? Isso é o meu sangue?"
+  },
+  {
+   "id": "kv0hbw",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "nrifeb",
+   "t": "paren",
+   "x": "(arrastando-se até ele)"
+  },
+  {
+   "id": "dlu4a3",
+   "t": "dialogue",
+   "x": "Você tá bem?"
+  },
+  {
+   "id": "5emn2w",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "bd1y56",
+   "t": "dialogue",
+   "x": "Defina “bem”."
+  },
+  {
+   "id": "ol4ddj",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "vbq89b",
+   "t": "dialogue",
+   "x": "Você tá falando, então tá bem."
+  },
+  {
+   "id": "335jyg",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "byamp6",
+   "t": "dialogue",
+   "x": "Eu bati a cabeça no teto de um helicóptero que tá de cabeça pra baixo, Jorgën. Tecnicamente, eu bati a cabeça no chão. E o chão era o teto."
+  },
+  {
+   "id": "wci2ps",
+   "t": "paren",
+   "x": "(pisca mais uma vez)"
+  },
+  {
+   "id": "f9wakn",
+   "t": "dialogue",
+   "x": "Eu acho que eu tô confuso."
+  },
+  {
+   "id": "lyi2x0",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "e82x1g",
+   "t": "dialogue",
+   "x": "Você sempre foi confuso."
+  },
+  {
+   "id": "o2d11s",
+   "t": "action",
+   "x": "Estão vivos. Os cinco. Os olhos de todos vão para o banco do piloto, agora no alto, de ponta-cabeça. Ninguém diz nada."
+  },
+  {
+   "id": "7qenr0",
+   "t": "action",
+   "x": "Dasko se solta do cinto e cai de mau jeito no teto, com um gemido. Selenna continua de joelhos ao lado do corpo de Taila, as mãos pousadas sobre as dela. Não tem mais lágrimas. Só segura."
+  },
+  {
+   "id": "srt9xv",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "v32h7e",
+   "t": "paren",
+   "x": "(gentil, de joelhos ao lado dela)"
+  },
+  {
+   "id": "zb511l",
+   "t": "dialogue",
+   "x": "Albin."
+  },
+  {
+   "id": "9dm1dj",
+   "t": "action",
+   "x": "Ela não responde."
+  },
+  {
+   "id": "3qboh1",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "90986y",
+   "t": "dialogue",
+   "x": "Albin, a gente precisa ir."
+  },
+  {
+   "id": "v0w2ba",
+   "t": "character",
+   "x": "SELENNA"
+  },
+  {
+   "id": "6ut0ey",
+   "t": "paren",
+   "x": "(a voz vazia, sem força, mas sem nenhuma dúvida)"
+  },
+  {
+   "id": "tbw92w",
+   "t": "dialogue",
+   "x": "Eu não vou deixar ela aqui. Não vou deixar ela aqui sozinha, com essa coisa vindo. Não vou."
+  },
+  {
+   "id": "t4fu66",
+   "t": "note",
+   "x": "SFX: BUM."
+  },
+  {
+   "id": "yrt6se",
+   "t": "action",
+   "x": "Jorgenssen se ajoelha ao lado dela. Não puxa. Não força. Só coloca a mão no ombro dela, devagar."
+  },
+  {
+   "id": "6i4uux",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "pm7nie",
+   "t": "dialogue",
+   "x": "Selenna… o que foi que ela te falou? Por último."
+  },
+  {
+   "id": "wyvdru",
+   "t": "action",
+   "x": "Selenna fecha os olhos. Os lábios tremem. Quando responde, é num sussurro quebrado, como se cada palavra arrancasse um pedaço dela."
+  },
+  {
+   "id": "yp6swp",
+   "t": "character",
+   "x": "SELENNA"
+  },
+  {
+   "id": "3p6oab",
+   "t": "dialogue",
+   "x": "“Vá sem mim.”"
+  },
+  {
+   "id": "mdjo6h",
+   "t": "action",
+   "x": "Selenna aperta a mão de Taila uma última vez, beija os nós dos dedos frios e a solta. Com cuidado, como quem fecha uma porta pela última vez. Depois estende a mão para Jorgenssen e deixa que ele a ajude a levantar."
+  },
+  {
+   "id": "omskvu",
+   "t": "action",
+   "x": "Niuwë pega a tábua, o diálogo, que estava encostada na parede, agora o chão. Segura-a com as duas mãos por um instante, como se pesasse mais do que antes. Põe no ombro."
+  },
+  {
+   "id": "5uxlch",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "tckhhf",
+   "t": "paren",
+   "x": "(baixo, para Niuwë)"
+  },
+  {
+   "id": "bistno",
+   "t": "dialogue",
+   "x": "A gente volta pra buscar ela?"
+  },
+  {
+   "id": "a60xl5",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "973kn9",
+   "t": "paren",
+   "x": "(sem olhar para trás)"
+  },
+  {
+   "id": "r03ias",
+   "t": "dialogue",
+   "x": "Depois."
+  },
+  {
+   "id": "kv1i1a",
+   "t": "action",
+   "x": "Os cinco saem pelo vidro quebrado, um por um. Lá fora, o mundo cheira a querosene e terra revirada. O helicóptero fica de ponta-cabeça ao pé da árvore, a fumaça fina subindo do motor."
+  },
+  {
+   "id": "p84xmo",
+   "t": "action",
+   "x": "Jorgenssen recolhe a pistola de laser do chão e a coloca nas mãos de Selenna sem dizer uma palavra. Ela a aperta contra o peito."
+  },
+  {
+   "id": "6rcj4k",
+   "t": "action",
+   "x": "Eles não vão voltar."
+  },
+  {
+   "id": "q12bz9",
+   "t": "scene",
+   "x": "EXT. FLORESTA — NOITE"
+  },
+  {
+   "id": "no0nn8",
+   "t": "time",
+   "x": "[37:30–41:30]"
+  },
+  {
+   "id": "pfx1jw",
+   "t": "note",
+   "x": "SFX: BUM. Um passo distante. Os cinco correm. O resto é respiração."
+  },
+  {
+   "id": "4q3ja9",
+   "t": "action",
+   "x": "Eles correm na direção dos passos. A floresta é densa, fechada, velha: troncos grossos e retorcidos se erguem por todos os lados, tão próximos que em alguns pontos é preciso passar de lado. Raízes saltam do chão como dedos tentando agarrar os tornozelos de quem passa. Galhos baixos chicoteiam o rosto, cipós se enroscam nos braços, e as folhas mortas acumuladas por décadas afundam sob as botas, escondendo buracos, pedras e troncos caídos. A luz vermelha do céu mal atravessa a copa, e o que chega ao chão vem em fiapos, manchas tortas que tremem a cada passo do monstro, deixando a floresta inteira com cara de pesadelo."
+  },
+  {
+   "id": "h6wqgp",
+   "t": "action",
+   "x": "Niuwë na frente, abrindo caminho com a tábua, afastando galhos, saltando raízes sem diminuir o ritmo. Logo atrás, Jorgenssen, o colete chacoalhando, a mão sempre voltando a conferir o bolso esquerdo da jaqueta. Selenna corre calada, de rosto fechado, a pistola apertada contra o peito. Dasko vem ofegando alto, vermelho, suado, o paletó rasgado, a gravata perdida em algum lugar da árvore, correndo como um homem de cinquenta e tantos anos que não corria desde a faculdade. E Roger…"
+  },
+  {
+   "id": "01jgiu",
+   "t": "action",
+   "x": "Roger tropeça."
+  },
+  {
+   "id": "i1ekg5",
+   "t": "action",
+   "x": "Uma raiz traiçoeira, escondida sob as folhas, pega o pé dele em cheio. Ele voa para a frente com os braços abertos, solta um grito curto e nada heroico, e cai de cara num monte de folhas úmidas, com um fluf abafado."
+  },
+  {
+   "id": "6jwgk6",
+   "t": "action",
+   "x": "Jorgenssen para. Olha para baixo. E, mesmo com a testa sangrando, mesmo com o fim do mundo a poucos quilômetros, mesmo com tudo o que aconteceu, um sorriso lento e vingativo se espalha pelo rosto dele."
+  },
+  {
+   "id": "wzsg2v",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "2k9j8e",
+   "t": "dialogue",
+   "x": "Quem é que tropeça agora, hein, Roger?"
+  },
+  {
+   "id": "eypk5u",
+   "t": "action",
+   "x": "Roger levanta a cabeça, cuspindo folhas, com terra grudada na testa ensanguentada e um galhinho preso no cabelo."
+  },
+  {
+   "id": "qiiw0c",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "bcemhf",
+   "t": "dialogue",
+   "x": "Tinha uma raiz."
+  },
+  {
+   "id": "lxa17d",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "wkogz2",
+   "t": "paren",
+   "x": "(estendendo a mão)"
+  },
+  {
+   "id": "1q4qi9",
+   "t": "dialogue",
+   "x": "Ah, tinha uma raiz. Engraçado, né? Igual tinha um degrau a mais na formatura."
+  },
+  {
+   "id": "ixuh5r",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "uj17jy",
+   "t": "dialogue",
+   "x": "Não tinha degrau a mais na formatura."
+  },
+  {
+   "id": "fzqtma",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "d524oc",
+   "t": "dialogue",
+   "x": "E não tinha raiz nenhuma aqui."
+  },
+  {
+   "id": "memc77",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "fufzdg",
+   "t": "dialogue",
+   "x": "Tinha uma raiz ENORME, Jorgën!"
+  },
+  {
+   "id": "50rveh",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "d2phgj",
+   "t": "dialogue",
+   "x": "Tava escrito “raiz” nela?"
+  },
+  {
+   "id": "h6dwil",
+   "t": "action",
+   "x": "Roger agarra a mão dele, se levanta de mau humor e sai correndo de novo, resmungando algo sobre botânica, injustiça e vingança. Jorgenssen corre atrás, ainda sorrindo. É o único sorriso que alguém dará pelo resto da noite."
+  },
+  {
+   "id": "eiik0z",
+   "t": "action",
+   "x": "Niuwë para de repente e ergue o punho fechado. Todos param atrás dele. Roger quase trombou em Jorgenssen. Dasko apoia as mãos nos joelhos, arfando, e Niuwë se vira e cobre a boca dele com a mão antes que o diretor solte o primeiro gemido."
+  },
+  {
+   "id": "rdbcu6",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "ryrtb0",
+   "t": "paren",
+   "x": "(um sopro)"
+  },
+  {
+   "id": "3teav1",
+   "t": "dialogue",
+   "x": "Shhh."
+  },
+  {
+   "id": "q0glqb",
+   "t": "action",
+   "x": "Puxa todo mundo para trás de uma árvore gigantesca, a maior que viram até ali: um tronco tão largo que nem os cinco de braços abertos conseguiriam abraçar, com raízes que se erguem do chão como paredes. Eles se espremem, ombro com ombro, as costas contra a casca áspera e úmida. Niuwë se inclina devagar, centímetro por centímetro, até um dos olhos passar da borda do tronco."
+  },
+  {
+   "id": "6zb323",
+   "t": "action",
+   "x": "E vê."
+  },
+  {
+   "id": "5v5eki",
+   "t": "action",
+   "x": "PONTO DE VISTA DE NIUWË: a floresta continua à frente por mais uns cinquenta metros e então se abre numa clareira longa e rasgada, onde as árvores já foram derrubadas por passos anteriores. E a clareira está viva. O chão inteiro se mexe."
+  },
+  {
+   "id": "fn6hb4",
+   "t": "action",
+   "x": "É o enxame. De perto, as sombras grotescas são muito piores do que parecem do alto. Criaturas do tamanho de cães grandes, algumas maiores, de pele negra e rachada como a do mestre, carvão que aprendeu a respirar. Andam de quatro, de seis, de oito patas, cada uma com um número diferente, como se tivessem sido montadas às pressas com peças que sobraram. Não têm rosto. Só um buraco vermelho, fundo, que suga a luz, onde a cara deveria estar."
+  },
+  {
+   "id": "0gvzqo",
+   "t": "action",
+   "x": "Na borda da clareira, uma delas, de seis patas, levanta o focinho que não tem. Farejando. Vira o buraco vermelho na direção da árvore, e fica ali."
+  },
+  {
+   "id": "honq8i",
+   "t": "note",
+   "x": "SFX: nada. Absolutamente nada. Cinco pessoas prendendo a respiração."
+  },
+  {
+   "id": "hrwrdi",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "bcyqgl",
+   "t": "paren",
+   "x": "(um sussurro com a boca quase colada na orelha de Jorgenssen)"
+  },
+  {
+   "id": "wblvfq",
+   "t": "dialogue",
+   "x": "O que acontece se eu espirrar?"
+  },
+  {
+   "id": "s639mf",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "70vd1u",
+   "t": "paren",
+   "x": "(sem mover os lábios)"
+  },
+  {
+   "id": "sgpv3m",
+   "t": "dialogue",
+   "x": "A gente morre. E você morre primeiro."
+  },
+  {
+   "id": "3awne7",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "mbd7k2",
+   "t": "dialogue",
+   "x": "Então eu não espirro."
+  },
+  {
+   "id": "mekwnj",
+   "t": "action",
+   "x": "A criatura vira a cabeça, pelo que parece uma eternidade. Dasko, com a mão de Niuwë ainda na boca, está começando a ficar roxo. Niuwë percebe, solta com cuidado e faz um gesto: respira. Dasko respira, pelo nariz, com o ruído de uma chaleira."
+  },
+  {
+   "id": "pu4dsn",
+   "t": "action",
+   "x": "A criatura de seis patas se afasta e some entre as outras."
+  },
+  {
+   "id": "phiwhu",
+   "t": "action",
+   "x": "Os cinco soltam o ar ao mesmo tempo."
+  },
+  {
+   "id": "soq9q7",
+   "t": "note",
+   "x": "SFX: BUM."
+  },
+  {
+   "id": "a2crib",
+   "t": "action",
+   "x": "E o Sepharoth dá o próximo passo."
+  },
+  {
+   "id": "j0g9w3",
+   "t": "action",
+   "x": "A onda de choque nasce no pé do monstro, no fundo da clareira, e corre pelo chão como uma onda no mar. Levanta terra, levanta pedra, levanta as árvores pelas raízes. É uma parede de destruição vindo reto na direção deles, arrancando a floresta inteira do caminho, tronco após tronco, cada um mais perto. Niuwë mal tem tempo de gritar."
+  },
+  {
+   "id": "pshjhm",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "edseqf",
+   "t": "dialogue",
+   "x": "ABAIXA!"
+  },
+  {
+   "id": "jbf56o",
+   "t": "action",
+   "x": "A árvore gigante em que eles estão encostados aguenta. Treme, range, geme, perde metade dos galhos, mas aguenta, e a onda de choque se parte nela como água numa pedra, passando dos dois lados. Os cinco são arremessados contra o tronco e depois contra o chão, o ar arrancado dos pulmões, os ouvidos estourando num apito agudo e contínuo."
+  },
+  {
+   "id": "7ymqcg",
+   "t": "action",
+   "x": "Mas nem tudo foi para longe. Uma das árvores arrancadas, à direita, não voou: girou. A raiz se desprendeu da terra com um estalo monstruoso, e o tronco inteiro tombou de lado, na direção errada, desabando por cima da raiz gigante onde eles estavam. O tronco bateu e parou ali. Mas a copa, uma massa enorme de galhos grossos, folhas e lascas de madeira, continuou o movimento, chicoteando por cima deles como um braço."
+  },
+  {
+   "id": "wbsl7s",
+   "t": "action",
+   "x": "E acerta Selenna em cheio."
+  },
+  {
+   "id": "q8qefa",
+   "t": "action",
+   "x": "Ela se levantava, ainda atordoada, apoiada num joelho. Não viu de onde veio. Um dos galhos mais grossos a atinge na lateral da cabeça e no ombro com um som surdo, horrível, e joga o corpo dela no chão como uma boneca de pano. A pistola de laser escapa da mão e rola pela terra. Ela cai de bruços, entre as folhas, e não se mexe mais."
+  },
+  {
+   "id": "m77psb",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "4zm5co",
+   "t": "dialogue",
+   "x": "ALBIN!"
+  },
+  {
+   "id": "76zx3f",
+   "t": "action",
+   "x": "Jorgenssen nem pensa. Atravessa os galhos ainda balançando, empurrando com os braços, o colete prendendo nas lascas, se arranhando, se cortando, e se joga de joelhos ao lado dela. Vira Selenna de barriga para cima com cuidado. Há um corte feio acima da orelha, sangrando pelo cabelo, e a pele está pálida. Os olhos, fechados."
+  },
+  {
+   "id": "acnnld",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "y63v6t",
+   "t": "dialogue",
+   "x": "Albin. Albin, não. Não, não, não. De novo não."
+  },
+  {
+   "id": "696ho4",
+   "t": "action",
+   "x": "Leva dois dedos ao pescoço dela, as mãos tremendo tanto que erra o lugar na primeira vez. Na segunda, acha."
+  },
+  {
+   "id": "xmfqkh",
+   "t": "action",
+   "x": "Pulso. Fraco, mas ali. E o peito sobe e desce, devagar."
+  },
+  {
+   "id": "1bqyyc",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "b1hrrc",
+   "t": "paren",
+   "x": "(a voz falhando de alívio)"
+  },
+  {
+   "id": "dz58hn",
+   "t": "dialogue",
+   "x": "Tá viva. Tá viva. Desmaiou. Ela tá viva."
+  },
+  {
+   "id": "yxogjw",
+   "t": "action",
+   "x": "Ele não espera ninguém responder. Pega a pistola do chão e a enfia num dos coldres do colete. Passa um braço por baixo dos joelhos dela, o outro pelas costas, e levanta Selenna de uma vez, jogando-a sobre o ombro como um bombeiro, os braços dela pendurados nas costas dele e a cabeça balançando contra o colete."
+  },
+  {
+   "id": "4omamd",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "4iyu7j",
+   "t": "dialogue",
+   "x": "Eu levo ela. Ninguém fica pra trás. Não de novo."
+  },
+  {
+   "id": "lu9qfm",
+   "t": "action",
+   "x": "Ninguém discute."
+  },
+  {
+   "id": "whcwcv",
+   "t": "action",
+   "x": "E, quando a poeira começa a baixar…"
+  },
+  {
+   "id": "7ojk38",
+   "t": "action",
+   "x": "Não há mais nada na frente deles. A floresta sumiu. Onde antes havia cinquenta metros de árvores densas entre eles e a clareira, agora só há terra revirada, crateras de raízes arrancadas e troncos tombados espalhados como ossos. A árvore deles é a última de pé. E não esconde mais nada."
+  },
+  {
+   "id": "3wppn7",
+   "t": "action",
+   "x": "Eles estão expostos."
+  },
+  {
+   "id": "h58jar",
+   "t": "action",
+   "x": "Na clareira, o rio de criaturas parou de fluir. Milhares de buracos vermelhos estão virados na mesma direção."
+  },
+  {
+   "id": "ejzjbx",
+   "t": "action",
+   "x": "Para eles."
+  },
+  {
+   "id": "32oesg",
+   "t": "scene",
+   "x": "EXT. DESCAMPADO / ÁRVORE GIGANTE — NOITE"
+  },
+  {
+   "id": "yaaxbf",
+   "t": "time",
+   "x": "[41:30–44:30]"
+  },
+  {
+   "id": "t1hl92",
+   "t": "note",
+   "x": "SFX: nada. Nem pata, nem vento. O enxame inteiro, parado, como uma onda congelada no instante antes de quebrar."
+  },
+  {
+   "id": "67hnan",
+   "t": "action",
+   "x": "Ninguém se mexe. Por trás deles, acima deles, acima de tudo, o Sepharoth parou de andar. As três cabeças principais se viraram devagar. E as vinte e quatro auxiliares também. Todos os vinte e sete pares de olhos estão neles."
+  },
+  {
+   "id": "bt6dty",
+   "t": "action",
+   "x": "Roger dá um passo para trás, devagar, e encosta no tronco. Dasko está tão pálido que parece transparente. Jorgenssen ajeita Selenna no ombro e leva a mão livre a um dos coldres, mas não saca a arma. Não ia adiantar. Todos sabem que não ia adiantar."
+  },
+  {
+   "id": "r4hepb",
+   "t": "action",
+   "x": "Foi Niuwë quem se mexeu."
+  },
+  {
+   "id": "embf4g",
+   "t": "action",
+   "x": "Olha para a clareira. Olha para o monstro. E depois olha para os outros quatro, encolhidos contra a última árvore de pé, e alguma coisa no rosto dele se assenta. Uma decisão. Fria, simples, já tomada."
+  },
+  {
+   "id": "gcreko",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "zrl1a8",
+   "t": "dialogue",
+   "x": "Escondam-se."
+  },
+  {
+   "id": "bd3lka",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "j0qlxo",
+   "t": "dialogue",
+   "x": "Quê?"
+  },
+  {
+   "id": "609hbd",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "zdt88f",
+   "t": "paren",
+   "x": "(apontando com o queixo um vão entre duas raízes gigantes, atrás do tronco, quase uma caverna escura de madeira retorcida)"
+  },
+  {
+   "id": "fbfczf",
+   "t": "dialogue",
+   "x": "Ali. Entra todo mundo. Com a Selenna. E fica quieto. Não importa o que vocês ouvirem."
+  },
+  {
+   "id": "bp85o7",
+   "t": "action",
+   "x": "Jorgenssen entende antes dos outros."
+  },
+  {
+   "id": "s4wvzx",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "sl2xwf",
+   "t": "paren",
+   "x": "(baixa, rouca)"
+  },
+  {
+   "id": "7krpcv",
+   "t": "dialogue",
+   "x": "Niuwë. Niuwë, não."
+  },
+  {
+   "id": "lz7glv",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "0erg41",
+   "t": "dialogue",
+   "x": "Eu vou peitar ele."
+  },
+  {
+   "id": "jra9px",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "lgxs8s",
+   "t": "dialogue",
+   "x": "Você ficou louco?! Olha pra essa coisa! OLHA pra ela! Tem vinte e sete cabeças, cem metros de altura e um exército inteiro no pé! Você vai fazer o quê, sozinho? Bater nele com a tábua?"
+  },
+  {
+   "id": "hhxta4",
+   "t": "action",
+   "x": "Niuwë olha para o diálogo na própria mão. Por um segundo, quase sorri. Então se vira e estende a tábua para Roger."
+  },
+  {
+   "id": "s5wnow",
+   "t": "action",
+   "x": "Roger fica olhando a madeira, sem entender."
+  },
+  {
+   "id": "k99779",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "m2afzn",
+   "t": "dialogue",
+   "x": "Você esqueceu o seu armamento. Cuida dele pra mim."
+  },
+  {
+   "id": "fssyj9",
+   "t": "action",
+   "x": "Roger pega a tábua com as duas mãos, devagar, como quem recebe algo frágil. Não faz nenhuma piada. Não diz nada."
+  },
+  {
+   "id": "jmakou",
+   "t": "action",
+   "x": "Niuwë leva as mãos às costas e solta as presilhas das armas que tirou do estojo de couro horas antes, no quarto, numa vida que parece ter sido de outra pessoa. O metal reluz vermelho na luz do céu. Ele confere cada uma com a mesma calma de antes, de sempre, encaixando, travando, ajustando. As mãos sabem o que fazer, mesmo quando a cabeça ainda não alcançou."
+  },
+  {
+   "id": "ucksaa",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "wzbgoh",
+   "t": "paren",
+   "x": "(sem levantar os olhos das armas, a voz tranquila, quase leve, como se falasse de um trabalho chato que precisa ser terminado antes do almoço)"
+  },
+  {
+   "id": "k3wvi6",
+   "t": "dialogue",
+   "x": "Eu quero resolver isso logo, Jorgën. Quero acabar com essa merda, voltar lá e tirar a Taila daquele helicóptero. Dar um enterro digno pra ela. Do jeito que ela merece."
+  },
+  {
+   "id": "xhq1jq",
+   "t": "action",
+   "x": "A voz quebra só um pouco, quase nada, na última palavra. Ele pigarreia e continua."
+  },
+  {
+   "id": "om04gi",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "igep1j",
+   "t": "dialogue",
+   "x": "E, no fim de semana, eu vou visitar a Lala."
+  },
+  {
+   "id": "8fnq0d",
+   "t": "action",
+   "x": "Jorgenssen abre a boca. E não diz nada. Só fica ali, parado, olhando para o amigo, com a Selenna desacordada no ombro e a mão livre subindo devagar, sem perceber, até o lado esquerdo do peito. Até o zíper fechado da jaqueta. Até o envelope branco que está ali dentro. A mão para ali e fica."
+  },
+  {
+   "id": "yaydfd",
+   "t": "action",
+   "x": "Ele entende. Entende o envelope, entende a foto, entende o “eu sinto, lá no fundo, que eu posso não voltar dessa vez”. E entende que não há nada, nenhuma palavra, nenhum argumento, nenhum pedido, que faça Niuwë mudar de ideia. Então não fala."
+  },
+  {
+   "id": "uq0gi6",
+   "t": "action",
+   "x": "Niuwë sustenta o olhar dele mais um segundo. Assente uma vez, curto, como quem diz você sabe."
+  },
+  {
+   "id": "i0nbog",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "btxx0t",
+   "t": "paren",
+   "x": "(baixo)"
+  },
+  {
+   "id": "oc0ozv",
+   "t": "dialogue",
+   "x": "Fica com a Selenna."
+  },
+  {
+   "id": "d7fe2o",
+   "t": "action",
+   "x": "Jorgenssen não responde. Niuwë se vira. Contorna a árvore devagar, um passo de cada vez, saindo da sombra do tronco, pisando por cima dos galhos quebrados, da terra revirada, das raízes arrancadas."
+  },
+  {
+   "id": "3ogy7w",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "a2ygqu",
+   "t": "paren",
+   "x": "(sussurrando, do vão das raízes)"
+  },
+  {
+   "id": "muytjx",
+   "t": "dialogue",
+   "x": "Niuwë."
+  },
+  {
+   "id": "7p1wjh",
+   "t": "action",
+   "x": "Niuwë para. Vira só a cabeça. Dasko, encolhido na madeira, o paletó rasgado, o rosto sujo e sem as cores de antes, aponta com o queixo para o chão."
+  },
+  {
+   "id": "yes3fo",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "eaxltn",
+   "t": "dialogue",
+   "x": "A bota."
+  },
+  {
+   "id": "va25ge",
+   "t": "action",
+   "x": "Niuwë olha para baixo. A bota continua desamarrada, o cadarço enrolado em um galho quebrado. Um sorriso pequeno e verdadeiro nasce no rosto dele."
+  },
+  {
+   "id": "25c6se",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "j6c7ra",
+   "t": "dialogue",
+   "x": "Eu sei, Daskão."
+  },
+  {
+   "id": "b5cutx",
+   "t": "action",
+   "x": "Ele não amarra. Segue em frente. Sai para o descampado aberto pela onda de choque, sozinho, no meio do nada. E para. De frente para ela."
+  },
+  {
+   "id": "i8f0yj",
+   "t": "action",
+   "x": "O vento quente bate no rosto dele e solta de vez o que restava do coque. Os fios loiro-queimados se espalham pelos ombros, dançando na luz vermelha. Lá na frente, o enxame inteiro, milhares de criaturas, parado como um mar de carvão. E, por cima de tudo, a montanha negra de vinte e sete cabeças inclina o corpo devagar, muito devagar, na direção do pequeno ponto loiro que teve a ousadia de aparecer à frente dela."
+  },
+  {
+   "id": "8zyjbu",
+   "t": "action",
+   "x": "Niuwë ergue o queixo."
+  },
+  {
+   "id": "4ckzlv",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "xr76us",
+   "t": "dialogue",
+   "x": "E aí, feiosa? Sentiu saudade?"
+  },
+  {
+   "id": "b6d29r",
+   "t": "act",
+   "x": "ATO QUATRO"
+  },
+  {
+   "id": "nzel2w",
+   "t": "scene",
+   "x": "EXT. DESCAMPADO — NOITE — O TEMPO PARADO"
+  },
+  {
+   "id": "per1zc",
+   "t": "time",
+   "x": "[44:30–47:30]"
+  },
+  {
+   "id": "nlerco",
+   "t": "note",
+   "x": "SFX: o clique de uma trava de rifle. Depois, nada além do vento e da respiração do monstro."
+  },
+  {
+   "id": "9c1rob",
+   "t": "action",
+   "x": "Niuwë leva a mão às costas e puxa o rifle. É a arma que esteve o tempo todo dentro do estojo longo de couro, ao lado da porta do quarto, desde antes de tudo isso começar. Comprida, pesada, de metal escuro e coronha gasta, as marcas de uso polidas por anos das mãos dele. Destrava com um estalo seco, encaixa a coronha no ombro, encosta o rosto e alinha a mira com a cabeça central do Sepharoth, cem metros acima."
+  },
+  {
+   "id": "10ulub",
+   "t": "action",
+   "x": "E atira."
+  },
+  {
+   "id": "zwmi0f",
+   "t": "note",
+   "x": "SFX: o estampido explode pela floresta destruída, eco atrás de eco."
+  },
+  {
+   "id": "8p0gw7",
+   "t": "action",
+   "x": "E atira de novo. E de novo, e de novo, sem parar, como um maluco, puxando o gatilho tão rápido quanto o mecanismo permite. O coice bate no ombro dele sem descanso, os cartuchos vazios saltam e caem fumegantes na terra revirada. Dez. Doze. Quinze tiros. Cada um mirado com precisão, direto na cabeça central, nos olhos, no ponto onde qualquer coisa viva deveria morrer."
+  },
+  {
+   "id": "blv4be",
+   "t": "action",
+   "x": "Nada acontece."
+  },
+  {
+   "id": "bhu0ym",
+   "t": "action",
+   "x": "Ele baixa a arma meio palmo e olha. Os tiros não chegaram. Estão parados no ar. Quinze projéteis suspensos a uns trinta metros de altura, girando bem devagar no próprio eixo, como se tivessem esbarrado numa parede invisível feita de nada. A fumaça fina de cada um também parou, desenhando no ar quinze riscos cinzentos e retos, congelados, apontando para o alvo que nunca alcançaram."
+  },
+  {
+   "id": "ej3npl",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "8w0l6n",
+   "t": "dialogue",
+   "x": "Que merda é essa…?"
+  },
+  {
+   "id": "m7q5qj",
+   "t": "action",
+   "x": "Atrás dele, junto à árvore, Jorgenssen vê tudo. E não aguenta ficar parado. Deita Selenna no chão com cuidado, entre as raízes, a cabeça apoiada numa dobra da madeira, o cabelo escuro de sangue espalhado nas folhas. Ajeita o corpo dela de lado, do jeito que aprendeu em algum curso de primeiros socorros, para ela não engasgar. E se levanta. Saca uma das armas do colete e corre para fora, contornando o tronco, até parar ao lado de Niuwë, ombro com ombro, de frente para o monstro."
+  },
+  {
+   "id": "frt4jp",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "9ho2rh",
+   "t": "paren",
+   "x": "(ofegante)"
+  },
+  {
+   "id": "624p2e",
+   "t": "dialogue",
+   "x": "Eu tô contigo. Não vou deixar você fazer isso sozinho."
+  },
+  {
+   "id": "jbadp5",
+   "t": "action",
+   "x": "Niuwë vira a cabeça para ele, e a expressão muda na hora."
+  },
+  {
+   "id": "gibmb1",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "bfse23",
+   "t": "dialogue",
+   "x": "Jorgën, o que você tá FAZENDO aqui?! Eu falei pra você ficar com a…"
+  },
+  {
+   "id": "szlluc",
+   "t": "action",
+   "x": "Ele não termina. Porque, lá em cima, os quinze projéteis pararam de girar. E todos, ao mesmo tempo, viram."
+  },
+  {
+   "id": "7zjxgf",
+   "t": "action",
+   "x": "Não caem. Não perdem força. Dão meia-volta no ar, as pontas se voltando para o lado oposto, como agulhas de uma bússola encontrando um novo norte. E voltam pelo mesmo caminho, na mesma velocidade de quando saíram do cano. Mas não na direção de Niuwë. Na direção da árvore."
+  },
+  {
+   "id": "6misfa",
+   "t": "action",
+   "x": "Ninguém tem tempo de gritar."
+  },
+  {
+   "id": "p261gc",
+   "t": "action",
+   "x": "Os quinze tiros passam por cima da cabeça de Niuwë e de Jorgenssen com um zumbido agudo e cortante, atravessam o descampado, contornam o tronco como se soubessem exatamente para onde ir, e acertam Selenna. Todos os quinze. Em cheio. O corpo dela, ainda desacordado entre as raízes, estremece sob cada impacto, um atrás do outro, rápido demais para contar. Folhas voam. Lascas de madeira saltam da raiz. E o vermelho se espalha pela terra, pelas folhas, pela casca da árvore, rápido e escuro demais. Ela nem chega a acordar."
+  },
+  {
+   "id": "19f6b7",
+   "t": "action",
+   "x": "Um último projétil, o décimo sexto, que ninguém disparou, que ninguém sabe de onde veio, desvia no último instante e atravessa a perna de Roger. Ele estava agachado no vão entre as raízes, segurando o diálogo, e cai de lado com um grito, as duas mãos agarrando a coxa."
+  },
+  {
+   "id": "v208wh",
+   "t": "action",
+   "x": "E então tudo para."
+  },
+  {
+   "id": "mrbgb9",
+   "t": "note",
+   "x": "SFX: o som é cortado. Todos os sons. Uma música interrompida no meio da nota."
+  },
+  {
+   "id": "kwf20h",
+   "t": "action",
+   "x": "Niuwë sente antes de entender. É como se o ar tivesse ficado sólido de uma vez. O vento para. O ronco do céu para. O estalar do enxame, o tremor do chão, o eco dos tiros, até o zumbido nos ouvidos dele, tudo cessa ao mesmo tempo. Silêncio absoluto."
+  },
+  {
+   "id": "97njog",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "n0dir3",
+   "t": "paren",
+   "x": "(a voz rachada de fúria, virando-se para o amigo, pronto para agarrá-lo pela gola)"
+  },
+  {
+   "id": "q8bqm8",
+   "t": "dialogue",
+   "x": "JORGENSSEN! EU FALEI PRA VOCÊ FICAR COM ELA! EU FALEI! EU FALEI, PORRA, EU…"
+  },
+  {
+   "id": "np2wie",
+   "t": "action",
+   "x": "Jorgenssen não responde. Não se mexe. Está parado ao lado dele, exatamente onde estava um segundo antes, a arma erguida, a boca entreaberta no meio de uma palavra que nunca terminou, os olhos fixos na árvore onde Selenna está. Uma gota de suor escorre pela têmpora dele. E não escorre mais. Está parada na pele, no meio do caminho."
+  },
+  {
+   "id": "7cpxz9",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "mem5ge",
+   "t": "dialogue",
+   "x": "Jorgën…?"
+  },
+  {
+   "id": "9cisvw",
+   "t": "action",
+   "x": "Nada. Niuwë estende a mão e toca o ombro dele. Duro. Firme. Como tocar uma estátua morna. Dá um passo para trás. O vento congelou as folhas no ar ao redor deles, centenas, suspensas entre o chão e o céu, imóveis como se pregadas no nada. A poeira da onda de choque paira em nuvens paradas. Na clareira, o enxame, milhares de criaturas congeladas no meio de um passo, de um salto, de um movimento de cabeça."
+  },
+  {
+   "id": "53gvkq",
+   "t": "action",
+   "x": "Niuwë corre até a árvore. Roger está caído no vão entre as raízes, encolhido de lado, as mãos na coxa, a boca aberta num grito que não faz som. O sangue que escapa entre os dedos dele não escorre: está suspenso em gotas escuras e redondas, flutuando a meio caminho do chão. O diálogo está a centímetros da mão dele, congelado no ar no meio da queda."
+  },
+  {
+   "id": "rb4ish",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "h43si4",
+   "t": "dialogue",
+   "x": "Roger! Roger, me ouve!"
+  },
+  {
+   "id": "9q1k2e",
+   "t": "action",
+   "x": "Nada. E, ao lado dele, entre as raízes, Niuwë não quer olhar. Olha mesmo assim."
+  },
+  {
+   "id": "6pgid0",
+   "t": "action",
+   "x": "Selenna está deitada exatamente como Jorgenssen a deixou, a cabeça apoiada na madeira, o rosto virado de lado, sereno, como se apenas dormisse. Mas, ao redor dela, o ar está cheio de vermelho. Gotas e fios de sangue pararam no instante do impacto, suspensos sobre o corpo dela como uma constelação escura, cintilando sob a luz parada do céu."
+  },
+  {
+   "id": "r6o9af",
+   "t": "action",
+   "x": "Ele cai de joelhos ao lado dela."
+  },
+  {
+   "id": "yzls7u",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "5agn0x",
+   "t": "dialogue",
+   "x": "Albin…"
+  },
+  {
+   "id": "79hel3",
+   "t": "action",
+   "x": "Ela não responde. Nunca mais vai responder. Vá sem mim, a Taila tinha dito. E ela não conseguiu ir muito longe."
+  },
+  {
+   "id": "xv3b5j",
+   "t": "action",
+   "x": "Niuwë fica ali, de joelhos, as mãos tremendo sobre o corpo dela, sem coragem de tocar. Ao redor dele, o mundo inteiro está parado. Cada folha, cada gota, cada criatura, cada amigo. Exceto uma coisa."
+  },
+  {
+   "id": "k7ckui",
+   "t": "action",
+   "x": "Ele sente antes de ver: um peso, uma pressão na nuca, como um olhar físico encostado na pele. Levanta a cabeça devagar. O Sepharoth está se mexendo. Só ele. No meio de um mundo congelado, a montanha negra vira devagar as três cabeças principais, depois as vinte e quatro auxiliares, uma atrás da outra, sem pressa, até que os vinte e sete pares de olhos estejam apontados para baixo. Para ele. Só para ele."
+  },
+  {
+   "id": "ba7p7l",
+   "t": "action",
+   "x": "Niuwë se levanta. O rifle pesa na mão. Ele não ergue. Os dois se encaram por cima do mundo parado: o homem pequeno de cabelo loiro e a coisa de cem metros, os únicos dois seres que ainda se movem em toda a Varguën. Os buracos vermelhos não piscam. Não brilham. Só sugam. E Niuwë sente, pela primeira vez, que aquilo não é só um monstro olhando para uma presa. É alguém olhando para ele."
+  },
+  {
+   "id": "zmwihe",
+   "t": "action",
+   "x": "Ele pisca."
+  },
+  {
+   "id": "hmgeyq",
+   "t": "note",
+   "x": "SFX: um tranco seco, como um elevador caindo."
+  },
+  {
+   "id": "1i4dti",
+   "t": "scene",
+   "x": "EXT. A PONTE DOS EVENTOS — SEM HORA"
+  },
+  {
+   "id": "ra9qyd",
+   "t": "time",
+   "x": "[47:30–52:30]"
+  },
+  {
+   "id": "xix2tf",
+   "t": "note",
+   "x": "GRADE: um vermelho mais fundo e mais antigo que o do céu da Varguën. Imóvel."
+  },
+  {
+   "id": "lvibo1",
+   "t": "note",
+   "x": "SFX: nenhum. Nem vento, nem eco, nem o próprio coração."
+  },
+  {
+   "id": "cj13bh",
+   "t": "action",
+   "x": "Pedra clara, gasta, polida por séculos de passos que não eram dele. Um parapeito baixo corre dos dois lados até se perder de vista. Depois do parapeito, não há chão: só um abismo sem fundo e, por cima dele, até onde a vista alcança, um céu vermelho. Não o vermelho doente da Varguën. Outro. Mais fundo, mais antigo, como se estivesse ali desde antes de existir qualquer céu."
+  },
+  {
+   "id": "4a3n0y",
+   "t": "action",
+   "x": "A ponte começa em lugar nenhum e termina em lugar nenhum, as duas pontas perdidas numa névoa vermelha tão densa que parece sólida. Niuwë sabe que lugar é aquele. Já leu a respeito, em páginas que achou que eram lenda, ou história pra assustar calouro. Riu disso, inclusive, uma vez. Agora não está rindo."
+  },
+  {
+   "id": "t5unwk",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "0bl7pe",
+   "t": "paren",
+   "x": "(sussurrando)"
+  },
+  {
+   "id": "fz2zyo",
+   "t": "dialogue",
+   "x": "Que merda é essa…?"
+  },
+  {
+   "id": "vg0t1k",
+   "t": "action",
+   "x": "O céu vermelho não responde. Ele fica parado no meio da ponte, sozinho, o rifle pendurado na mão, o coração batendo nos ouvidos. Na cabeça, uma única imagem se repete sem parar: as gotas vermelhas suspensas no ar, sobre o rosto sereno de Selenna."
+  },
+  {
+   "id": "ovp93g",
+   "t": "action",
+   "x": "Foi aí que a névoa se mexeu."
+  },
+  {
+   "id": "2b3qz3",
+   "t": "note",
+   "x": "SFX: toc. toc. toc. O som de saltos altos na pedra, muito lentos, vindos de longe."
+  },
+  {
+   "id": "liyrfm",
+   "t": "action",
+   "x": "Uma figura sai da névoa. É uma GAROTA de uns quinze anos, de cabelo vermelho vivo até os ombros, a única cor em todo aquele vazio. Blazer preto, saia curta, saltos altos desproporcionais, que ecoam por todo o abismo. Os olhos são vazios, sugadores de luz, iguais aos buracos do monstro. Ela para a alguns metros dele e sorri um sorriso largo demais para um rosto humano."
+  },
+  {
+   "id": "c6durv",
+   "t": "character",
+   "x": "GAROTA"
+  },
+  {
+   "id": "qwdhse",
+   "t": "paren",
+   "x": "(a voz grossa demais para a idade, ecoando de todos os lados ao mesmo tempo)"
+  },
+  {
+   "id": "d7gv59",
+   "t": "dialogue",
+   "x": "Olá, Niuwë."
+  },
+  {
+   "id": "hrrt3g",
+   "t": "action",
+   "x": "O choque dele se quebra de uma vez, e por baixo havia raiva. Ele ergue o rifle até a altura do peito, sem apontar ainda, mas quase."
+  },
+  {
+   "id": "trl25j",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "cnqu64",
+   "t": "dialogue",
+   "x": "Como caralhos você sabe o meu nome? Quem é você?"
+  },
+  {
+   "id": "n3lg7b",
+   "t": "character",
+   "x": "GAROTA"
+  },
+  {
+   "id": "fwjg0d",
+   "t": "paren",
+   "x": "(dá de ombros, teatral)"
+  },
+  {
+   "id": "53stus",
+   "t": "dialogue",
+   "x": "O meu nome? Irrisório. Uma informação tão pequena diante de tudo o que nós estamos passando."
+  },
+  {
+   "id": "se1dnx",
+   "t": "character",
+   "x": "GAROTA"
+  },
+  {
+   "id": "z9ygy8",
+   "t": "dialogue",
+   "x": "Nomes são pra quem ainda tem tempo de usá-los."
+  },
+  {
+   "id": "0ielca",
+   "t": "action",
+   "x": "Niuwë sente um arrepio violento descer pela espinha. Ela abre os braços devagar, as palmas para cima, como uma anfitriã orgulhosa da própria casa."
+  },
+  {
+   "id": "4e2iu2",
+   "t": "character",
+   "x": "GAROTA"
+  },
+  {
+   "id": "pmpsp0",
+   "t": "dialogue",
+   "x": "Você sabe onde está, não sabe? Dá pra ver na sua cara."
+  },
+  {
+   "id": "5d4l7m",
+   "t": "paren",
+   "x": "(o sorriso se alarga um pouco)"
+  },
+  {
+   "id": "msti96",
+   "t": "dialogue",
+   "x": "Essa é a Ponte dos Eventos. O lugar ideal de Häita. O lugar onde ela é mais ela."
+  },
+  {
+   "id": "o15zoa",
+   "t": "action",
+   "x": "O nome cai sobre ele como uma pedra. Niuwë olha o parapeito, o abismo, a névoa que não termina nunca. As pernas quase cedem. Fecha os olhos com força."
+  },
+  {
+   "id": "t5kvyg",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "u7fl2l",
+   "t": "paren",
+   "x": "(tremendo, mais para si mesmo)"
+  },
+  {
+   "id": "lhfffy",
+   "t": "dialogue",
+   "x": "Isso não é real. Isso não é real. Isso não é real…"
+  },
+  {
+   "id": "6j8ycf",
+   "t": "action",
+   "x": "Quando a voz dela volta, está bem na frente dele. Perto o bastante para ele sentir que ela não tem hálito. Nem calor. Nem nada."
+  },
+  {
+   "id": "x6zo0t",
+   "t": "character",
+   "x": "GAROTA"
+  },
+  {
+   "id": "yhxstj",
+   "t": "dialogue",
+   "x": "Ah, Niuwë…"
+  },
+  {
+   "id": "evegwe",
+   "t": "paren",
+   "x": "(algo quase carinhoso no tom; quase)"
+  },
+  {
+   "id": "vldo1c",
+   "t": "dialogue",
+   "x": "Isso é muito real. Tão real quanto você. Tão real quanto aquela garotinha de cabelo escuro que você deixou lá embaixo, crivada de bala, deitada nas raízes."
+  },
+  {
+   "id": "b0bm9s",
+   "t": "action",
+   "x": "Ele abre os olhos. Ela está a um palmo do rosto dele, os olhos vazios nos dele, o sorriso esticado um centímetro além do que um rosto humano permite."
+  },
+  {
+   "id": "xqexe8",
+   "t": "character",
+   "x": "GAROTA"
+  },
+  {
+   "id": "q1i5zv",
+   "t": "dialogue",
+   "x": "Dizer que isso aqui não é real é dizer que Häita não existe."
+  },
+  {
+   "id": "8gczz5",
+   "t": "paren",
+   "x": "(o sorriso cresce)"
+  },
+  {
+   "id": "sgxju0",
+   "t": "dialogue",
+   "x": "E nós dois sabemos muito bem que ela existe. Não sabemos?"
+  },
+  {
+   "id": "odjllp",
+   "t": "action",
+   "x": "Niuwë não pensa. Dá dois passos para trás, cambaleando, ergue o rifle de uma vez, encaixa a coronha no ombro e aponta o cano para o rosto dela, a menos de um metro. Os dedos tremem. Não importa. Daquela distância, não tem como errar. Puxa o gatilho."
+  },
+  {
+   "id": "600gm1",
+   "t": "note",
+   "x": "SFX: clique."
+  },
+  {
+   "id": "62fq8a",
+   "t": "action",
+   "x": "Nada. Puxa de novo. Clique. E de novo, com mais força, com raiva, como se a violência pudesse obrigar a arma a obedecer. Clique. Clique. A arma está carregada, ele sabe que está. Mas nem estampido, nem fumaça, nem coice. A garota nem pisca. Olha para ele com uma paciência quase maternal."
+  },
+  {
+   "id": "xx9h55",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "cdewzh",
+   "t": "paren",
+   "x": "(a voz saindo entre dentes)"
+  },
+  {
+   "id": "fv1g9t",
+   "t": "dialogue",
+   "x": "Você já não causou problema o suficiente pra uma noite, Rainha do Inferno?"
+  },
+  {
+   "id": "4dg0dv",
+   "t": "action",
+   "x": "O sorriso dela morre de uma vez, como uma lâmpada apagando. Ela estica o pescoço devagar, de um lado, depois do outro, com um estalo baixo de vértebras. A expressão que fica é muito pior do que o sorriso."
+  },
+  {
+   "id": "jqbe9m",
+   "t": "character",
+   "x": "GAROTA"
+  },
+  {
+   "id": "abtfo0",
+   "t": "dialogue",
+   "x": "Rainha do Inferno…? Que nome feio."
+  },
+  {
+   "id": "xlj88t",
+   "t": "action",
+   "x": "A ponte inteira treme. A névoa vermelha, que girava devagar atrás dela, para de girar."
+  },
+  {
+   "id": "236sfr",
+   "t": "character",
+   "x": "GAROTA"
+  },
+  {
+   "id": "9a5ccz",
+   "t": "paren",
+   "x": "(inclinando-se para a frente, os lábios se curvando num sorriso doente)"
+  },
+  {
+   "id": "hlyrq3",
+   "t": "dialogue",
+   "x": "Você não me deixa escolha, Niuwë."
+  },
+  {
+   "id": "sa8pzh",
+   "t": "paren",
+   "x": "(ergue a mão; o ar fica pesado, frio, como se toda a energia do lugar tivesse sido drenada)"
+  },
+  {
+   "id": "03wr98",
+   "t": "dialogue",
+   "x": "Que tal eu mexer com o que você ama?"
+  },
+  {
+   "id": "tvf7a4",
+   "t": "action",
+   "x": "Atrás dela, a névoa se abre e uma silhueta pequena sai de dentro. Passos lentos, trêmulos. Pés descalços na pedra fria. Uma camisola branca grande demais para o corpo, o cabelo loiro e comprido despenteado, como se tivesse acabado de ser arrancada da cama. Olhos verdes, grandes, assustados."
+  },
+  {
+   "id": "88xz12",
+   "t": "action",
+   "x": "O sangue de Niuwë gela. É ela. Exatamente como na foto: o mesmo cabelo, a janelinha no sorriso onde falta o dente da frente. A menininha que ele carregava nos ombros, que segurava o cabelo dele como rédeas, que desenhava cavalos de seis pernas."
+  },
+  {
+   "id": "dxxo04",
+   "t": "character",
+   "x": "LALA"
+  },
+  {
+   "id": "iv3hmo",
+   "t": "paren",
+   "x": "(um fio de voz, perdido no vazio)"
+  },
+  {
+   "id": "svxqc4",
+   "t": "dialogue",
+   "x": "N-Niuwë…?"
+  },
+  {
+   "id": "0vm29p",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "iulxlp",
+   "t": "dialogue",
+   "x": "Lala…"
+  },
+  {
+   "id": "y4lkd8",
+   "t": "action",
+   "x": "Não é uma palavra. É o ar saindo dele. Tenta correr até ela. As pernas não obedecem, como se correntes invisíveis o prendessem no lugar, deixando livres só os olhos. Para ver."
+  },
+  {
+   "id": "001ukd",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "lllo4k",
+   "t": "dialogue",
+   "x": "Isso não é real… ela tá em casa, ela tá dormindo, ela tá em CASA…"
+  },
+  {
+   "id": "z9qm3a",
+   "t": "character",
+   "x": "GAROTA"
+  },
+  {
+   "id": "ye5zkx",
+   "t": "dialogue",
+   "x": "Surpreso? Achei que esse reencontro ia ser emocionante pra você. Afinal, você disse que tava com saudade da sua pequena."
+  },
+  {
+   "id": "1f68sz",
+   "t": "action",
+   "x": "Ela puxa Lala pelo braço, trazendo a menina para junto de um trono de pedra que ninguém viu surgir. Uma das mãos de unhas pretas vai parar no queixo delicado da criança. A outra, na testa. O corpinho inteiro treme."
+  },
+  {
+   "id": "3im5np",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "xeudfg",
+   "t": "paren",
+   "x": "(debatendo-se contra as correntes que não existem)"
+  },
+  {
+   "id": "6wlx5i",
+   "t": "dialogue",
+   "x": "NÃO! SE VOCÊ ENCOSTAR UM DEDO NELA…"
+  },
+  {
+   "id": "iuzndb",
+   "t": "character",
+   "x": "GAROTA"
+  },
+  {
+   "id": "64eavs",
+   "t": "dialogue",
+   "x": "Encostar? Ah, Niuwë… você ainda não entendeu."
+  },
+  {
+   "id": "be48oe",
+   "t": "paren",
+   "x": "(suave, cruel)"
+  },
+  {
+   "id": "pdwin0",
+   "t": "dialogue",
+   "x": "Ela já está nas minhas mãos."
+  },
+  {
+   "id": "21kyxv",
+   "t": "character",
+   "x": "LALA"
+  },
+  {
+   "id": "yh5gos",
+   "t": "paren",
+   "x": "(lágrimas grossas)"
+  },
+  {
+   "id": "f2vvv4",
+   "t": "dialogue",
+   "x": "Niuwë… tá doendo… me ajuda…"
+  },
+  {
+   "id": "aq20vg",
+   "t": "character",
+   "x": "GAROTA"
+  },
+  {
+   "id": "35hdio",
+   "t": "dialogue",
+   "x": "Nós podemos ter um acordo. Eu quero o que me pertence. Mora debaixo da sua escolinha, e vocês não sabem cuidar. Abra o caminho, e ela volta pra cama."
+  },
+  {
+   "id": "qweqbw",
+   "t": "paren",
+   "x": "(os olhos vazios cintilam)"
+  },
+  {
+   "id": "cfcu3o",
+   "t": "dialogue",
+   "x": "Eu estou com o que você mais ama. Agora você decide."
+  },
+  {
+   "id": "fd9e0w",
+   "t": "action",
+   "x": "Niuwë para de se debater. O corpo inteiro treme. Não de medo: de fúria. Olha para Lala, para as mãos de unhas pretas na cabeça dela. E pensa em Taila no galho, em Selenna nas raízes, nos trinta mil rostos correndo para o bunker, no que está enterrado sob a Escola, aquilo que, se ela pegar, acaba com todos. Com a Lala também, de um jeito ou de outro."
+  },
+  {
+   "id": "2pv22t",
+   "t": "action",
+   "x": "Se ele ceder, não vai salvar ninguém."
+  },
+  {
+   "id": "6v371d",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "ydv5e2",
+   "t": "paren",
+   "x": "(grave, quebrada, carregada de desprezo e de promessa)"
+  },
+  {
+   "id": "xc2i0a",
+   "t": "dialogue",
+   "x": "Eu não vou abrir mão da minha liberdade. Eu não vou abrir mão de todos da Varguën."
+  },
+  {
+   "id": "x8ovtv",
+   "t": "paren",
+   "x": "(as lágrimas descem; ele não limpa)"
+  },
+  {
+   "id": "epjj4o",
+   "t": "dialogue",
+   "x": "Eu vou acabar com você."
+  },
+  {
+   "id": "z4gadt",
+   "t": "action",
+   "x": "A garota suspira. Um suspiro longo, quase decepcionado, como uma professora diante de um aluno que errou a mesma conta pela décima vez."
+  },
+  {
+   "id": "jxasbi",
+   "t": "character",
+   "x": "GAROTA"
+  },
+  {
+   "id": "qixb75",
+   "t": "dialogue",
+   "x": "Ah… Niuwë."
+  },
+  {
+   "id": "obo8px",
+   "t": "paren",
+   "x": "(inclina a cabeça; os olhos vazios descem até o fundo dele)"
+  },
+  {
+   "id": "55ced4",
+   "t": "dialogue",
+   "x": "Saiba que foi você que pediu."
+  },
+  {
+   "id": "r56fmk",
+   "t": "action",
+   "x": "Ele entende um segundo antes. E esse segundo é o pior da vida dele."
+  },
+  {
+   "id": "k53byz",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "lln0gr",
+   "t": "dialogue",
+   "x": "NÃO… NÃO, ESPERA, EU…"
+  },
+  {
+   "id": "uv2vuw",
+   "t": "action",
+   "x": "PLANO FECHADO NO ROSTO DE NIUWË. Atrás dele, fora de quadro, os dedos de unhas pretas apertam. É rápido. Rápido demais."
+  },
+  {
+   "id": "y8p5eq",
+   "t": "note",
+   "x": "SFX: CRACK. O som atravessa a ponte inteira como uma lâmina, ecoa pelo abismo, volta de todos os lados ao mesmo tempo, e entra na cabeça dele para nunca mais sair."
+  },
+  {
+   "id": "u1ilhc",
+   "t": "action",
+   "x": "Ele não vê. Não precisa. Só o olhar dele acompanha, em câmera lenta, uma coisa pequena e leve caindo no chão de pedra. Dois pés descalços tremem uma vez, duas vezes, na borda do quadro. E param."
+  },
+  {
+   "id": "dy3ary",
+   "t": "action",
+   "x": "Niuwë não respira. Não pisca. O tempo para de novo, mas desta vez foi ele que parou. Isso não podia estar acontecendo. Isso não era real. Mas era."
+  },
+  {
+   "id": "vrpm9i",
+   "t": "note",
+   "x": "TRILHA: o violoncelo, de novo, uma nota só. Fusão para a escuridão."
+  },
+  {
+   "id": "ldahwt",
+   "t": "scene",
+   "x": "INT. CASA DOS NAVSNÖDEN — QUARTO DO NIUWË / CORREDOR / COZINHA — DIA"
+  },
+  {
+   "id": "wd15h1",
+   "t": "time",
+   "x": "[52:30–55:00]"
+  },
+  {
+   "id": "ual92r",
+   "t": "note",
+   "x": "GRADE: âmbar suave, luz de manhã. Tudo parece lavado e quente."
+  },
+  {
+   "id": "bmsgu4",
+   "t": "note",
+   "x": "SFX: um grilo ao longe, pratos sendo lavados, uma mulher cantarolando desafinada."
+  },
+  {
+   "id": "4fv3zy",
+   "t": "action",
+   "x": "Niuwë acorda num sobressalto, sentando-se na cama. Um quarto pequeno, de infância, com a cama estreita demais para os pés dele e uma rachadura em forma de rio no teto. A janela está aberta; a árvore do jardim balança o vento; no balanço de pneu, a corda range."
+  },
+  {
+   "id": "1endov",
+   "t": "action",
+   "x": "Ele leva as mãos ao pescoço. Está inteiro. Respira fundo, várias vezes, o peito subindo e descendo rápido. Olha as mãos. Olha o quarto. Foi um pesadelo. Só um pesadelo."
+  },
+  {
+   "id": "l329fz",
+   "t": "action",
+   "x": "Mas a imagem da Lala ainda está lá. Ele pula da cama, descalço, o piso de madeira frio sob os pés, e sai para o corredor. O tapete gasto, as fotos de família em molduras tortas, a mancha antiga na parede de quando ele jogou uma bola ali aos oito anos e levou o maior sermão da vida. A luz dourada da manhã entra pela janelinha do fim do corredor. Lá embaixo, a mãe continua cantarolando."
+  },
+  {
+   "id": "dmxblk",
+   "t": "action",
+   "x": "A porta do quarto ao lado está fechada. Branca, com um adesivo de estrela meio descascado na altura dos olhos de uma criança, e uma plaquinha de madeira pendurada num barbante cor-de-rosa, pintada à mão com letras tortas e coloridas."
+  },
+  {
+   "id": "d3eadv",
+   "t": "action",
+   "x": "PLANO DETALHE: QUARTO DA LALA — NÃO ENTRE (só o Niuwë pode)."
+  },
+  {
+   "id": "w83u4o",
+   "t": "action",
+   "x": "A mão dele vai até a maçaneta e fica ali. O coração bate na garganta. Uma parte dele, a que ainda está ajoelhada naquela ponte, tem medo de abrir. Respira fundo. Gira a maçaneta devagar. Empurra com a ponta dos dedos. A porta abre com um rangido baixinho, conhecido."
+  },
+  {
+   "id": "iwsbrv",
+   "t": "action",
+   "x": "Lá está ela. A pequena Lala, dormindo como um anjo. Encolhida no meio da cama, debaixo de um edredom estampado de estrelas, abraçada a um coelho de pelúcia velho, sem uma orelha, que se recusa a deixar a mãe lavar. O cabelo loiro e comprido se espalha pelo travesseiro. A boca está entreaberta, e dá para ver a janelinha do dente que falta. Ela respira devagar, o peito subindo e descendo, um ressonar baixinho e regular, o som mais bonito que ele já ouviu."
+  },
+  {
+   "id": "1b73gz",
+   "t": "action",
+   "x": "Niuwë solta o ar. É como se tivesse prendido a respiração desde a ponte, desde o CRACK. Os ombros caem. As pernas fraquejam; ele apoia a mão no batente. Sente, fisicamente, um peso enorme deslizar das costas, como uma mochila cheia de pedras tirada depois de uma viagem longa demais."
+  },
+  {
+   "id": "du42w3",
+   "t": "action",
+   "x": "Entra em silêncio, pisando no tapete fofo de arco-íris, desviando de um castelo de blocos montado pela metade e de uma pilha de desenhos espalhados perto da cama. Num deles reconhece um cavalo de seis pernas. Sorri sem querer. Ajoelha ao lado da cama. Afasta uma mecha da testa dela com a ponta dos dedos, como se ela fosse feita de vidro. Beija a testa dela, longo, os olhos fechados."
+  },
+  {
+   "id": "1nbx01",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "t46nhp",
+   "t": "paren",
+   "x": "(sussurro)"
+  },
+  {
+   "id": "zdrcqn",
+   "t": "dialogue",
+   "x": "Bom dia, Ella. Bom dia, minha pequena."
+  },
+  {
+   "id": "4g402m",
+   "t": "action",
+   "x": "Ela não acorda. Só sorri, dormindo. E Niuwë, pela primeira vez desde que o céu ficou vermelho, também sorri."
+  },
+  {
+   "id": "9xq2hy",
+   "t": "action",
+   "x": "CORTE PARA: a cozinha. DANIELLE, a mãe, de costas, mexendo uma panela, uma colher de pau na mão e um pano de prato no ombro. Niuwë entra, beija o rosto dela e se senta, puxando a cadeira devagar."
+  },
+  {
+   "id": "k994jj",
+   "t": "character",
+   "x": "DANIELLE"
+  },
+  {
+   "id": "hbrxbq",
+   "t": "dialogue",
+   "x": "Dormiu bem?"
+  },
+  {
+   "id": "vxuikk",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "eyz10r",
+   "t": "dialogue",
+   "x": "Dormi. Mas tive um pesadelo estranho."
+  },
+  {
+   "id": "ucmvly",
+   "t": "character",
+   "x": "DANIELLE"
+  },
+  {
+   "id": "ymm7h2",
+   "t": "paren",
+   "x": "(sem se virar)"
+  },
+  {
+   "id": "oq1nil",
+   "t": "dialogue",
+   "x": "Foi a pizza de ontem."
+  },
+  {
+   "id": "jqwxxj",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "3s1v45",
+   "t": "paren",
+   "x": "(rindo, e a risada sai fraca)"
+  },
+  {
+   "id": "bdvka7",
+   "t": "dialogue",
+   "x": "Deve ter sido."
+  },
+  {
+   "id": "arca6x",
+   "t": "action",
+   "x": "FUSÃO RÁPIDA, em ritmo de lembrança: Lala, de pijama, com cereal no queixo. Lala montada nos ombros dele, no jardim, segurando o cabelo dele como rédeas. Nöberto, o pai, lendo jornal. O balanço de pneu. Sopa na hora do jantar porque Lala está com a garganta ruim, e a menina cochilando em cima do prato."
+  },
+  {
+   "id": "p39ya3",
+   "t": "action",
+   "x": "INT. QUARTO DO NIUWË — NOITE. Ele deita de barriga para cima, na cama pequena demais, olhando a rachadura em forma de rio no teto. A casa estala baixinho. Lá fora, um grilo. A mochila já está arrumada ao pé da cama: amanhã, bem cedo, ele volta para a Escola. Fecha os olhos. Está quase dormindo."
+  },
+  {
+   "id": "1c4ixu",
+   "t": "note",
+   "x": "SFX: e então ele ouve: um som molhado, arrastado, profundo, vindo do quarto ao lado, atravessando a parede fina como se fosse de papel. Algo grande demais tentando sair de dentro de um corpo pequeno demais."
+  },
+  {
+   "id": "k4kfrg",
+   "t": "character",
+   "x": "DANIELLE (O.S.)"
+  },
+  {
+   "id": "27muie",
+   "t": "paren",
+   "x": "(esganiçada, quebrada)"
+  },
+  {
+   "id": "fx8vip",
+   "t": "dialogue",
+   "x": "NÖBERTO! NÖBERTO, ACORDA! SOCORRO!"
+  },
+  {
+   "id": "gwrknl",
+   "t": "action",
+   "x": "Niuwë salta da cama. Tropeça na mochila, bate o ombro no batente, nem sente. Corre pelo corredor escuro, onde a única luz vem do quarto de Lala, derramando um retângulo amarelo e trêmulo no chão. A plaquinha balança no barbante cor-de-rosa. Ele empurra a porta. E para."
+  },
+  {
+   "id": "yanxqn",
+   "t": "action",
+   "x": "PLANO FECHADO: o rosto dele. O que ele vê não é mostrado. Só a luz amarela sobre o rosto, o brilho nos olhos arregalados, e, fora de quadro, a respiração curta e desesperada de uma criança, e uma mãe de joelhos. Uma pequena mão, no quadro, pende de uma beira de cama, aberta, os dedos finos tremendo."
+  },
+  {
+   "id": "84g5tj",
+   "t": "action",
+   "x": "Um par de olhos verdes encontra os dele. Os lábios roxos se movem, sem som."
+  },
+  {
+   "id": "12oli6",
+   "t": "character",
+   "x": "LALA (O.S., sem voz)"
+  },
+  {
+   "id": "qi80ps",
+   "t": "dialogue",
+   "x": "Niuwë."
+  },
+  {
+   "id": "cexooc",
+   "t": "action",
+   "x": "Ele abre a boca para gritar. E nada sai."
+  },
+  {
+   "id": "s50rlh",
+   "t": "note",
+   "x": "SFX: um corte seco de som. Silêncio absoluto. Tela branca."
+  },
+  {
+   "id": "3556ov",
+   "t": "scene",
+   "x": "INT. O BRANCO — SEM HORA"
+  },
+  {
+   "id": "ppales",
+   "t": "time",
+   "x": "[55:00–59:00]"
+  },
+  {
+   "id": "ickdsn",
+   "t": "note",
+   "x": "GRADE: um branco total, doloroso. Sem sombras, sem horizonte, sem sentido de cima ou baixo."
+  },
+  {
+   "id": "l4pzp2",
+   "t": "action",
+   "x": "Um branco absoluto, infinito, sem paredes, sem cantos, sem sombras, sem nada. Não dá para saber onde termina o chão e começa o resto. Não há luz vindo de lugar nenhum, e mesmo assim tudo está claro, claro demais. Niuwë está de joelhos, as mãos espalmadas na superfície fria, os ombros tremendo. Silêncio, pior que o da ponte."
+  },
+  {
+   "id": "7efna3",
+   "t": "action",
+   "x": "Lá no fundo, onde o branco parece ficar ainda mais branco, há uma figura. Pequena. Escura. Imóvel. Um blazer preto. Uma saia curta. Saltos altos demais. E um cabelo vermelho vivo, a única cor em todo aquele vazio. De costas para ele, ela começa a se virar, devagar, sem pressa. Mesmo daquela distância, ele vê o sorriso."
+  },
+  {
+   "id": "851qa0",
+   "t": "character",
+   "x": "GAROTA"
+  },
+  {
+   "id": "v6zo2j",
+   "t": "paren",
+   "x": "(a voz grossa ecoando de todos os lados, como se o branco inteiro falasse)"
+  },
+  {
+   "id": "ofnnvl",
+   "t": "dialogue",
+   "x": "Bom dia, Niuwë. Gostou do seu fim de semana?"
+  },
+  {
+   "id": "8z4c6d",
+   "t": "action",
+   "x": "Niuwë não levanta o rosto. Quando fala, a voz sai baixa, rouca, rasgada."
+  },
+  {
+   "id": "rm203u",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "6d5k4n",
+   "t": "dialogue",
+   "x": "Sua filha da puta. Matou a minha irmã."
+  },
+  {
+   "id": "p4t2nk",
+   "t": "action",
+   "x": "A garota, com a personificação da ironia no rosto, só inclina a cabeça."
+  },
+  {
+   "id": "jelql3",
+   "t": "character",
+   "x": "GAROTA"
+  },
+  {
+   "id": "u306n8",
+   "t": "dialogue",
+   "x": "De nada."
+  },
+  {
+   "id": "o1ql2f",
+   "t": "action",
+   "x": "Ela caminha na direção dele, toc, toc, e dá a volta devagar, observando-o como quem examina um animal ferido. Continua falando, em tom leve, de conversa de salão, enquanto ele se arrasta mais um palmo na direção dela."
+  },
+  {
+   "id": "awixlt",
+   "t": "character",
+   "x": "GAROTA"
+  },
+  {
+   "id": "pon08f",
+   "t": "dialogue",
+   "x": "Você tinha tanta coisa pela frente. Uma irmã pra visitar no fim de semana. Um cabelo tão bonito. Uma Escola inteira que acha que você é um herói por causa de uma tábua e de um caixote."
+  },
+  {
+   "id": "pt1oo9",
+   "t": "action",
+   "x": "Ele enfia a mão num compartimento secreto da jaqueta e tira uma faca curta, de lâmina fina. Se joga para a frente, cambaleando, e desfere um soco desesperado, com tudo o que lhe resta."
+  },
+  {
+   "id": "c2eh1l",
+   "t": "action",
+   "x": "Ela pega o pescoço dele no ar com uma só mão."
+  },
+  {
+   "id": "5i15mf",
+   "t": "action",
+   "x": "Ergue-o do chão como quem segura um gatinho pelo cangote, com o braço esticado acima da própria cabeça. Uma força colossal, antiga, que não pertence a uma menina de quinze anos nem a nada que tenha andado sobre a terra. Niuwë sente a cartilagem da garganta ranger. Os ossos do pescoço protestam. A faca cai no chão branco e se perde."
+  },
+  {
+   "id": "93f1u3",
+   "t": "character",
+   "x": "GAROTA"
+  },
+  {
+   "id": "9mwlpj",
+   "t": "paren",
+   "x": "(calma, quase entediada)"
+  },
+  {
+   "id": "b6qx60",
+   "t": "dialogue",
+   "x": "Seria melhor você repensar suas decisões antes que seja tarde."
+  },
+  {
+   "id": "tu3903",
+   "t": "action",
+   "x": "Niuwë tenta falar. A voz não sai. As mãos dele soltam o pulso dela. Não têm mais força."
+  },
+  {
+   "id": "r9ts8h",
+   "t": "character",
+   "x": "GAROTA"
+  },
+  {
+   "id": "fha032",
+   "t": "dialogue",
+   "x": "Sabe o que é engraçado? Eu te trouxe aqui porque você ia ser útil. Você tinha potencial, Niuwë. Muito. Você podia ter sido alguma coisa especial."
+  },
+  {
+   "id": "dnk4vy",
+   "t": "action",
+   "x": "Aperta mais. Algo estala dentro dele."
+  },
+  {
+   "id": "l9uxsp",
+   "t": "character",
+   "x": "GAROTA"
+  },
+  {
+   "id": "bdo2cr",
+   "t": "dialogue",
+   "x": "Mas se você não vai ser útil… então não adianta você existir aqui."
+  },
+  {
+   "id": "86i1a0",
+   "t": "action",
+   "x": "INTERCALADO — EXT. DESCAMPADO — NOITE. O tempo voltou a correr. O vento sopra de novo, as folhas caem, o enxame zune. Jorgenssen, de pé no descampado, onde Niuwë estava um instante atrás, olha para cima, paralisado. Atrás dele, Roger, caído entre as raízes, e Dasko, encolhido no vão, fazem o mesmo. Pendurado no ar, a trinta metros do chão, de frente para uma caverna que se abriu no peito do Sepharoth, uma cavidade escura com uma brasa vermelha pulsando no fundo, está o corpo de Niuwë. Os pés balançam. Os braços pendem. Ninguém o segura."
+  },
+  {
+   "id": "ghj47f",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "hgbg9q",
+   "t": "paren",
+   "x": "(a voz saindo como um sopro)"
+  },
+  {
+   "id": "vutawx",
+   "t": "dialogue",
+   "x": "Niuwë…"
+  },
+  {
+   "id": "gg15ru",
+   "t": "action",
+   "x": "No chão, Roger, a mão na coxa ferida, solta um grito. Jorgenssen se vira para ele e, só então, vê o que o tempo estava escondendo: Selenna, imóvel, entre as raízes, no meio do vermelho. Ele a deixou ali. Para ajudar o Niuwë. Os olhos dele sobem de novo para o amigo no ar. E nada, nada, nada pode ser feito."
+  },
+  {
+   "id": "iif0xs",
+   "t": "action",
+   "x": "Dentro do branco, a garota continua apertando."
+  },
+  {
+   "id": "d2megf",
+   "t": "character",
+   "x": "NIUWË"
+  },
+  {
+   "id": "kov691",
+   "t": "paren",
+   "x": "(num fiapo, quase só ar)"
+  },
+  {
+   "id": "p92cwj",
+   "t": "dialogue",
+   "x": "Ela… tá em casa… dormindo…"
+  },
+  {
+   "id": "cif8ov",
+   "t": "action",
+   "x": "A garota inclina a cabeça, como quem escuta uma criança contar um sonho. Depois responde, doce, terrível."
+  },
+  {
+   "id": "1oa032",
+   "t": "character",
+   "x": "GAROTA"
+  },
+  {
+   "id": "2pfvs4",
+   "t": "dialogue",
+   "x": "Talvez."
+  },
+  {
+   "id": "2v63h8",
+   "t": "action",
+   "x": "E ela aperta, aperta muito. O mundo de Niuwë se reduz ao pescoço. Não existe mais o branco, nem a garota, nem a dor no resto do corpo. Só aquele anel de dedos de ferro fechando, fechando, e o vazio no peito onde o ar deveria estar. Os pulmões queimam como se alguém tivesse acendido fogo lá dentro. A cabeça lateja, cheia, pesada, pulsando a cada batida do coração."
+  },
+  {
+   "id": "6xphui",
+   "t": "action",
+   "x": "Ele se debate. Não por coragem, não por estratégia. Pelo instinto mais velho que existe, o do corpo que se recusa a morrer. As pernas chutam o vazio, cada vez mais descoordenadas. As mãos voltam ao pulso dela e arranham, puxam, socam, sem força nenhuma. O corpo inteiro se contorce preso naquela mão como um peixe fora d’água."
+  },
+  {
+   "id": "rrzfa3",
+   "t": "action",
+   "x": "A garota assiste a tudo sem piscar. E então, bem perto do rosto dele, fala. Não com raiva. Não com deboche. Com uma calma terrível, a calma de quem tem a eternidade inteira pela frente."
+  },
+  {
+   "id": "gmsc5z",
+   "t": "character",
+   "x": "GAROTA"
+  },
+  {
+   "id": "8s9hsv",
+   "t": "dialogue",
+   "x": "Eu não consegui o que eu queria agora, Niuwë. Mas não se preocupe. Eu tenho paciência."
+  },
+  {
+   "id": "c8pxfr",
+   "t": "action",
+   "x": "O aperto fica ainda mais forte."
+  },
+  {
+   "id": "39mzur",
+   "t": "character",
+   "x": "GAROTA"
+  },
+  {
+   "id": "nt5cp8",
+   "t": "dialogue",
+   "x": "No futuro, eu vou voltar. E, quando eu voltar, eu vou conseguir."
+  },
+  {
+   "id": "jg47tl",
+   "t": "paren",
+   "x": "(sorri)"
+  },
+  {
+   "id": "g1kv4l",
+   "t": "dialogue",
+   "x": "Tudo o que eu quero."
+  },
+  {
+   "id": "8p2drs",
+   "t": "action",
+   "x": "INTERCALADO — EXT. DESCAMPADO. Jorgenssen vê primeiro. O pescoço de Niuwë, debaixo do queixo, nas laterais, ao redor da garganta: a pele começa a escurecer. Primeiro vermelha. Depois roxa. Depois de um roxo profundo, quase preto. E as marcas aparecem, nítidas, uma por uma, como se desenhadas na pele por uma mão invisível. Dedos. Marcas de dedos. Finos, compridos, cravados fundo na carne. Uma mão pequena demais para um adulto, fechada em volta do pescoço dele. Mas não há mão nenhuma ali."
+  },
+  {
+   "id": "iqc521",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "5u6l56",
+   "t": "dialogue",
+   "x": "Não… não, não, não… NIUWË!"
+  },
+  {
+   "id": "62s73v",
+   "t": "action",
+   "x": "NO BRANCO: a visão de Niuwë começa a se desfazer. O rosto da garota fica borrado, as bordas se misturando ao branco. O vermelho do cabelo dela vira uma mancha. Depois vira nada. As cores somem, os contornos somem. Tudo vai ficando cinza, depois mais escuro, até que ele não enxerga mais nada. O som vai embora junto. A voz dela. A própria respiração, que já não existe. Fica só o coração, batendo nos ouvidos, alto, desesperado."
+  },
+  {
+   "id": "oxre81",
+   "t": "note",
+   "x": "SFX: tum-tum… tum-tum… tum… tum…"
+  },
+  {
+   "id": "bieiwk",
+   "t": "action",
+   "x": "As pernas param de chutar. As mãos escorregam do pulso dela e caem ao lado do corpo, abertas, soltas."
+  },
+  {
+   "id": "jxndhr",
+   "t": "note",
+   "x": "SFX: tum…"
+  },
+  {
+   "id": "4lqto6",
+   "t": "action",
+   "x": "E no último fio de consciência, antes que tudo apague, não é a garota que ele vê. Não é a ponte, nem o branco, nem o monstro. É um gramado ensolarado. Uma menininha montada nos ombros dele, segurando o cabelo dele como rédeas, rindo com a janelinha do dente da frente."
+  },
+  {
+   "id": "ipopdl",
+   "t": "action",
+   "x": "Lala."
+  },
+  {
+   "id": "5jf4lm",
+   "t": "action",
+   "x": "E então ele não sente mais nada. Acabou. Ele não respira mais."
+  },
+  {
+   "id": "koymdb",
+   "t": "note",
+   "x": "TRILHA: silêncio absoluto. Depois, o violoncelo. Uma nota. A mesma."
+  },
+  {
+   "id": "04usmz",
+   "t": "action",
+   "x": "A garota fica mais um momento segurando o corpo dele no ar, olhando. Depois baixa o braço devagar, até os pés dele tocarem o chão branco, e solta. O corpo desaba mole aos pés dela, como a menininha de camisola tinha desabado aos pés do trono, horas, ou séculos, antes. Ela se agacha ao lado dele. Ajeita a saia. E apoia a mão na cabeça dele, sobre o cabelo loiro-queimado espalhado no chão, num gesto que, visto de longe, poderia até parecer carinho."
+  },
+  {
+   "id": "rjl6hu",
+   "t": "character",
+   "x": "GAROTA"
+  },
+  {
+   "id": "zna1ur",
+   "t": "paren",
+   "x": "(baixinho, para ninguém)"
+  },
+  {
+   "id": "c61cdf",
+   "t": "dialogue",
+   "x": "Pronto. Ele já não está mais vivo."
+  },
+  {
+   "id": "6ziw6j",
+   "t": "action",
+   "x": "Ela fica ali por um segundo, com a mão na cabeça dele."
+  },
+  {
+   "id": "1ezz8d",
+   "t": "character",
+   "x": "GAROTA"
+  },
+  {
+   "id": "xxkjk9",
+   "t": "dialogue",
+   "x": "Não adianta mais."
+  },
+  {
+   "id": "q1jl34",
+   "t": "action",
+   "x": "Levanta-se, ajeita o blazer e dá as costas. Toc. Toc. Toc. E o branco a engole."
+  },
+  {
+   "id": "6c2m24",
+   "t": "scene",
+   "x": "EXT. DESCAMPADO / CLAREIRA — MADRUGADA"
+  },
+  {
+   "id": "hztjis",
+   "t": "time",
+   "x": "[59:00–62:00]"
+  },
+  {
+   "id": "hk6qis",
+   "t": "note",
+   "x": "SFX: o vento, de novo. Mas agora um vento comum, frio, que cheira a cinza."
+  },
+  {
+   "id": "59jzb3",
+   "t": "action",
+   "x": "Do lado de fora, os fios invisíveis se cortam. O corpo de Niuwë despenca. Trinta metros. Sem um grito, sem um movimento, girando devagar no ar como uma folha, o cabelo loiro abrindo um rastro dourado contra o céu vermelho."
+  },
+  {
+   "id": "any28m",
+   "t": "action",
+   "x": "E, no mesmo instante, o Sepharoth cai junto. Não tomba como um animal ferido. Cede. Como se, junto com Niuwë, alguém tivesse cortado também os fios que mantinham a criatura de pé. As vinte e sete cabeças despencam ao mesmo tempo, os pescoços se dobrando, os olhos se apagando um por um, as cavidades vermelhas que sugavam a luz se fechando como poços sendo tampados. A caverna no peito se fecha com um estalo úmido. Os joelhos colossais se dobram. E a montanha de cem metros desaba sobre si mesma, sobre a clareira, sobre o próprio enxame, num estrondo tão grande que faz tremer cada árvore num raio de quilômetros e levanta uma nuvem de poeira e cinza que cobre metade do céu."
+  },
+  {
+   "id": "8l3j2z",
+   "t": "action",
+   "x": "Escondido no vão entre as raízes, encolhido no escuro onde Niuwë mandou que ficasse, Dasko sente o chão pular debaixo dele. Rasteja até a borda da madeira, devagar, e espia pela fresta. Vê a coisa caindo. Vê as cabeças despencando, a pele de carvão se desfazendo, rachando, esfarelando como lenha que queimou por tempo demais. Vê o enxame inteiro na clareira, milhares de criaturas, simplesmente parar. E se desmanchar. Virar fumaça escura e cinza, levada pelo vento, como se nunca tivesse existido."
+  },
+  {
+   "id": "7arojt",
+   "t": "action",
+   "x": "E então Dasko olha para cima. O céu está mudando. O vermelho vai embora. Primeiro nas bordas, depois do centro. A cor de ferida aberta desbota, recua, escorre para longe como água suja descendo por um ralo. E, por baixo dela, como se sempre tivesse estado ali esperando, aparece o azul: um azul escuro, profundo, limpo, de noite comum. E nele, uma a uma, devagar, tímidas, as estrelas voltam."
+  },
+  {
+   "id": "q41d0u",
+   "t": "note",
+   "x": "TRILHA: o violoncelo reaparece, com mais instrumentos de corda entrando por baixo. Nenhuma melodia. Só um luto."
+  },
+  {
+   "id": "byolx0",
+   "t": "note",
+   "x": "SFX: a cinza cai do céu como neve fina, sem som."
+  },
+  {
+   "id": "baloou",
+   "t": "action",
+   "x": "CORTE PARA: a clareira, minutos depois. Jorgenssen e Roger caminham entre os destroços. Roger manca, apoiado no diálogo, que usa como bengala, a coxa amarrada com a manga rasgada da camisa. Eles procuram o nome dele em voz baixa, indo de um lado para o outro entre troncos tombados e crateras de raízes. Não gritam. Não querem escutar a falta de resposta."
+  },
+  {
+   "id": "990wn9",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "mvaxzi",
+   "t": "dialogue",
+   "x": "Aqui."
+  },
+  {
+   "id": "vkmeu4",
+   "t": "action",
+   "x": "A voz de Roger sai pequena. Jorgenssen olha. Roger está parado diante de uma depressão de terra, e a bengala escorrega da mão dele e cai na cinza, sem som."
+  },
+  {
+   "id": "xi0p7g",
+   "t": "action",
+   "x": "Niuwë está ali, de costas, o cabelo loiro espalhado no chão como um leque. Um braço aberto. O rifle a dois metros, intacto. Jorgenssen dá a volta e vê o rosto. Os olhos estão fechados. A pele, fria. As veias das têmporas e da testa estão saltadas, grossas, desenhando caminhos azuis e roxos. E o pescoço está roxo, quase preto, com as marcas de uma mão pequena, de dedos finos, cravados fundo na carne, de um lado e do outro."
+  },
+  {
+   "id": "1r337s",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "it4cnb",
+   "t": "paren",
+   "x": "(sussurrando)"
+  },
+  {
+   "id": "jgo4lb",
+   "t": "dialogue",
+   "x": "Ele foi enforcado."
+  },
+  {
+   "id": "5rhniw",
+   "t": "character",
+   "x": "JORGENSSEN"
+  },
+  {
+   "id": "y1a4ow",
+   "t": "dialogue",
+   "x": "Ninguém encostou nele."
+  },
+  {
+   "id": "7v7ryx",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "f5aj7e",
+   "t": "dialogue",
+   "x": "Eu sei. Eu vi. A gente viu."
+  },
+  {
+   "id": "gtoodr",
+   "t": "action",
+   "x": "Roger cai de joelhos ao lado do corpo. A perna ferida dobra de um jeito ruim, e ele nem geme. Estende a mão, tremendo, e encosta os dedos no braço do amigo."
+  },
+  {
+   "id": "lepj9r",
+   "t": "character",
+   "x": "ROGER"
+  },
+  {
+   "id": "4a2pls",
+   "t": "dialogue",
+   "x": "Frio. Ele tá frio demais."
+  },
+  {
+   "id": "d3o8tv",
+   "t": "paren",
+   "x": "(a voz quebra)"
+  },
+  {
+   "id": "qtkq0a",
+   "t": "dialogue",
+   "x": "Isso não faz sentido, Jorgën. Isso não faz sentido nenhum."
+  },
+  {
+   "id": "9nalkw",
+   "t": "action",
+   "x": "Jorgenssen não diz nada. Fica de pé, olhando o rosto de Niuwë, e a mão dele sobe devagar, sem pressa, sem que ele perceba, até o lado esquerdo do peito. Até o zíper fechado da jaqueta. Até o bolso interno. Até o envelope branco."
+  },
+  {
+   "id": "udim1u",
+   "t": "note",
+   "x": "SFX: fragmentos de som, sobrepostos, como lembranças: “você é o irmão que eu nunca tive”; “eu sinto, lá no fundo, que eu posso não voltar dessa vez”; “eu vou visitar a Lala no fim de semana”."
+  },
+  {
+   "id": "gq1bzx",
+   "t": "action",
+   "x": "FLASHES RÁPIDOS: o quarto de Roger, a tábua jogada no chão. A fotografia que Niuwë olhou no helicóptero. O jeito como ele contornou a árvore sozinho, sem olhar para trás. E Jorgenssen entende. Entende tudo de uma vez, como um soco no estômago."
+  },
+  {
+   "id": "kza6gq",
+   "t": "action",
+   "x": "Niuwë sabia. Desde o começo da noite, desde antes do helicóptero, desde que atendeu aquela ligação de toalha na cintura, ele sabia que podia não voltar vivo para casa."
+  },
+  {
+   "id": "o0syys",
+   "t": "action",
+   "x": "E veio mesmo assim."
+  },
+  {
+   "id": "l1vz5r",
+   "t": "action",
+   "x": "Jorgenssen aperta o envelope por cima da jaqueta, com tanta força que o papel amassa lá dentro. E, pela primeira vez naquela noite, no meio de toda a cinza, debaixo de um céu cheio de estrelas, ele chora."
+  },
+  {
+   "id": "a7inaz",
+   "t": "action",
+   "x": "Passos na terra mole. Dasko aparece entre os troncos, o paletó rasgado, a gravata perdida, sem os óculos. Para a alguns metros. Olha para Niuwë. Para Jorgenssen. Para Roger de joelhos. Para o outro lado, onde, entre as raízes, um corpo de mulher espera. Caminha até Niuwë devagar, como quem tem medo de acordá-lo, e se ajoelha. Põe a mão no cabelo dele. Afasta uma mecha da testa. Os lábios dele se movem."
+  },
+  {
+   "id": "1g4qyy",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "xi2ggx",
+   "t": "paren",
+   "x": "(baixíssimo)"
+  },
+  {
+   "id": "alhx2d",
+   "t": "dialogue",
+   "x": "Que Deus… Häita…"
+  },
+  {
+   "id": "if1sfg",
+   "t": "action",
+   "x": "Ele para. A mandíbula trava. A mão no cabelo de Niuwë aperta e depois se abre. Ele engole a oração inteira, como quem engole um caco de vidro, e não reza."
+  },
+  {
+   "id": "iti06i",
+   "t": "action",
+   "x": "Jorgenssen, sem uma palavra, vai até as raízes e levanta Selenna nos braços, com o cuidado de quem carrega algo que pode quebrar de novo. Traz o corpo dela até a clareira e o deposita ao lado de Niuwë, ao lado direito, num gesto que não é pensado, que simplesmente parece certo. Fecha os olhos dela. Com o polegar, tira uma folha do cabelo."
+  },
+  {
+   "id": "51rrj1",
+   "t": "character",
+   "x": "DASKO"
+  },
+  {
+   "id": "1crq84",
+   "t": "paren",
+   "x": "(sem olhar para ninguém)"
+  },
+  {
+   "id": "h8toqn",
+   "t": "dialogue",
+   "x": "A Taila. Eu vou buscar."
+  },
+  {
+   "id": "q51m3z",
+   "t": "action",
+   "x": "Ninguém responde. Mas Roger faz que sim com a cabeça, uma vez, sem tirar os olhos de Niuwë."
+  },
+  {
+   "id": "s5dtat",
+   "t": "action",
+   "x": "PLANO ABERTO, em grua subindo: três sobreviventes e dois corpos no meio de um descampado ferido, onde ontem havia floresta. Cinza caindo. Estrelas. Em volta, a Varguën silenciosa, intacta, e do outro lado da muralha, pequenas luzes: o bunker, o Setor Sul, as lanternas dos alunos saindo para a madrugada. A Escola está salva. O preço está no chão."
+  },
+  {
+   "id": "pue4qh",
+   "t": "note",
+   "x": "TRILHA: o violoncelo resolve, afinal, numa nota longa. Silêncio."
+  },
+  {
+   "id": "svhqe8",
+   "t": "note",
+   "x": "CARTELA: SEIS ANOS DEPOIS."
+  },
+  {
+   "id": "fpb0jg",
+   "t": "action",
+   "x": "FIM DO EPISÓDIO."
+  }
+ ]
+}

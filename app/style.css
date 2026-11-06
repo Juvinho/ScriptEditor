@@ -1,0 +1,1538 @@
+/* ScriptEditor (edição 95) — Estética Windows 95 + Ilha Não-Linear estilo Adobe Premiere 4.2 */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --desktop: #6E2A1C;
+  --face: #C6BFA6;
+  --light: #E1DBC6;
+  --hi: #FFFFFF;
+  --lo: #8A8268;
+  --dk: #0A0A0A;
+  --text: #000000;
+  --muted: #3C3C3C;
+  --title1: #800000;
+  --title2: #C0603A;
+  --titletext: #FFFFFF;
+  --off1: #8A8268;
+  --off2: #B5AE99;
+  --sel: #800000;
+  --seltext: #FFFFFF;
+  --field: #FFFFFF;
+  --tip: #FFFFE1;
+  --err: #B00000;
+  --warn: #7A5A00;
+  --ok: #006400;
+  --link: #0000C0;
+  --paper: #FFFFFF;
+  --type: #141414;
+  --deskgrey: #787262;
+  --f-ui: Tahoma, Verdana, "MS Sans Serif", Arial, sans-serif;
+  --f-type: "Courier New", "Courier Prime", Courier, monospace;
+  --f-pix: "VT323", "Courier New", ui-monospace, monospace;
+  color-scheme: light;
+}
+
+body[data-scheme="classico"] {
+  --desktop: #008080;
+  --face: #C0C0C0;
+  --light: #DFDFDF;
+  --lo: #808080;
+  --title1: #000080;
+  --title2: #1084D0;
+  --sel: #000080;
+  --deskgrey: #808080;
+  --off1: #808080;
+  --off2: #B5B5B5;
+}
+
+body[data-scheme="tijolo"] {
+  --desktop: #6E2A1C;
+  --face: #C6BFA6;
+  --light: #E1DBC6;
+  --lo: #8A8268;
+  --title1: #800000;
+  --title2: #C0603A;
+  --sel: #800000;
+  --deskgrey: #787262;
+}
+
+body[data-scheme="berinjela"] {
+  --desktop: #4C3A5E;
+  --face: #A8B6AF;
+  --light: #CCD8D2;
+  --lo: #6B7B74;
+  --title1: #402040;
+  --title2: #86608A;
+  --sel: #402040;
+  --deskgrey: #6B7B74;
+}
+
+body[data-scheme="deserto"] {
+  --desktop: #A08048;
+  --face: #D6CDBB;
+  --light: #EBE4D6;
+  --lo: #A1977E;
+  --title1: #007878;
+  --title2: #40A8A8;
+  --sel: #007878;
+  --deskgrey: #A1977E;
+}
+
+body[data-scheme="contraste"] {
+  --desktop: #000000;
+  --face: #000000;
+  --light: #4A4A4A;
+  --hi: #FFFFFF;
+  --lo: #9A9A9A;
+  --dk: #FFFFFF;
+  --text: #FFFFFF;
+  --muted: #E8E8E8;
+  --title1: #800080;
+  --title2: #A000A0;
+  --off1: #404040;
+  --off2: #606060;
+  --sel: #00A0A0;
+  --seltext: #000000;
+  --field: #000000;
+  --tip: #000000;
+  --err: #FF7070;
+  --warn: #FFD040;
+  --ok: #70FF70;
+  --link: #7FD4FF;
+  --deskgrey: #202020;
+  color-scheme: dark;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--desktop);
+  color: var(--text);
+  font: 11.5px/1.3 var(--f-ui);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  -webkit-font-smoothing: none;
+  user-select: none;
+}
+
+button, input, select, textarea {
+  font: inherit;
+  color: inherit;
+}
+
+.raised {
+  box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--hi), inset -2px -2px var(--lo), inset 2px 2px var(--light);
+}
+
+.sunken {
+  box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--lo), inset -2px -2px var(--light), inset 2px 2px var(--dk);
+}
+
+/* ---------- Janela Principal ---------- */
+.app {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--face);
+  padding: 3px;
+  box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--light), inset -2px -2px var(--lo), inset 2px 2px var(--hi);
+}
+
+.titlebar {
+  background: linear-gradient(90deg, var(--title1), var(--title2));
+  color: var(--titletext);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 2px 2px 4px;
+  min-height: 18px;
+  user-select: none;
+  -webkit-app-region: drag;
+}
+
+.titlebar button, .win .titlebar {
+  -webkit-app-region: no-drag;
+}
+
+.titlebar .ttl {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tb-btn {
+  width: 16px;
+  height: 14px;
+  background: var(--face);
+  border: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 700 10px/1 var(--f-ui);
+  color: var(--text);
+  cursor: default;
+  box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--hi), inset -2px -2px var(--lo), inset 2px 2px var(--light);
+}
+
+.tb-btn:active {
+  box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--dk), inset -2px -2px var(--light), inset 2px 2px var(--lo);
+}
+
+/* ---------- Barra de Menus e Ferramentas ---------- */
+.menubar {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 1px 0 2px;
+}
+
+.menubar > button {
+  border: 0;
+  background: transparent;
+  padding: 2px 7px;
+  cursor: default;
+}
+
+.menubar > button[aria-expanded="true"] {
+  background: var(--sel);
+  color: var(--seltext);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 2px;
+  box-shadow: inset 0 1px var(--lo), inset 0 2px var(--hi);
+  margin-bottom: 2px;
+}
+
+.tbtn {
+  width: 24px;
+  height: 22px;
+  border: 0;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: default;
+}
+
+.tbtn:hover {
+  box-shadow: inset -1px -1px var(--lo), inset 1px 1px var(--hi);
+}
+
+.tbtn:active, .tbtn[aria-pressed="true"] {
+  box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--lo);
+  background: repeating-conic-gradient(var(--face) 0 25%, var(--hi) 0 50%) 0 0 / 2px 2px;
+}
+
+.tsep {
+  width: 2px;
+  height: 20px;
+  border-left: 1px solid var(--lo);
+  border-right: 1px solid var(--hi);
+  margin: 0 3px;
+}
+
+.tlbl {
+  padding: 0 3px 0 4px;
+}
+
+select, input[type="text"], input[type="number"], input[type="date"], textarea {
+  background: var(--field);
+  color: var(--text);
+  border: 0;
+  border-radius: 0;
+  padding: 2px 4px;
+  min-width: 0;
+  box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--lo), inset -2px -2px var(--light), inset 2px 2px var(--dk);
+}
+
+select {
+  height: 21px;
+  padding: 1px 2px;
+}
+
+input[type="checkbox"], input[type="radio"] {
+  accent-color: var(--sel);
+  margin: 0 3px 0 0;
+}
+
+input[type="range"] {
+  accent-color: var(--sel);
+}
+
+/* ---------- Bancada Adobe Premiere 4.2 (Projeto/Efeitos + Monitores Duplos + Timeline) ---------- */
+.premiere-workspace {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  gap: 3px;
+}
+
+.upper-deck {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 330px minmax(0, 1fr);
+  gap: 3px;
+  min-height: 0;
+}
+
+body[data-painel="off"] .upper-deck {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+body[data-painel="off"] .side-rack {
+  display: none;
+}
+
+/* Coluna Esquerda: Janela Projeto (Bin), Efeitos/Controles e Roteiro (ScriptRoom) */
+.side-rack {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--face);
+  padding: 2px;
+  box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--hi), inset -2px -2px var(--lo), inset 2px 2px var(--light);
+}
+
+.ptabs {
+  display: flex;
+  flex-wrap: wrap;
+  padding-left: 2px;
+  position: relative;
+  z-index: 1;
+}
+
+.ptabs button {
+  border: 0;
+  background: var(--face);
+  padding: 3px 7px 2px;
+  margin-top: 2px;
+  cursor: default;
+  border-radius: 3px 3px 0 0;
+  box-shadow: inset 1px 1px var(--hi), inset -1px 0 var(--dk), inset -2px 0 var(--lo), inset 0 2px var(--light);
+}
+
+.ptabs button[aria-pressed="true"] {
+  margin-top: 0;
+  padding-bottom: 4px;
+  margin-bottom: -2px;
+  position: relative;
+  z-index: 2;
+  font-weight: 700;
+}
+
+.tabpanel {
+  flex: 1;
+  overflow: auto;
+  padding: 7px;
+  min-height: 0;
+  box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--hi), inset -2px -2px var(--lo), inset 2px 2px var(--light);
+}
+
+/* Janela Projeto (Bin estilo Premiere 4.0) */
+.bin-list {
+  background: var(--field);
+  box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--lo), inset -2px -2px var(--light), inset 2px 2px var(--dk);
+  max-height: 100%;
+  overflow: auto;
+}
+
+.bin-item {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: center;
+  padding: 4px 5px;
+  border-bottom: 1px dotted var(--light);
+  cursor: grab;
+}
+
+.bin-item:hover {
+  background: var(--light);
+}
+
+.bin-item.sel {
+  background: var(--sel);
+  color: var(--seltext);
+}
+
+.bin-item.sel .muted {
+  color: #E0D8C8;
+}
+
+.bin-thumb {
+  width: 44px;
+  height: 32px;
+  background: #101820;
+  color: #FFE040;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 400 12px/1 var(--f-pix);
+  border: 1px solid #000;
+  overflow: hidden;
+  position: relative;
+}
+
+.bin-thumb video, .bin-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ---------- Área Central: Monitores de Vídeo em Primeiro Plano (Origem + Programa Master) ---------- */
+.monitors-stage {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--face);
+  padding: 3px;
+  gap: 3px;
+  box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--hi), inset -2px -2px var(--lo), inset 2px 2px var(--light);
+}
+
+.monitors-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(260px, 0.85fr) minmax(340px, 1.15fr);
+  gap: 4px;
+  min-height: 0;
+}
+
+body[data-monlayout="single"] .monitors-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+body[data-monlayout="single"] #sourceBox {
+  display: none;
+}
+
+body[data-monlayout="script"] .monitors-grid {
+  grid-template-columns: minmax(340px, 1.1fr) minmax(320px, 0.9fr);
+}
+
+body[data-monlayout="script"] #sourceBox {
+  display: none;
+}
+
+body[data-monlayout="script"] #inlineScriptBox {
+  display: flex !important;
+}
+
+.mon-window {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--face);
+  padding: 3px;
+  gap: 3px;
+  box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--lo);
+}
+
+.mon-title {
+  background: linear-gradient(90deg, var(--title1), #1E1010);
+  color: #fff;
+  padding: 2px 6px;
+  font-weight: 700;
+  font-size: 11px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mon-title.src-hdr {
+  background: linear-gradient(90deg, #2B4257, #121B24);
+}
+
+.tc-led {
+  font: 400 17px/1 var(--f-pix);
+  color: #00FF66;
+  background: #000;
+  padding: 1px 6px;
+  letter-spacing: 0.05em;
+  box-shadow: inset 1px 1px #000, inset -1px -1px #555;
+}
+
+.tc-led.amber {
+  color: #FFE040;
+}
+
+.crt-bezel {
+  flex: 1;
+  min-height: 170px;
+  background: #080808;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--dk), inset -2px -2px var(--light), inset 2px 2px var(--lo);
+}
+
+.crt-bezel.drag-over {
+  outline: 3px dashed #FFE000;
+  outline-offset: -6px;
+}
+
+.video-canvas {
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 4 / 3;
+  background: #000;
+  display: block;
+  box-shadow: 0 0 0 1px #282828;
+}
+
+.prog-with-vu {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 52px;
+  gap: 3px;
+  min-height: 0;
+}
+
+.vu-box {
+  background: #0B0D0F;
+  padding: 3px 3px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2px;
+  min-height: 0;
+  box-shadow: inset 1px 1px #000, inset -1px -1px var(--hi);
+  color: #B8C4CE;
+  font: 400 9px/1 var(--f-pix);
+  user-select: none;
+}
+
+.vu-scope {
+  width: 44px;
+  height: 28px;
+  background: #04120B;
+  border: 1px solid #1E382A;
+  flex-shrink: 0;
+  display: block;
+}
+
+.vu-bars-wrap {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 2px;
+  padding: 2px 0;
+}
+
+.vu-scale {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  font: 400 9px/1 var(--f-pix);
+  color: #788890;
+  padding: 1px 1px 1px 0;
+}
+
+.vu-bars {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+}
+
+.vu-col {
+  width: 9px;
+  height: 100%;
+  min-height: 0;
+  background: #181A1C;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 1px;
+  padding: 1px;
+  border: 1px solid #000;
+}
+
+.vu-seg {
+  flex: 1;
+  min-height: 2px;
+  background: #142216;
+}
+
+.vu-seg.y { background: #262210; }
+.vu-seg.r { background: #281212; }
+
+.vu-seg.on.g { background: #00E848; box-shadow: 0 0 2px #00E848; }
+.vu-seg.on.y { background: #FFE020; box-shadow: 0 0 2px #FFE020; }
+.vu-seg.on.r { background: #FF2424; box-shadow: 0 0 3px #FF2424; }
+.vu-seg.peak { background: #FFFFFF !important; }
+
+.vu-db {
+  font: 400 10px/1 var(--f-pix);
+  color: #00FF80;
+  background: #050806;
+  width: 100%;
+  text-align: center;
+  padding: 1px 0;
+  border: 1px solid #1C2A22;
+}
+
+.vu-lr {
+  font: 700 9px/1 var(--f-ui);
+  color: #D0D0D0;
+}
+
+/* Scrubber e Botões de Transporte dos Monitores (Estilo Premiere 4.2) */
+.mon-scrubber {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 4px;
+  background: var(--face);
+}
+
+.mon-scrubber input[type="range"] {
+  flex: 1;
+  height: 14px;
+}
+
+.inout-pill {
+  font: 400 14px/1 var(--f-pix);
+  background: #181818;
+  color: #9FD4FF;
+  padding: 1px 5px;
+  box-shadow: inset 1px 1px #000, inset -1px -1px var(--hi);
+}
+
+.vtr-deck {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 3px 4px;
+  background: var(--face);
+  box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--lo);
+}
+
+.vtr-btns {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.vtr-btn {
+  height: 22px;
+  min-width: 24px;
+  padding: 0 6px;
+  border: 0;
+  background: var(--face);
+  font: 700 11px/1 var(--f-ui);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  cursor: default;
+  box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--hi), inset -2px -2px var(--lo), inset 2px 2px var(--light);
+}
+
+.vtr-btn:active, .vtr-btn.active {
+  box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--dk), inset -2px -2px var(--light), inset 2px 2px var(--lo);
+  background: repeating-conic-gradient(var(--face) 0 25%, var(--hi) 0 50%) 0 0 / 2px 2px;
+}
+
+.vtr-btn.rec {
+  color: #980000;
+}
+
+.vtr-btn.ins {
+  color: #003870;
+}
+
+/* ---------- Linha do Tempo Adobe Premiere 4.2 (Com Paleta de Ferramentas, Trim e Drag) ---------- */
+.timeline-dock {
+  height: 258px;
+  background: var(--face);
+  padding: 3px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--hi), inset -2px -2px var(--lo), inset 2px 2px var(--light);
+}
+
+.timeline-dock.expanded {
+  height: 380px;
+}
+
+.tl-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 2px 4px;
+  background: var(--face);
+  box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--lo);
+  font-size: 11px;
+  flex-wrap: wrap;
+}
+
+.tool-palette {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  background: var(--face);
+  padding: 1px;
+}
+
+.tool-btn {
+  height: 22px;
+  padding: 0 7px;
+  border: 0;
+  background: var(--face);
+  font: 700 11px/1 var(--f-ui);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: default;
+  box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--hi), inset -2px -2px var(--lo), inset 2px 2px var(--light);
+}
+
+.tool-btn[aria-pressed="true"] {
+  box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--dk), inset -2px -2px var(--light), inset 2px 2px var(--lo);
+  background: repeating-conic-gradient(var(--face) 0 25%, var(--hi) 0 50%) 0 0 / 2px 2px;
+  color: var(--title1);
+}
+
+.tl-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 152px minmax(0, 1fr);
+  min-height: 0;
+  background: #1C1C1C;
+  box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--dk), inset -2px -2px var(--light), inset 2px 2px var(--lo);
+}
+
+.tl-headers {
+  background: var(--face);
+  border-right: 2px solid var(--dk);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.tl-headers-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.tl-corner {
+  height: 22px;
+  flex-shrink: 0;
+  padding: 2px 6px;
+  font: 700 10px/18px var(--f-ui);
+  background: var(--face);
+  border-bottom: 1px solid var(--dk);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: inset 1px 1px var(--hi), inset -1px -1px var(--lo);
+}
+
+.tl-thdr {
+  flex: 1 0 36px;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 5px;
+  font-size: 11px;
+  font-weight: 700;
+  border-bottom: 1px solid var(--lo);
+  box-shadow: inset 1px 1px var(--hi), inset -1px -1px var(--dk);
+  cursor: pointer;
+}
+
+.tl-thdr.target-tk {
+  background: #ECE6D4;
+  color: var(--title1);
+}
+
+.tl-thdr.v1-divider {
+  border-bottom: 2px solid #000;
+}
+
+.tl-thdr .t-controls {
+  display: flex;
+  gap: 2px;
+}
+
+.tl-thdr .t-mini {
+  width: 18px;
+  height: 15px;
+  font: 700 9px/1 var(--f-ui);
+  border: 0;
+  padding: 0;
+  background: var(--face);
+  box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--hi);
+}
+
+.tl-thdr .t-mini.off {
+  background: #902020;
+  color: #fff;
+}
+
+.tl-thdr .t-mini.solo {
+  background: #E0B000;
+  color: #000;
+}
+
+.tl-thdr .t-mini.locked {
+  background: #284080;
+  color: #fff;
+}
+
+.tl-marker {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-left: 2px solid #007828;
+  background: rgba(0, 180, 60, 0.18);
+  color: #004B18;
+  font: 700 9px/12px var(--f-ui);
+  padding: 1px 4px;
+  cursor: pointer;
+  z-index: 6;
+  white-space: nowrap;
+}
+
+.tl-marker::before {
+  content: "▼";
+  font-size: 8px;
+  margin-right: 2px;
+  color: #008020;
+}
+
+.tl-clip.disabled {
+  opacity: 0.42;
+  filter: grayscale(85%);
+}
+
+.keybind-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: var(--field);
+  padding: 5px;
+  box-shadow: inset 1px 1px var(--lo), inset -1px -1px var(--hi);
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.keybind-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 4px;
+  border-bottom: 1px dotted var(--lo);
+  font-size: 11px;
+}
+
+.keybind-row.recording {
+  background: #FFF4B8;
+  color: #800000;
+  font-weight: 700;
+}
+
+.tl-scroll {
+  overflow-x: auto;
+  overflow-y: auto;
+  position: relative;
+  background: #22201E;
+}
+
+.tl-canvas-area {
+  position: relative;
+  min-width: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.tl-ruler {
+  height: 22px;
+  flex-shrink: 0;
+  background: #D8D2C0;
+  color: #000;
+  border-bottom: 1px solid #000;
+  position: sticky;
+  top: 0;
+  z-index: 12;
+  cursor: pointer;
+  font: 400 12px/1 var(--f-pix);
+}
+
+.tl-tick {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-left: 1px solid #555;
+  padding-left: 3px;
+  padding-top: 2px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.tl-scene-marker {
+  position: absolute;
+  bottom: 0;
+  height: 8px;
+  border-left: 2px solid #800000;
+  color: #800000;
+  font: 700 9px/1 var(--f-ui);
+  padding-left: 2px;
+  pointer-events: none;
+}
+
+.tl-tracks {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.tl-track {
+  flex: 1 0 36px;
+  min-height: 36px;
+  position: relative;
+  border-bottom: 1px solid #3A3632;
+  background: repeating-linear-gradient(90deg, #252320 0px, #252320 59px, #2E2B28 60px);
+}
+
+.tl-track.v1-divider {
+  border-bottom: 2px solid #6E6658;
+}
+
+.tl-track.drop-target {
+  background: #3A3520;
+}
+
+body[data-tool="razor"] .tl-track,
+body[data-tool="razor"] .tl-clip {
+  cursor: crosshair !important;
+}
+
+.tl-clip {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  overflow: hidden;
+  padding: 2px 7px;
+  font: 700 10px/1.15 var(--f-ui);
+  color: #fff;
+  cursor: grab;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  box-shadow: inset -1px -1px #000, inset 1px 1px rgba(255, 255, 255, 0.7);
+}
+
+.tl-clip:active {
+  cursor: grabbing;
+}
+
+.tl-clip small {
+  display: block;
+  font-weight: 400;
+  font-size: 9px;
+  opacity: 0.92;
+}
+
+/* Alças de Trim Esquerda e Direita nos Clipes (Premiere Trim Handles) */
+.tl-clip .trim-l,
+.tl-clip .trim-r {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: ew-resize;
+  z-index: 4;
+}
+
+.tl-clip .trim-l {
+  left: 0;
+  border-left: 2px solid rgba(255, 255, 255, 0.85);
+}
+
+.tl-clip .trim-r {
+  right: 0;
+  border-right: 2px solid rgba(255, 255, 255, 0.85);
+}
+
+.tl-clip .trim-l:hover,
+.tl-clip .trim-r:hover {
+  background: rgba(255, 255, 0, 0.45);
+}
+
+/* Indicador visual de transição na entrada do clipe */
+.tl-clip .fx-badge {
+  display: inline-block;
+  background: #FFE040;
+  color: #000;
+  font: 700 8.5px/11px var(--f-ui);
+  padding: 0 3px;
+  margin-right: 3px;
+}
+
+.tl-clip.v-overlay,
+.tl-clip.v2 {
+  background: linear-gradient(180deg, #7B3E8C 0%, #52265E 100%);
+}
+
+.tl-clip.v-overlay.has-media {
+  background: linear-gradient(180deg, #2D6A8E 0%, #1B4158 100%);
+}
+
+.tl-clip.v1 {
+  background: linear-gradient(180deg, #8B2222 0%, #5A1414 100%);
+}
+
+.tl-clip.v1.has-media {
+  background: linear-gradient(180deg, #1E6B42 0%, #124228 100%);
+}
+
+.tl-clip.a1 {
+  background: linear-gradient(180deg, #225588 0%, #143658 100%);
+}
+
+.tl-clip.a-track,
+.tl-clip.a2 {
+  background: linear-gradient(180deg, #546A28 0%, #364518 100%);
+}
+
+/* Forma de onda real (SVG) e fallback nas faixas de áudio e vídeo */
+.tl-clip .clip-wave {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  bottom: 1px;
+  width: calc(100% - 4px);
+  height: 15px;
+  pointer-events: none;
+  opacity: 0.85;
+  z-index: 0;
+}
+
+.tl-clip.v1 .clip-wave,
+.tl-clip.v2 .clip-wave {
+  height: 11px;
+  opacity: 0.55;
+}
+
+.tl-clip > *:not(.clip-wave) {
+  position: relative;
+  z-index: 1;
+}
+
+.tl-clip.a-track:not(.has-wave)::after,
+.tl-clip.a1:not(.has-wave)::after,
+.tl-clip.a2:not(.has-wave)::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  bottom: 2px;
+  height: 7px;
+  opacity: 0.35;
+  pointer-events: none;
+  background: repeating-linear-gradient(90deg, #9FD8FF 0 2px, transparent 2px 4px, #9FD8FF 4px 5px, transparent 5px 8px);
+}
+
+.tl-clip.sel {
+  outline: 2px solid #FFFF00;
+  outline-offset: -2px;
+  z-index: 5;
+}
+
+.tl-playhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #FF2020;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.tl-playhead::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -5px;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 9px solid #FF2020;
+}
+
+/* ---------- Controles de Efeitos e Inspetor (Rack Premiere 95) ---------- */
+.fx-rack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fx-group {
+  background: var(--face);
+  padding: 8px 7px 6px;
+  position: relative;
+  margin-top: 4px;
+  box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--lo), inset -2px -2px var(--lo), inset 2px 2px var(--hi);
+}
+
+.fx-group b.lgd {
+  position: absolute;
+  top: -7px;
+  left: 7px;
+  background: var(--face);
+  padding: 0 4px;
+  font-size: 11px;
+}
+
+.slider-row {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr) 38px;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+}
+
+.slider-row span.val {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+/* ---------- Lista de Cenas & Folha Courier 12pt do ScriptRoom ---------- */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.stat {
+  background: var(--field);
+  padding: 3px 6px;
+  min-width: 0;
+  box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--lo);
+}
+
+.stat b {
+  display: block;
+  font: 400 20px/1 var(--f-pix);
+  color: var(--sel);
+}
+
+.stat span {
+  color: var(--muted);
+  font-size: 10.5px;
+}
+
+.panel-list {
+  background: var(--field);
+  padding: 2px;
+  box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--lo), inset -2px -2px var(--light), inset 2px 2px var(--dk);
+}
+
+.actrow {
+  font-weight: 700;
+  padding: 5px 4px 2px;
+  border-top: 1px solid var(--lo);
+  margin-top: 2px;
+  letter-spacing: 0.05em;
+}
+
+.scn {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  gap: 1px 5px;
+  align-items: start;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  padding: 3px 4px;
+  cursor: default;
+  width: 100%;
+}
+
+.scn:hover {
+  background: var(--light);
+}
+
+.scn.cur {
+  background: var(--sel);
+  color: var(--seltext);
+}
+
+.scn.cur .m, .scn.cur .tc, .scn.cur .no {
+  color: var(--seltext);
+}
+
+.scn .no {
+  font-weight: 700;
+  color: var(--sel);
+}
+
+.scn .h {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.scn .m {
+  grid-column: 2 / 4;
+  color: var(--muted);
+  font-size: 10.5px;
+}
+
+.scn .tc {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Gaveta da Folha do Roteiro quando lado a lado com o Monitor */
+.script-drawer {
+  overflow: auto;
+  background: var(--deskgrey);
+  padding: 8px;
+  flex: 1;
+  box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--dk);
+}
+
+.sheet-mini {
+  background: var(--paper);
+  color: var(--type);
+  font: 11pt/1.25 var(--f-type);
+  padding: 14px 18px;
+  box-shadow: 2px 2px 0 #000;
+  user-select: text;
+}
+
+.el {
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  outline: none;
+  padding: 1px 2px;
+  cursor: pointer;
+}
+
+.el:hover {
+  background: #F4EFE0;
+}
+
+.el.playing-line {
+  background: #FFE4B5 !important;
+  box-shadow: -6px 0 0 0 #800000;
+}
+
+.e-act { text-align: center; font-weight: 700; text-decoration: underline; padding: 10pt 0 6pt; }
+.e-scene { font-weight: 700; text-decoration: underline; padding-top: 10pt; }
+.e-time { font-size: 9.5pt; font-style: italic; color: #666; padding-bottom: 6pt; }
+.e-note { font-size: 10pt; font-style: italic; color: #333; padding-bottom: 6pt; }
+.e-action { padding-bottom: 6pt; }
+.e-character { margin-left: 28%; text-transform: uppercase; font-weight: 700; }
+.e-paren { margin-left: 20%; }
+.e-dialogue { margin: 0 12%; padding-bottom: 6pt; }
+
+.sfx-inline-btn {
+  display: inline-block;
+  font: 700 9px/1.2 Tahoma, sans-serif;
+  background: #E8E2D0;
+  color: #000080;
+  border: 0;
+  padding: 1px 5px;
+  margin-left: 6px;
+  cursor: pointer;
+  box-shadow: inset -1px -1px #000, inset 1px 1px #fff;
+}
+
+/* ---------- Barra de Status, Taskbar, Menus e Diálogos ---------- */
+.statusbar {
+  display: flex;
+  gap: 2px;
+  padding: 2px 0 0;
+  flex-wrap: wrap;
+}
+
+.sb {
+  box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--lo);
+  padding: 2px 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sb.grow {
+  flex: 1 1 180px;
+}
+
+.status i {
+  width: 8px;
+  height: 8px;
+  display: inline-block;
+  background: #00C000;
+  box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--dk);
+}
+
+.taskbar {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background: var(--face);
+  box-shadow: inset 0 1px var(--light), inset 0 2px var(--hi);
+  padding: 3px;
+  min-height: 24px;
+}
+
+.start {
+  font-weight: 700;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 2px 6px 2px 4px;
+  height: 22px;
+  border: 0;
+  background: var(--face);
+  cursor: default;
+  box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--hi), inset -2px -2px var(--lo), inset 2px 2px var(--light);
+}
+
+.task {
+  flex: 0 1 230px;
+  min-width: 0;
+  height: 22px;
+  border: 0;
+  background: repeating-conic-gradient(var(--face) 0 25%, var(--hi) 0 50%) 0 0 / 2px 2px;
+  font-weight: 700;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  padding: 0 6px;
+  text-align: left;
+  box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--dk), inset -2px -2px var(--light), inset 2px 2px var(--lo);
+}
+
+.task span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tray {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  height: 20px;
+  box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--lo);
+}
+
+.tray button {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  display: flex;
+}
+
+.menu {
+  position: fixed;
+  z-index: 90;
+  background: var(--face);
+  padding: 2px;
+  min-width: 210px;
+  box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--light), inset -2px -2px var(--lo), inset 2px 2px var(--hi), 2px 2px 0 rgba(0, 0, 0, 0.25);
+}
+
+.mi {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto 12px;
+  gap: 4px;
+  align-items: center;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 3px 4px 3px 2px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.mi:hover, .mi:focus {
+  background: var(--sel);
+  color: var(--seltext);
+  outline: none;
+}
+
+.mi.big {
+  grid-template-columns: 24px minmax(0, 1fr) auto 12px;
+  padding: 5px 4px 5px 2px;
+}
+
+.menu hr {
+  border: 0;
+  border-top: 1px solid var(--lo);
+  border-bottom: 1px solid var(--hi);
+  margin: 3px 2px;
+}
+
+.startmenu {
+  display: flex;
+  padding: 3px;
+}
+
+.sm-band {
+  width: 22px;
+  background: linear-gradient(0deg, var(--title1), var(--lo));
+  color: var(--face);
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font: 700 15px/22px var(--f-ui);
+  padding: 8px 0;
+  letter-spacing: 0.04em;
+}
+
+.sm-band b { color: var(--hi); }
+.sm-items { flex: 1; display: flex; flex-direction: column; min-width: 220px; }
+
+.scrim { position: fixed; inset: 0; z-index: 79; }
+
+.win {
+  position: fixed;
+  z-index: 80;
+  background: var(--face);
+  padding: 3px;
+  display: flex;
+  flex-direction: column;
+  max-width: calc(100vw - 12px);
+  max-height: calc(100vh - 48px);
+  box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--light), inset -2px -2px var(--lo), inset 2px 2px var(--hi), 3px 3px 0 rgba(0, 0, 0, 0.35);
+}
+
+.win .titlebar { cursor: move; }
+.win-body { padding: 10px; overflow: auto; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+.win-btns { display: flex; justify-content: flex-end; gap: 6px; padding: 2px 10px 10px; flex-wrap: wrap; }
+
+.btn {
+  min-width: 72px;
+  height: 22px;
+  border: 0;
+  background: var(--face);
+  padding: 0 9px;
+  cursor: default;
+  white-space: nowrap;
+  box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--hi), inset -2px -2px var(--lo), inset 2px 2px var(--light);
+}
+
+.btn:active {
+  box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--dk), inset -2px -2px var(--light), inset 2px 2px var(--lo);
+  padding-top: 1px;
+}
+
+.btn.def { outline: 1px solid var(--dk); outline-offset: -1px; font-weight: 700; }
+.btn.sm { min-width: 0; height: 20px; padding: 0 6px; font-size: 11px; }
+.btn.rec { color: #980000; font-weight: 700; }
+
+.splash {
+  background: linear-gradient(180deg, var(--title1), #000);
+  color: #fff;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  min-height: 140px;
+  text-align: center;
+  box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--lo), inset -2px -2px var(--light), inset 2px 2px var(--dk);
+}
+
+.splash .big { font: 400 32px/1 var(--f-pix); letter-spacing: 0.06em; }
+.splash .sub { font: 400 18px/1 var(--f-pix); color: #9FD4FF; }
+
+.listview {
+  background: var(--field);
+  overflow: auto;
+  max-height: 48vh;
+  box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--lo), inset -2px -2px var(--light), inset 2px 2px var(--dk);
+}
+
+.listview table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+.listview th {
+  position: sticky; top: 0; background: var(--face); text-align: left; font-weight: 400; padding: 2px 6px;
+  box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--hi), inset -2px -2px var(--lo);
+}
+.listview td { padding: 3px 6px; border-bottom: 1px dotted var(--light); }
+.listview tr.sel td, .listview tbody tr:hover td { background: var(--sel); color: var(--seltext); }
+
+.listview.vers { background: var(--tip); padding: 6px 8px; }
+.ver-block { padding: 4px 0 8px; border-bottom: 1px dotted var(--lo); }
+.ver-block:last-child { border-bottom: 0; }
+.ver-block ul { margin: 4px 0 0 18px; padding: 0; }
+.chip95 {
+  display: inline-block; padding: 0 5px; margin-left: 4px; background: var(--face); color: var(--text);
+  font-size: 11px; box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--hi);
+}
+
+.row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.col { display: flex; flex-direction: column; gap: 6px; }
+.fld { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.muted { color: var(--muted); }
+
+.toast {
+  position: fixed;
+  right: 8px;
+  bottom: 32px;
+  background: var(--tip);
+  color: #000;
+  border: 1px solid #000;
+  padding: 6px 10px;
+  z-index: 95;
+  max-width: 380px;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+* { scrollbar-color: var(--face) var(--light); }
+::-webkit-scrollbar { width: 15px; height: 15px; }
+::-webkit-scrollbar-track { background: repeating-conic-gradient(var(--face) 0 25%, var(--hi) 0 50%) 0 0 / 2px 2px; }
+::-webkit-scrollbar-thumb { background: var(--face); box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--hi), inset -2px -2px var(--lo), inset 2px 2px var(--light); }

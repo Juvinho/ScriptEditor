@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ScriptEditor 95 — Edição de Vídeo Não-Linear</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;700&family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&family=VT323&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-scheme="tijolo" data-painel="on" data-monlayout="dual" data-tool="select">
+
+<div class="app" id="app">
+  <!-- Barra de Título Windows 95 -->
+  <div class="titlebar" id="mainTitle">
+    <span data-icon="editor"></span>
+    <span class="ttl" id="winTitle">ScriptEditor 95 - [PROJETO_LIVRE_01.PPJ · Ilha Não-Linear]</span>
+    <button class="tb-btn" type="button" data-cmd="minimizar" title="Minimizar" aria-label="Minimizar">_</button>
+    <button class="tb-btn" type="button" data-cmd="maximizar" title="Maximizar / Restaurar" aria-label="Maximizar">□</button>
+    <button class="tb-btn" type="button" data-cmd="desligar" title="Fechar" aria-label="Fechar">×</button>
+  </div>
+
+  <!-- Barra de Menus Estilo Adobe Premiere 4.2 -->
+  <nav class="menubar" id="menubar" aria-label="Menu principal"></nav>
+
+  <!-- Barra de Ferramentas Principal -->
+  <div class="toolbar" id="typebar" role="toolbar" aria-label="Barra de ferramentas">
+    <button class="tbtn" type="button" data-cmd="novoProjetoLivre" data-icon="new" title="Novo Projeto Livre em Branco (Ctrl+N)"></button>
+    <button class="tbtn" type="button" data-cmd="importarMidia" data-icon="folder" title="Importar Vídeo, Áudio ou Imagem do Computador (Ctrl+I)"></button>
+    <button class="tbtn" type="button" data-cmd="importarSR" data-icon="script" title="Carregar Roteiro do ScriptRoom (Opcional)"></button>
+    <button class="tbtn" type="button" data-cmd="exportarMaster" data-icon="save" title="Exportar Vídeo Finalizado / Filme Master (Ctrl+M)"></button>
+    <span class="tsep"></span>
+    <button class="tbtn" type="button" data-cmd="desfazer" data-icon="undo" title="Desfazer (Ctrl+Z)"></button>
+    <button class="tbtn" type="button" data-cmd="refazer" data-icon="redo" title="Refazer (Ctrl+Y)"></button>
+    <span class="tsep"></span>
+    <button class="tbtn" type="button" data-cmd="cortarAgulha" data-icon="cut" title="Cortar Clipe na Agulha (Ctrl+K)"></button>
+    <button class="tbtn" type="button" data-cmd="geradorGC" data-icon="tv" title="Criar Cartela de Texto / Letreiro (Title Designer)"></button>
+    <button class="tbtn" type="button" data-cmd="gerarSinal" data-icon="film" title="Gerar Barras SMPTE / Contagem Regressiva / Fundo Colorido"></button>
+    <button class="tbtn" type="button" data-cmd="mesaFoley" data-icon="foley" title="Sintetizador de Efeitos Sonoros (Sound Blaster 16)"></button>
+    <button class="tbtn" type="button" data-cmd="gravadorADR" data-icon="mic" title="Gravar Narração / Voz pelo Microfone"></button>
+    <span class="tsep"></span>
+    <label class="tlbl" for="layoutSel">Monitores:</label>
+    <select id="layoutSel" title="Disposição dos monitores de vídeo">
+      <option value="dual">Duplo (Origem + Programa)</option>
+      <option value="single">Monitor Master Grande</option>
+      <option value="script">Monitor + Roteiro Lado a Lado</option>
+    </select>
+    <span class="tsep"></span>
+    <label class="tlbl" for="presetModeSel">Modo:</label>
+    <select id="presetModeSel" title="Tipo de projeto">
+      <option value="livre">Edição Livre (Comercial / Doméstico)</option>
+      <option value="roteiro">Integrado ao Roteiro (ScriptRoom)</option>
+    </select>
+    <select id="epSel" title="Episódio do ScriptRoom" style="max-width:190px"></select>
+    <span class="tsep"></span>
+    <button class="tbtn" type="button" data-cmd="abrirScriptRoom" data-icon="clapper" title="Abrir o aplicativo ScriptRoom"></button>
+    <button class="tbtn" type="button" data-cmd="sobre" data-icon="info" title="Sobre o ScriptEditor 95"></button>
+  </div>
+
+  <!-- Área de Trabalho Estilo Adobe Premiere 4.2 -->
+  <div class="premiere-workspace">
+    <div class="upper-deck">
+      <!-- COLUNA ESQUERDA: Janela Projeto (Bin), Filtros/Efeitos, Transições e Roteiro -->
+      <aside class="side-rack" id="sideRack">
+        <div class="ptabs" id="sideTabsRow1">
+          <button type="button" data-stab="bin" aria-pressed="true">Projeto (Bin)</button>
+          <button type="button" data-stab="fx" aria-pressed="false">Efeitos (FX)</button>
+          <button type="button" data-stab="trans" aria-pressed="false">Transições</button>
+          <button type="button" data-stab="atalhos" aria-pressed="false">Atalhos</button>
+        </div>
+        <div class="ptabs" id="sideTabsRow2">
+          <button type="button" data-stab="roteiro" aria-pressed="false">Roteiro (.ROT)</button>
+          <button type="button" data-stab="cenas" aria-pressed="false">Cenas</button>
+          <button type="button" data-stab="audio" aria-pressed="false">Áudio/Foley</button>
+          <button type="button" data-stab="claquete" aria-pressed="false">Claquete</button>
+        </div>
+        <div class="tabpanel" id="sideContent"></div>
+      </aside>
+
+      <!-- ÁREA CENTRAL EM PRIMEIRO PLANO: Monitores de Vídeo (Origem + Programa Master) -->
+      <section class="monitors-stage" id="monitorsStage">
+        <div class="monitors-grid">
+          <!-- MONITOR DE ORIGEM (CLIP / SOURCE MONITOR — Estilo Premiere) -->
+          <div class="mon-window" id="sourceBox">
+            <div class="mon-title src-hdr">
+              <span id="srcTitle">MONITOR DE ORIGEM (CLIPE BRUTO)</span>
+              <span class="tc-led amber" id="srcTC">00:00:00:00</span>
+            </div>
+            <div class="crt-bezel" id="srcDropZone" title="Arraste arquivos de vídeo do Windows para cá ou dê duplo clique no Bin">
+              <canvas id="srcCanvas" class="video-canvas" width="640" height="480"></canvas>
+            </div>
+            <div class="mon-scrubber">
+              <span class="inout-pill" id="srcInOutLbl">IN: 00:00 · OUT: 00:10</span>
+              <input type="range" id="srcScrub" min="0" max="10" step="0.033" value="0">
+            </div>
+            <div class="vtr-deck">
+              <div class="vtr-btns">
+                <button type="button" class="vtr-btn" id="btnSrcPlay" title="Tocar / Pausar Clipe de Origem">►</button>
+                <button type="button" class="vtr-btn" id="btnSrcIn" title="Marcar Ponto de Entrada (Tecla I)">[ IN</button>
+                <button type="button" class="vtr-btn" id="btnSrcOut" title="Marcar Ponto de Saída (Tecla O)">OUT ]</button>
+              </div>
+              <div class="vtr-btns">
+                <button type="button" class="vtr-btn ins" id="btnInsertTimeline" title="Inserir na Linha do Tempo na posição da agulha (Tecla ,)">[ , Inserir na Timeline ]</button>
+                <button type="button" class="vtr-btn" id="btnOverlayTimeline" title="Colocar na Faixa V2 (Superposição / PiP)">[ + Faixa V2 ]</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- MONITOR DE PROGRAMA (MASTER SEQUENCE MONITOR — Em Primeiro Plano) -->
+          <div class="mon-window" id="programBox">
+            <div class="mon-title">
+              <span id="progTitle">MONITOR DE PROGRAMA (SEQUÊNCIA MASTER · CLIQUE/ARRASTE PARA REDIMENSIONAR)</span>
+              <span class="tc-led" id="tcDisplay">00:00:00:00</span>
+            </div>
+            <div class="prog-with-vu">
+              <div class="crt-bezel" id="progDropZone" title="Arraste as alças azuis/amarelas para redimensionar/mover a imagem ou vídeo selecionado · Duplo clique para Tocar/Pausar">
+                <canvas id="vCanvas" class="video-canvas" width="640" height="480"></canvas>
+              </div>
+              <div class="vu-box" title="Medidor de Áudio Master Estéreo L/R (dB) e Osciloscópio em Tempo Real">
+                <canvas id="vuScope" class="vu-scope" width="44" height="28" title="Forma de onda do áudio na agulha"></canvas>
+                <div class="vu-bars-wrap">
+                  <div class="vu-scale">
+                    <span>0</span>
+                    <span>-6</span>
+                    <span>-12</span>
+                    <span>-24</span>
+                    <span>-48</span>
+                  </div>
+                  <div class="vu-bars">
+                    <div class="vu-col" id="vuL"></div>
+                    <div class="vu-col" id="vuR"></div>
+                  </div>
+                </div>
+                <span class="vu-db" id="vuDbLbl">-INF</span>
+                <span class="vu-lr">L &nbsp; R</span>
+              </div>
+            </div>
+            <div class="mon-scrubber">
+              <span class="inout-pill" id="progDurLbl">DUR: 00:00:00:00</span>
+              <input type="range" id="progScrub" min="0" max="60" step="0.033" value="0">
+              <label class="row" style="gap:3px;font-size:10.5px" title="Mostra alças no monitor para redimensionar, mover e girar imagens/vídeos com o mouse"><input type="checkbox" id="chkTransformOverlay" checked> Alças Redim.</label>
+              <label class="row" style="gap:3px;font-size:10.5px"><input type="checkbox" id="chkLoop"> Loop</label>
+            </div>
+            <div class="vtr-deck">
+              <div class="vtr-btns">
+                <button type="button" class="vtr-btn" id="btnRew" title="Ir para o início 00:00:00:00 (Home)">|&lt;&lt;</button>
+                <button type="button" class="vtr-btn" id="btnPrevCut" title="Corte anterior (Seta Cima)">&lt;Corte</button>
+                <button type="button" class="vtr-btn" id="btnStepBack" title="Recuar 1 quadro (Seta Esquerda)">-1q</button>
+                <button type="button" class="vtr-btn" id="btnPlay" title="Tocar / Pausar Sequência Master (Espaço ou K/L)">► Tocar</button>
+                <button type="button" class="vtr-btn" id="btnStop" title="Parar e voltar ao início">■</button>
+                <button type="button" class="vtr-btn" id="btnStepFwd" title="Avançar 1 quadro (Seta Direita)">+1q</button>
+                <button type="button" class="vtr-btn" id="btnNextCut" title="Próximo corte (Seta Baixo)">Corte&gt;</button>
+              </div>
+              <div class="vtr-btns">
+                <button type="button" class="vtr-btn" id="btnFitClip" title="Ajustar imagem/vídeo selecionado à tela mantendo proporção">Ajustar</button>
+                <button type="button" class="vtr-btn" id="btnFillClip" title="Preencher tela inteira 4:3">Preencher</button>
+                <button type="button" class="vtr-btn" data-cmd="cortarAgulha" title="Cortar clipe exatamente na agulha (Ctrl+K)">[Navalha]</button>
+                <button type="button" class="vtr-btn rec" data-cmd="exportarMaster" title="Renderizar arquivo de vídeo .WEBM/.MP4 (Ctrl+M)">● Exportar</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Gaveta opcional de Roteiro Lado a Lado (quando selecionada em Monitores > Monitor + Roteiro) -->
+          <div class="mon-window" id="inlineScriptBox" hidden>
+            <div class="mon-title">
+              <span>FOLHA DO ROTEIRO SINCRONIZADA (SCRIPTSYNC)</span>
+              <button type="button" class="tb-btn" id="btnCloseInlineScript" title="Voltar aos Monitores Duplos">×</button>
+            </div>
+            <div class="script-drawer">
+              <div class="sheet-mini" id="sheet"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- LINHA DO TEMPO NÃO-LINEAR (ADOBE PREMIERE 4.2 CONSTRUCTION WINDOW) -->
+    <div class="timeline-dock" id="timelineDock">
+      <div class="tl-toolbar">
+        <!-- Paleta de Ferramentas Clássica do Premiere -->
+        <div class="tool-palette" role="group" aria-label="Ferramentas da Linha do Tempo">
+          <button type="button" class="tool-btn" data-toolbtn="select" aria-pressed="true" title="Ferramenta Seleção e Movimento (Tecla V)">[ Seta (V) ]</button>
+          <button type="button" class="tool-btn" data-toolbtn="track" aria-pressed="false" title="Selecionar Faixa Adiante — move o clipe e todos os seguintes (Tecla A)">[ Adiante &gt;&gt; (A) ]</button>
+          <button type="button" class="tool-btn" data-toolbtn="razor" aria-pressed="false" title="Ferramenta Navalha — clique num clipe para dividi-lo (Tecla C)">[ Navalha (C) ]</button>
+          <button type="button" class="tool-btn" data-toolbtn="trim" aria-pressed="false" title="Ferramenta Ajuste de Borda / Duração (Tecla T)">[ Trim &lt;-&gt; (T) ]</button>
+          <button type="button" class="tool-btn" data-toolbtn="hand" aria-pressed="false" title="Ferramenta Mão — arrasta a visualização da linha do tempo (Tecla H)">[ Mão (H) ]</button>
+          <span class="tsep"></span>
+          <button type="button" class="btn sm" data-cmd="cortarAgulha" title="Dividir clipe selecionado na agulha (Ctrl+K)">Cortar (Ctrl+K)</button>
+          <button type="button" class="btn sm" data-cmd="duplicarClipe" title="Duplicar clipe selecionado (Ctrl+D)">Duplicar (Ctrl+D)</button>
+          <button type="button" class="btn sm" data-cmd="adicionarMarcador" title="Inserir marcador de tempo na agulha (Tecla M)">+ Marcador (M)</button>
+          <button type="button" class="btn sm" data-cmd="excluirClipe" title="Apagar clipe selecionado (Delete)">Apagar</button>
+          <button type="button" class="btn sm" data-cmd="excluirRipple" title="Apagar clipe e puxar os seguintes fechando o espaço (Shift+Delete)">Ripple Del</button>
+          <span class="tsep"></span>
+          <button type="button" class="btn sm def" data-cmd="addVideoTrack" title="Adicionar nova faixa de vídeo/imagem acima (+V)">+ Faixa Vídeo</button>
+          <button type="button" class="btn sm def" data-cmd="addAudioTrack" title="Adicionar nova faixa de áudio/música abaixo (+A)">+ Faixa Áudio</button>
+          <button type="button" class="btn sm" id="btnExpandTl" title="Expandir ou recolher altura da Linha do Tempo para ver mais faixas">Altura ▲</button>
+        </div>
+
+        <div class="row" style="gap:5px">
+          <label class="row" style="gap:2px" title="Atração magnética de cortes e agulha (Snap)"><input type="checkbox" id="chkSnap" checked> Ímã (Snap)</label>
+          <label class="row" style="gap:3px">Filtro Master:
+            <select id="filterSel" style="height:20px">
+              <option value="none">Sinal Original Limpo</option>
+              <option value="vhs">VHS Caseiro 1995 (Com Data/Hora)</option>
+              <option value="16mm">Película de Cinema 16mm</option>
+              <option value="tv95">TV CRT Scanlines 95</option>
+              <option value="pb">Preto &amp; Branco</option>
+              <option value="sepia">Memória Sépia</option>
+              <option value="noturno">Câmera Noturna</option>
+              <option value="invert">Negativo / Inverter</option>
+              <option value="mosaic">Pixelizar / Mosaico 8-bit</option>
+            </select>
+          </label>
+          <label class="row" style="gap:3px"><input type="checkbox" id="chkSafe"> Grade TV</label>
+          <label class="row" style="gap:3px"><input type="checkbox" id="chkCC" checked> Legendas</label>
+          <span>Zoom:</span>
+          <input type="range" id="tlZoom" min="0.5" max="60" step="0.5" value="10" style="width:82px" title="Zoom da Linha do Tempo focado na Agulha (ou use Ctrl + Roda do Mouse / teclas + e -)">
+          <button type="button" class="btn sm" data-cmd="configTeclas" title="Trocar e personalizar atalhos de teclado">Teclas…</button>
+        </div>
+      </div>
+
+      <div class="tl-body">
+        <div class="tl-headers">
+          <div class="tl-corner"><span id="tlTrackCountLbl">FAIXAS (3V · 3A)</span><span>M/S/L</span></div>
+          <div class="tl-headers-list" id="tlHeadersList"></div>
+        </div>
+        <div class="tl-scroll" id="tlScroll">
+          <div class="tl-canvas-area" id="tlArea">
+            <div class="tl-ruler" id="tlRuler"></div>
+            <div class="tl-tracks" id="tlTracks"></div>
+            <div class="tl-playhead" id="tlPlayhead" style="left:0px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra de Status Windows 95 -->
+  <div class="statusbar" role="status">
+    <div class="sb grow status ok" id="status"><i></i><span id="statusTxt">Pronto · Arraste vídeos do PC ou clique em Importar (Ctrl+I)</span></div>
+    <div class="sb" id="sbTool">Ferramenta: Seleção (V)</div>
+    <div class="sb" id="sbClip">Clipe: Nenhum selecionado</div>
+    <div class="sb" id="sbStyle">NTSC 640x480 · 29,97 qps</div>
+    <div class="sb" id="sbSync">Ponte ScriptRoom: Disponível</div>
+  </div>
+</div>
+
+<!-- Barra de Tarefas Windows 95 -->
+<div class="taskbar" id="taskbar">
+  <button class="start" type="button" id="startBtn" aria-expanded="false" aria-haspopup="menu">
+    <span data-icon="clapper"></span>Iniciar
+  </button>
+  <button class="task main" type="button" id="taskMain" aria-pressed="true">
+    <span data-icon="editor"></span><span id="taskTitle">ScriptEditor 95 — Ilha Não-Linear</span>
+  </button>
+  <div class="tray">
+    <button type="button" id="traySom" title="Áudio Master ligado/desligado"></button>
+    <span class="clock" id="clock">18:45</span>
+  </div>
+</div>
+
+<!-- Inputs de arquivo nativos de fallback e pool oculto de decodificação de mídia -->
+<input type="file" id="fMediaFallback" accept="video/*,audio/*,image/*" multiple hidden>
+<input type="file" id="fScriptFallback" accept=".json,.rot,.fdx,.fountain,.txt" hidden>
+<div id="mediaPool" style="position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;pointer-events:none" aria-hidden="true"></div>
+
+<script src="editor.js"></script>
+</body>
+</html>

@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=620,initial-scale=1,user-scalable=no">
+<title>ScriptEditor — Inicializando</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=VT323&display=swap">
+<style>
+:root {
+  --face: #C6BFA6;
+  --light: #E1DBC6;
+  --hi: #FFFFFF;
+  --lo: #8A8268;
+  --dk: #0A0A0A;
+  --title1: #800000;
+  --text: #000000;
+  --muted: #3C3C3C;
+  --f-ui: Tahoma, Verdana, "MS Sans Serif", Arial, sans-serif;
+  --f-pix: "VT323", "Courier New", ui-monospace, monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-font-smoothing: none;
+  font-smooth: never;
+}
+
+html, body {
+  width: 620px;
+  height: 350px;
+  overflow: hidden;
+  font-family: var(--f-ui);
+  font-size: 11px;
+  background: var(--face);
+  color: var(--text);
+  cursor: default;
+}
+
+.win95-splash {
+  width: 620px;
+  height: 350px;
+  background: var(--face);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow:
+    inset 1px 1px var(--light),
+    inset -1px -1px var(--dk),
+    inset 2px 2px var(--hi),
+    inset -2px -2px var(--lo);
+}
+
+.splash-banner {
+  background: linear-gradient(180deg, var(--title1) 0%, #000000 100%);
+  color: #FFFFFF;
+  height: 206px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  box-shadow:
+    inset -1px -1px var(--hi),
+    inset 1px 1px var(--lo),
+    inset -2px -2px var(--light),
+    inset 2px 2px var(--dk);
+}
+
+.splash-banner svg {
+  display: block;
+  margin-bottom: 4px;
+  image-rendering: pixelated;
+}
+
+.splash-banner .big {
+  font: 400 44px/1 var(--f-pix);
+  letter-spacing: 0.05em;
+  color: #FFFFFF;
+}
+
+.splash-banner .sub {
+  font: 400 22px/1 var(--f-pix);
+  color: #9FD4FF;
+}
+
+.splash-ver-tag {
+  position: absolute;
+  right: 10px;
+  bottom: 7px;
+  font: 400 15px/1 var(--f-pix);
+  color: #B89090;
+}
+
+.splash-sync-tag {
+  position: absolute;
+  left: 10px;
+  bottom: 7px;
+  font: 400 15px/1 var(--f-pix);
+  color: #D6CDBB;
+}
+
+.splash-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 2px 2px 0;
+}
+
+.license-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px;
+  background: var(--face);
+  box-shadow:
+    inset -1px -1px var(--hi),
+    inset 1px 1px var(--lo);
+  font-size: 11px;
+  color: var(--text);
+}
+
+.license-row b {
+  font-weight: 700;
+}
+
+.load-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0 2px;
+}
+
+.tool-label {
+  font-size: 11px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 530px;
+}
+
+.pct-label {
+  font: 400 16px/1 var(--f-pix);
+  color: var(--text);
+}
+
+.prog95-well {
+  width: 100%;
+  height: 22px;
+  background: #FFFFFF;
+  padding: 3px;
+  box-shadow:
+    inset -1px -1px var(--hi),
+    inset 1px 1px var(--lo),
+    inset -2px -2px var(--light),
+    inset 2px 2px var(--dk);
+}
+
+.prog95-fill {
+  height: 100%;
+  width: 0%;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--title1) 0px,
+    var(--title1) 10px,
+    transparent 10px,
+    transparent 12px
+  );
+}
+
+.footer95 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+  color: var(--muted);
+  padding: 0 2px;
+}
+
+.click-close {
+  display: none;
+  color: var(--title1);
+  font-weight: 700;
+}
+</style>
+</head>
+<body>
+
+<div class="win95-splash" id="splashRoot">
+  <div class="splash-banner">
+    <svg viewBox="0 0 16 16" width="64" height="64" aria-hidden="true">
+      <rect x="0.5" y="1.5" width="3" height="13" fill="#202020" stroke="#000"/>
+      <rect x="1.2" y="2.5" width="1.6" height="1.5" fill="#fff"/>
+      <rect x="1.2" y="5.5" width="1.6" height="1.5" fill="#fff"/>
+      <rect x="1.2" y="8.5" width="1.6" height="1.5" fill="#fff"/>
+      <rect x="1.2" y="11.5" width="1.6" height="1.5" fill="#fff"/>
+      <rect x="12.5" y="1.5" width="3" height="13" fill="#202020" stroke="#000"/>
+      <rect x="13.2" y="2.5" width="1.6" height="1.5" fill="#fff"/>
+      <rect x="13.2" y="5.5" width="1.6" height="1.5" fill="#fff"/>
+      <rect x="13.2" y="8.5" width="1.6" height="1.5" fill="#fff"/>
+      <rect x="13.2" y="11.5" width="1.6" height="1.5" fill="#fff"/>
+      <rect x="3.5" y="2.5" width="9" height="7" fill="#102840" stroke="#000"/>
+      <path d="M5.5 4.2l4 2-4 2z" fill="#FFE040"/>
+      <rect x="3.5" y="9.5" width="9" height="4" fill="#C6BFA6" stroke="#000"/>
+      <path d="M4.5 11h7M4.5 12.2h5" stroke="#800000"/>
+      <path d="M8 2.5v11" stroke="#FF3030"/>
+    </svg>
+    <span class="big">SCRIPTEDITOR</span>
+    <span class="sub">Versão 1.0.0 · edição 95</span>
+    <span class="splash-sync-tag">PONTE ATIVA: SCRIPTROOM (.ROT)</span>
+    <span class="splash-ver-tag" id="verTag">NTSC 29.97 · 4:3</span>
+  </div>
+
+  <div class="splash-bottom">
+    <div class="license-row">
+      <span>Licenciado para: <b>Ilha de Edição e Montagem — C2</b></span>
+      <span>Versão <b>1.0.0</b> · 32-bit</span>
+    </div>
+
+    <div class="load-status-row">
+      <span class="tool-label" id="toolStatus">Carregando: Placa de captura Targa 2000 Pro PCI (NTSC 4:3)...</span>
+      <span class="pct-label" id="percentText">0%</span>
+    </div>
+
+    <div class="prog95-well" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progBar">
+      <div class="prog95-fill" id="progressFill"></div>
+    </div>
+
+    <div class="footer95">
+      <span>© 1995 Departamento de Montagem e Videografismo · C2</span>
+      <span class="click-close" id="clickHint">[ Clique ou aperte Esc para fechar ]</span>
+      <span id="memStatus">Buffer SVGA: 16.384 KB · SCSI-2 OK</span>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+const ETAPAS = [
+  { p: 14, msg: "Carregando: Placa de captura Truevision Targa 2000 PCI (NTSC 29,97 qps)..." },
+  { p: 28, msg: "Carregando: Ponte de leitura ao vivo com Documentos\\ScriptRoom (.ROT)..." },
+  { p: 44, msg: "Carregando: Linha do tempo não-linear de 4 faixas (V2, V1, A1, A2)..." },
+  { p: 58, msg: "Carregando: Sincronizador de falas, rubricas e folha Courier 12pt..." },
+  { p: 72, msg: "Carregando: Gerador de Caracteres Chyron e Closed Caption Linha 21..." },
+  { p: 86, msg: "Carregando: Mesa Sound Blaster 16 (Foley, Trilha e Locução ADR)..." },
+  { p: 100, msg: "Pronto. Abrindo a ilha de edição do ScriptEditor..." }
+];
+
+const fillEl = document.getElementById("progressFill");
+const pctEl = document.getElementById("percentText");
+const statusEl = document.getElementById("toolStatus");
+const hintEl = document.getElementById("clickHint");
+const memEl = document.getElementById("memStatus");
+const rootEl = document.getElementById("splashRoot");
+const progBar = document.getElementById("progBar");
+
+const params = new URLSearchParams(window.location.search);
+const isAboutMode = params.get("modo") === "sobre";
+
+let idx = 0;
+
+function setProgress(p, text) {
+  fillEl.style.width = p + "%";
+  pctEl.textContent = p + "%";
+  progBar.setAttribute("aria-valuenow", String(p));
+  if (text) statusEl.textContent = text;
+}
+
+function finalizeSplash() {
+  if (isAboutMode) {
+    statusEl.textContent = "Ilha de edição não-linear e ponte ScriptRoom operacionais.";
+    memEl.style.display = "none";
+    hintEl.style.display = "inline";
+    rootEl.style.cursor = "pointer";
+    rootEl.addEventListener("click", () => window.close());
+    window.addEventListener("keydown", e => {
+      if (e.key === "Escape" || e.key === "Enter" || e.key === " ") window.close();
+    });
+    return;
+  }
+  if (window.editorNative && typeof window.editorNative.splashDone === "function") {
+    window.editorNative.splashDone();
+  }
+}
+
+function step() {
+  if (idx >= ETAPAS.length) {
+    setTimeout(finalizeSplash, 240);
+    return;
+  }
+  const item = ETAPAS[idx++];
+  setProgress(item.p, item.msg);
+  const delay = isAboutMode ? 160 : (190 + Math.floor(Math.random() * 90));
+  setTimeout(step, delay);
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  setTimeout(step, 120);
+});
+</script>
+</body>
+</html>
+
