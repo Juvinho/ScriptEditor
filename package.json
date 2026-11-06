@@ -1,7 +1,7 @@
 {
   "name": "scripteditor-95",
   "productName": "ScriptEditor",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "ScriptEditor: ilha de edição de vídeo não-linear estilo 1995 integrada ao ScriptRoom. Edita vídeos, cortes, locuções, cartelas e trilhas seguindo o roteiro cena a cena.",
   "main": "main.js",
   "author": "Departamento de Montagem e Videografismo · C2",

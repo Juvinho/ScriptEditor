@@ -82,13 +82,13 @@ run(`git push origin ${tag}`);
 
 // 6. Publica Release no GitHub via gh CLI com o instalador anexado
 console.log(`Criando Release ${tag} no GitHub...`);
-const notes = `### ScriptEditor ${version} · Edição 95 — A Estação Broadcast 1995\n\n` +
-  `- **Edição Multicâmera 4-Up (Live Switcher):** Monitor quádruplo sincronizado para corte ao vivo pelas teclas 1, 2, 3 e 4 com moldura de Tally Light vermelha\n` +
-  `- **Rack Dinâmico de Áudio DSP:** Compressor óptico com medidor LED de redução de ganho (GR Meter), Noise Gate e Brickwall Limiter (-0.1 dBFS)\n` +
-  `- **Corretor de Cor 3-Way Broadcast:** 3 rodas tonais analógicas (Lift/Sombras, Gamma/Médios, Gain/Altas) com controle de saturação global\n` +
-  `- **Remapeamento de Tempo & Freeze Frame:** Congelar quadro instantâneo (Shift+F), reprodução reversa (-100%) e velocidades variáveis com presets\n` +
-  `- **Marcadores Coloridos & Cue Sheet:** Categorização por 4 cores broadcast (Corte, GC, Áudio, Direção) com anotações e exportação de folha de decupagem (.TXT)\n` +
-  `- **Fila de Renderização em Lote (Batch Render Queue):** Gerenciador de fila para exportação sequencial em segundo plano com aviso sonoro`;
+const notes = `### ScriptEditor ${version} · Edição 95 — Estação Broadcast Avançada 95\n\n` +
+  `- **Importação Limpa no Bin (Sem Inserção Automática):** Vídeos, áudios e imagens importados agora vão direto para o Cesto de Mídia (Bin) sem alterar a Linha do Tempo, permitindo ao usuário posicionar e montar quando desejar\n` +
+  `- **Rubberbanding de Áudio na Timeline:** Curvas gráficas elásticas amarelas de volume sobre as faixas de áudio com nós interativos de envelope arrastáveis com o mouse\n` +
+  `- **Gerador de Sinais e Tons de Teste DSP:** Tom senoidal puro 1 kHz SMPTE (-20 dBFS / 0 VU), Ruído Rosa (Pink Noise 1/f) e Ruído Branco (White Noise) de estúdio\n` +
+  `- **Padrões de Calibração de Vídeo Broadcast:** Grade ortogonal de alinhamento CRT (Crosshatch), Escala de Cinza de 10 Passos (10-Step Wedge 0–100 IRE) e Barras SMPTE com pulso Pluge\n` +
+  `- **Reconexão de Mídia Offline (Media Relink 1995):** Localização em lote e substituição de mídias movidas ou renomeadas preservando todos os cortes e transições\n` +
+  `- **Window Dub de Timecode Avançado:** Superposição flutuante configurável de TCR (Master), TCO (Origem do Clipe), contador de quadros ou contagem regressiva`;
 
 const releaseCheck = runSilent(`gh release view ${tag} --json tagName`);
 if (!releaseCheck) {

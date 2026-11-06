@@ -2418,5 +2418,94 @@ body[data-tool="ripple"] .tl-clip {
 .queue-status-busy { color: #00FF66; font-weight: 700; }
 .queue-status-done { color: #70B8FF; font-weight: 700; }
 
+/* ==========================================================================
+   ESTAÇÃO BROADCAST AVANÇADA 1.0.5: RUBBERBANDING, RELINK & WINDOW DUB
+   ========================================================================== */
+
+/* Rubberband de Volume na Timeline */
+.tl-rubberband-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.rb-line {
+  stroke: #FFE040;
+  stroke-width: 1.8;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.8));
+}
+
+.rb-node {
+  pointer-events: all;
+  cursor: ns-resize;
+  fill: #FF2828;
+  stroke: #FFFFFF;
+  stroke-width: 1.2;
+  transition: r 0.1s, fill 0.1s;
+}
+
+.rb-node:hover {
+  r: 5.5;
+  fill: #FFE020;
+  stroke: #000;
+}
+
+/* Indicador de Mídia Offline */
+.tl-clip.offline {
+  background: repeating-linear-gradient(45deg, #400000 0 10px, #700000 10px 20px) !important;
+  border-color: #FF0000 !important;
+  color: #FFA0A0 !important;
+}
+
+.badge-offline {
+  display: inline-block;
+  background: #FF0000;
+  color: #FFFFFF;
+  font: 700 9px monospace;
+  padding: 1px 4px;
+  border-radius: 1px;
+  margin-right: 4px;
+  text-shadow: 0 0 2px #000;
+}
+
+.badge-online {
+  display: inline-block;
+  background: #008020;
+  color: #FFFFFF;
+  font: 700 9px monospace;
+  padding: 1px 4px;
+  border-radius: 1px;
+  margin-right: 4px;
+}
+
+/* Window Dub Preview Box */
+.window-dub-preview {
+  background: #000;
+  border: 2px solid #303640;
+  position: relative;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.window-dub-osd {
+  position: absolute;
+  font-family: 'VT323', monospace;
+  color: #00FF66;
+  padding: 2px 8px;
+  letter-spacing: 1px;
+  text-shadow: 0 0 4px #00FF66;
+  pointer-events: none;
+}
+
 
 

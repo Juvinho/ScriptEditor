@@ -5,7 +5,7 @@
    Zero emojis · Ícones SVG 16x16 pixel-art · Edição Comercial, Doméstica e Roteirizada
    ============================================================================ */
 
-let APP_VERSAO = "1.0.4"; // Substituída em boot() pela versão real do package.json
+let APP_VERSAO = "1.0.5"; // Substituída em boot() pela versão real do package.json
 const FPS = 29.97;
 
 const ICON = {
@@ -1161,6 +1161,177 @@ function drawSynthGenerator(ctx, W, H, type, localTime, label) {
     return;
   }
 
+  if (type === "bars_pluge") {
+    // Barras SMPTE Completas com Pulso Pluge Broadcast (-3.5, 0, +3.5 IRE)
+    const cols = ["#BFBFBF", "#BFBF00", "#00BFBF", "#00BF00", "#BF00BF", "#BF0000", "#0000BF"];
+    const bw = W / cols.length;
+    cols.forEach((c, i) => {
+      ctx.fillStyle = c;
+      ctx.fillRect(i * bw, 0, bw + 1, H * 0.67);
+    });
+
+    const cast = ["#0000BF", "#131313", "#BF00BF", "#131313", "#00BFBF", "#131313", "#BFBFBF"];
+    cast.forEach((c, i) => {
+      ctx.fillStyle = c;
+      ctx.fillRect(i * bw, H * 0.67, bw + 1, H * 0.08);
+    });
+
+    const botY = H * 0.75;
+    const botH = H * 0.25;
+    ctx.fillStyle = "#081B26"; // -I
+    ctx.fillRect(0, botY, bw * 1.25, botH);
+    ctx.fillStyle = "#FFFFFF"; // 100% White
+    ctx.fillRect(bw * 1.25, botY, bw * 1.25, botH);
+    ctx.fillStyle = "#220038"; // +Q
+    ctx.fillRect(bw * 2.5, botY, bw * 1.25, botH);
+    ctx.fillStyle = "#131313"; // Black 7.5 IRE
+    ctx.fillRect(bw * 3.75, botY, W - bw * 3.75, botH);
+
+    // Bloco PLUGE: Sub-preto (3.5 IRE), Preto (7.5 IRE), Super-preto (11.5 IRE)
+    const plugeX = bw * 4.4;
+    const plugeW = bw * 0.42;
+    ctx.fillStyle = "#040404"; // -3.5 IRE
+    ctx.fillRect(plugeX, botY, plugeW, botH);
+    ctx.fillStyle = "#131313"; // 0 IRE / 7.5 IRE pedestal
+    ctx.fillRect(plugeX + plugeW, botY, plugeW, botH);
+    ctx.fillStyle = "#242424"; // +3.5 IRE
+    ctx.fillRect(plugeX + plugeW * 2, botY, plugeW, botH);
+
+    ctx.fillStyle = "#FFE040";
+    ctx.font = "bold 15px 'Courier New', monospace";
+    ctx.textAlign = "left";
+    ctx.fillText("SMPTE COLOR BARS + PULSO PLUGE (-3.5 / 0 / +3.5 IRE)", 16, H - 14);
+    return;
+  }
+
+  if (type === "crosshatch") {
+    // Grade de Convergência & Geometria CRT 1995 (Crosshatch 16x12)
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = "#FFFFFF";
+    ctx.lineWidth = 1;
+
+    const cols = 16, rows = 12;
+    const gw = W / cols, gh = H / rows;
+    for (let c = 0; c <= cols; c++) {
+      ctx.beginPath(); ctx.moveTo(c * gw, 0); ctx.lineTo(c * gw, H); ctx.stroke();
+    }
+    for (let r = 0; r <= rows; r++) {
+      ctx.beginPath(); ctx.moveTo(0, r * gh); ctx.lineTo(W, r * gh); ctx.stroke();
+    }
+
+    // Linhas centrais reforçadas (Mira)
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = "#FFE000";
+    ctx.beginPath(); ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, H / 2); ctx.lineTo(W, H / 2); ctx.stroke();
+
+    // Círculo central para teste de aspecto e linearidade esférica
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#00FF66";
+    ctx.beginPath();
+    ctx.arc(W / 2, H / 2, Math.min(W, H) * 0.38, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Marcadores de Zona Segura (Action Safe 90% e Title Safe 80%)
+    ctx.strokeStyle = "rgba(255, 0, 0, 0.75)";
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(W * 0.05, H * 0.05, W * 0.90, H * 0.90);
+    ctx.strokeStyle = "rgba(0, 255, 255, 0.75)";
+    ctx.strokeRect(W * 0.10, H * 0.10, W * 0.80, H * 0.80);
+
+    ctx.fillStyle = "#FFE000";
+    ctx.font = "bold 15px 'Courier New', monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("GRADE DE ALINHAMENTO CRT E GEOMETRIA (CROSSHATCH 16×12)", W / 2, 28);
+    return;
+  }
+
+  if (type === "grayscale_10") {
+    // Escala de Cinza em 10 Passos Broadcast (0 a 100 IRE)
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(0, 0, W, H);
+
+    const steps = 10;
+    const sw = W / steps;
+    const stepH = H * 0.72;
+    for (let i = 0; i < steps; i++) {
+      const ire = Math.round(i * 10);
+      const val = Math.round((i / (steps - 1)) * 255);
+      ctx.fillStyle = `rgb(${val}, ${val}, ${val})`;
+      ctx.fillRect(i * sw, 0, sw + 1, stepH);
+
+      ctx.fillStyle = i >= 5 ? "#000000" : "#FFFFFF";
+      ctx.font = "bold 16px 'Courier New', monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(`${ire} IRE`, i * sw + sw / 2, stepH / 2);
+      ctx.font = "12px monospace";
+      ctx.fillText(`${Math.round((i / 9) * 100)}%`, i * sw + sw / 2, stepH / 2 + 18);
+    }
+
+    const rampGrad = ctx.createLinearGradient(0, stepH, W, stepH);
+    rampGrad.addColorStop(0, "#000000");
+    rampGrad.addColorStop(1, "#FFFFFF");
+    ctx.fillStyle = rampGrad;
+    ctx.fillRect(0, stepH, W, H * 0.16);
+
+    ctx.fillStyle = "#0A0A0A";
+    ctx.fillRect(0, H * 0.88, W, H * 0.12);
+    ctx.fillStyle = "#00FF66";
+    ctx.font = "bold 15px 'Courier New', monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("CALIBRAÇÃO DE GAMA, LUMINÂNCIA E LINEARIDADE · 10-STEP WEDGE", W / 2, H - 12);
+    return;
+  }
+
+  if (type === "tone_1khz" || type === "pink_noise" || type === "white_noise") {
+    // Osciloscópio de Sinal de Áudio DSP 1995
+    ctx.fillStyle = "#031008";
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.strokeStyle = "rgba(0, 255, 100, 0.18)";
+    ctx.lineWidth = 1;
+    for (let x = 0; x < W; x += 32) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+    }
+    for (let y = 0; y < H; y += 24) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+    }
+
+    ctx.strokeStyle = "#00FF66";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    const midY = H / 2;
+    for (let x = 0; x < W; x += 3) {
+      let amp = 0;
+      if (type === "tone_1khz") {
+        amp = Math.sin((x * 0.08) + localTime * 24) * 80;
+      } else if (type === "pink_noise") {
+        amp = (Math.sin(x * 0.12 + localTime * 18) * 0.6 + (Math.random() - 0.5) * 0.8) * 70;
+      } else {
+        amp = (Math.random() - 0.5) * 110;
+      }
+      const y = midY + amp;
+      if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    const titleMap = {
+      tone_1khz: "TOM DE REFERÊNCIA SMPTE 1 kHz · -20 dBFS / 0 VU",
+      pink_noise: "RUÍDO ROSA (PINK NOISE) · CALIBRAÇÃO ACÚSTICA RTA 1/f",
+      white_noise: "RUÍDO BRANCO (WHITE NOISE) · ESPECTRO PLANO CONTÍNUO"
+    };
+    ctx.fillStyle = "#FFE040";
+    ctx.font = "bold 18px 'Courier New', monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(titleMap[type] || "SINAL DE ÁUDIO DSP", W / 2, 38);
+
+    ctx.fillStyle = "#00FF66";
+    ctx.font = "14px 'VT323', monospace";
+    ctx.fillText(`FAIXA ALVO: ${(S.targetAudioTrack || "A1").toUpperCase()} · CALIBRAÇÃO DE ESTÚDIO 1995`, W / 2, H - 20);
+    return;
+  }
+
   if (type === "vhs_home") {
     // Cena doméstica Camcorder 1995 (Por do sol + Família / Quintal + OSD VHS)
     const g = ctx.createLinearGradient(0, 0, 0, H);
@@ -2073,12 +2244,87 @@ function renderMonitorFrame() {
   ctx.textAlign = "left";
   ctx.fillText(`TCR ${fmtSMPTE(S.playhead)}`, 18, 25);
 
+  // 7. Window Dub de Timecode Broadcast Avançado (TCR, TCO, Frames, Countdown)
+  drawWindowDubOverlay(ctx, W, H, false);
+
   if (typeof S._exportFrameHook === "function" && S._exportBurnTC) {
     S._exportFrameHook(cv);
   }
   syncDetachedWindows();
   renderBroadcastScopes(cv);
   if (prefs.monLayout === "multicam") renderMulticamFrames();
+}
+
+function drawWindowDubOverlay(ctx, W, H, isExport = false) {
+  const wd = prefs.windowDub;
+  if (!wd || (!wd.enabled && !isExport)) return;
+  if (isExport && (!wd || !wd.burnExport)) return;
+
+  const mode = wd.mode || "master";
+  const pos = wd.pos || "bottom-center";
+  const scale = W / 640;
+  const fontSize = Math.max(12, Math.round((wd.size || 22) * scale));
+  const activeClips = getActiveClipsAt(S.playhead);
+  const activeV1 = activeClips.v1;
+  const srcSec = activeV1 ? Math.max(0, (S.playhead - activeV1.start) * (activeV1.speed || 1) + (activeV1.inPoint || 0)) : S.playhead;
+
+  let text = "";
+  if (mode === "master") {
+    text = `TCR ${fmtSMPTE(S.playhead)}`;
+  } else if (mode === "source") {
+    text = `TCO ${fmtSMPTE(srcSec)}`;
+  } else if (mode === "both") {
+    text = `TCR ${fmtSMPTE(S.playhead)}  TCO ${fmtSMPTE(srcSec)}`;
+  } else if (mode === "frames") {
+    const fnum = Math.floor(S.playhead * FPS).toString().padStart(6, "0");
+    text = `FRM ${fnum} (${FPS} FPS)`;
+  } else if (mode === "countdown") {
+    const left = Math.max(0, S.totalDur - S.playhead);
+    text = `REM -${fmtSMPTE(left)}`;
+  }
+
+  ctx.save();
+  ctx.font = `bold ${fontSize}px 'VT323', 'Courier New', monospace`;
+  const padX = Math.round(fontSize * 0.55);
+  const padY = Math.round(fontSize * 0.28);
+  const metrics = ctx.measureText(text);
+  const boxW = metrics.width + padX * 2;
+  const boxH = fontSize + padY * 2;
+  const margin = Math.round(18 * scale);
+
+  let bx = (W - boxW) / 2;
+  let by = H - boxH - margin;
+
+  if (pos === "bottom-left") {
+    bx = margin;
+    by = H - boxH - margin;
+  } else if (pos === "bottom-right") {
+    bx = W - boxW - margin;
+    by = H - boxH - margin;
+  } else if (pos === "top-center") {
+    bx = (W - boxW) / 2;
+    by = margin;
+  } else if (pos === "top-left") {
+    bx = margin;
+    by = margin;
+  } else if (pos === "top-right") {
+    bx = W - boxW - margin;
+    by = margin;
+  }
+
+  const alpha = Math.max(0, Math.min(1, (wd.opacity == null ? 85 : wd.opacity) / 100));
+  ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
+  ctx.fillRect(bx, by, boxW, boxH);
+
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+  ctx.lineWidth = Math.max(1, Math.round(1.2 * scale));
+  ctx.strokeRect(bx, by, boxW, boxH);
+
+  ctx.fillStyle = "#FFE040"; // SMPTE Yellow
+  ctx.textBaseline = "middle";
+  ctx.textAlign = "center";
+  ctx.fillText(text, bx + boxW / 2, by + boxH / 2);
+  ctx.restore();
 }
 
 /* ---------- Monitores Técnicos Broadcast: Vectorscope UV & Waveform IRE (Tektronix 1995) ---------- */
@@ -2460,18 +2706,56 @@ function buildClipWaveSvg(clip, widthPx, isVideo = false) {
   return `<svg class="clip-wave" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="${dPath}" stroke="${strokeColor}" stroke-width="0.9" fill="none" vector-effect="non-scaling-stroke"/></svg>`;
 }
 
+function ensureClipRubberband(clip) {
+  if (!clip) return;
+  const dur = Math.max(0.1, Number(clip.dur) || 1);
+  if (!Array.isArray(clip.rubberband) || clip.rubberband.length < 2) {
+    const baseVol = clip.volume == null ? 100 : Number(clip.volume);
+    clip.rubberband = [
+      { offset: 0, vol: baseVol },
+      { offset: dur, vol: baseVol }
+    ];
+  } else {
+    clip.rubberband[0].offset = 0;
+    clip.rubberband[clip.rubberband.length - 1].offset = dur;
+  }
+}
+
+function evaluateRubberbandVolume(clip, elapsedSec) {
+  if (!clip || !Array.isArray(clip.rubberband) || clip.rubberband.length < 2) return 1;
+  const dur = Math.max(0.01, Number(clip.dur) || 1);
+  const t = Math.max(0, Math.min(dur, elapsedSec));
+  const nodes = clip.rubberband.slice().sort((a, b) => a.offset - b.offset);
+  if (t <= nodes[0].offset) return Math.max(0, Math.min(1.5, nodes[0].vol / 100));
+  if (t >= nodes[nodes.length - 1].offset) return Math.max(0, Math.min(1.5, nodes[nodes.length - 1].vol / 100));
+  for (let i = 0; i < nodes.length - 1; i++) {
+    const n1 = nodes[i];
+    const n2 = nodes[i + 1];
+    if (t >= n1.offset && t <= n2.offset) {
+      const span = n2.offset - n1.offset;
+      if (span <= 0.0001) return Math.max(0, Math.min(1.5, n1.vol / 100));
+      const prog = (t - n1.offset) / span;
+      const smooth = (1 - Math.cos(prog * Math.PI)) / 2;
+      const v = n1.vol + (n2.vol - n1.vol) * smooth;
+      return Math.max(0, Math.min(1.5, v / 100));
+    }
+  }
+  return 1;
+}
+
 function getClipAudioSampleAt(clip, globalSec) {
   if (!clip || clip.disabled) return { l: 0, r: 0 };
-  const localSec = Math.max(0, (globalSec - clip.start) * (clip.speed || 1) + (clip.inPoint || 0));
+  const elapsed = Math.max(0, globalSec - clip.start);
+  const localSec = Math.max(0, elapsed * (clip.speed || 1) + (clip.inPoint || 0));
 
-  // Volume do clipe com suporte a Keyframes
+  // Volume do clipe com suporte a Keyframes e Envelope Rubberband
   const dynClipVol = evaluateKeyframedProperty(clip, "volume", (clip.volume == null ? 100 : Number(clip.volume)), localSec);
   let vol = Math.max(0, dynClipVol / 100);
+  vol *= evaluateRubberbandVolume(clip, elapsed);
   if (vol <= 0.001) return { l: 0, r: 0 };
 
   // Esmaecimento Suave Cosseno (Anti-estalo / De-click nos pontos de corte)
   const dur = Math.max(0.1, Number(clip.dur) || 1);
-  const elapsed = globalSec - clip.start;
   const remain = (clip.start + dur) - globalSec;
   const fIn = Math.max(0, Number(clip.fadeIn) || 0);
   const fOut = Math.max(0, Number(clip.fadeOut) || 0);
@@ -2506,7 +2790,20 @@ function getClipAudioSampleAt(clip, globalSec) {
     return { l: Math.min(1, maxL * vol * panL), r: Math.min(1, maxR * vol * panR) };
   }
 
-  // Clipes sintéticos (Bip de Contagem Regressiva, Foley ou Locução de Roteiro)
+  // Clipes sintéticos e Geradores de Sinais Broadcast 1995 (1kHz, Pink Noise, White Noise, Leader)
+  if (clip.synthType === "tone_1khz") {
+    const s = Math.sin(2 * Math.PI * 1000 * localSec) * 0.10 * vol;
+    return { l: s * panL, r: s * panR };
+  }
+  if (clip.synthType === "pink_noise") {
+    const s1 = Math.sin(localSec * 88200);
+    const n = ((Math.sin(s1 * 3456.78) + Math.cos(localSec * 12345.6) + Math.random() - 0.5) / 2.5) * 0.10 * vol;
+    return { l: n * panL, r: n * panR };
+  }
+  if (clip.synthType === "white_noise") {
+    const n = (Math.random() * 2 - 1) * 0.08 * vol;
+    return { l: n * panL, r: n * panR };
+  }
   if (clip.synthType === "leader") {
     const inBeep = (localSec % 1) < 0.09;
     return inBeep ? { l: 0.82 * vol * panL, r: 0.82 * vol * panR } : { l: 0, r: 0 };
@@ -2819,7 +3116,8 @@ function syncHtmlMediaPlayback() {
         const makeup = Math.pow(10, ((S.dynamics.compGain || 0) - (S.dynamics._lastGR || 0)) / 20);
         dynGain = Math.min(1.5, Math.max(0.1, makeup));
       }
-      el.volume = Math.max(0, Math.min(1, dynVol * tkVol * mastVol * dynGain));
+      const rbFactor = evaluateRubberbandVolume(activeClip, Math.max(0, S.playhead - activeClip.start));
+      el.volume = Math.max(0, Math.min(1, dynVol * tkVol * mastVol * dynGain * rbFactor));
       el.playbackRate = Math.max(0.25, Math.min(4, (activeClip.speed || 1) * S.shuttleSpeed));
       if (el.paused) el.play().catch(() => {});
     } else {
@@ -2866,7 +3164,8 @@ function syncHtmlMediaPlayback() {
         dynGain = Math.min(1.5, Math.max(0.1, makeup));
       }
 
-      el.volume = Math.max(0, Math.min(1, dynVol * cFade * tkVol * mastVol * duckFactor * dynGain));
+      const rbFactor = evaluateRubberbandVolume(activeClip, elapsed);
+      el.volume = Math.max(0, Math.min(1, dynVol * cFade * tkVol * mastVol * duckFactor * dynGain * rbFactor));
       el.playbackRate = Math.max(0.25, Math.min(4, (activeClip.speed || 1) * S.shuttleSpeed));
       if (el.paused) el.play().catch(() => {});
     } else {
@@ -3822,11 +4121,35 @@ function renderTimeline() {
       const width = Math.max(16, Math.round(c.dur * pxPerSec) - 1);
       const isSel = S.selectedClipId === c.id;
       const hasMedia = !!c.mediaUrl;
+      const isOffline = !!c.offline;
       const waveSvg = buildClipWaveSvg(c, width, isVid);
       const hasWave = !!waveSvg;
       const fxBadge = (c.trans && c.trans !== "Corte Seco") ? `<span class="fx-badge">FX</span>` : "";
       const spdTag = (c.speed && c.speed !== 1) ? ` [${c.speed}x]` : "";
       const sub = `${mmss(c.start)}–${mmss(c.start + c.dur)} (${c.dur.toFixed(1)}s)${spdTag}`;
+
+      // Rubberbanding de Volume Interativo para faixas de áudio
+      let rubberbandSvg = "";
+      if (!isVid) {
+        ensureClipRubberband(c);
+        const sorted = c.rubberband.slice().sort((a, b) => a.offset - b.offset);
+        const pts = sorted.map(n => {
+          const nx = Math.max(0, Math.min(100, (n.offset / Math.max(0.01, c.dur)) * 100));
+          const ny = Math.max(6, Math.min(94, 90 - (n.vol / 150) * 80));
+          return `${nx.toFixed(1)},${ny.toFixed(1)}`;
+        }).join(" ");
+
+        const nodesHtml = sorted.map((n, idx) => {
+          const nx = Math.max(0, Math.min(100, (n.offset / Math.max(0.01, c.dur)) * 100));
+          const ny = Math.max(6, Math.min(94, 90 - (n.vol / 150) * 80));
+          return `<circle class="rb-node" cx="${nx.toFixed(1)}%" cy="${ny.toFixed(1)}%" r="4" data-nodeidx="${idx}" data-clipid="${c.id}" data-tk="${tk}" title="Volume: ${Math.round(n.vol)}% (${n.offset.toFixed(2)}s) · Arraste para mudar volume, Alt+Clique para remover"></circle>`;
+        }).join("");
+
+        rubberbandSvg = `<svg class="tl-rubberband-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <polyline class="rb-line" points="${pts}" vector-effect="non-scaling-stroke" />
+          ${nodesHtml}
+        </svg>`;
+      }
 
       // Fotogramas de película de cinema nos clipes de vídeo da timeline
       let filmstripHtml = "";
@@ -3845,12 +4168,13 @@ function renderTimeline() {
         }
       }
 
-      return `<div class="tl-clip ${tkTypeCls}${hasMedia ? " has-media" : ""}${hasWave ? " has-wave" : ""}${filmstripHtml ? " has-filmstrip" : ""}${isSel ? " sel" : ""}${c.disabled ? " disabled" : ""}" data-clip="${c.id}" data-tk="${tk}" style="left:${left}px;width:${width}px" title="[${tk.toUpperCase()}] ${escH(c.title)} · Arraste para mover (ou mudar de faixa), Alt+Arraste para duplicar, Botão direito para mais opções">
+      return `<div class="tl-clip ${tkTypeCls}${hasMedia ? " has-media" : ""}${hasWave ? " has-wave" : ""}${filmstripHtml ? " has-filmstrip" : ""}${isSel ? " sel" : ""}${c.disabled ? " disabled" : ""}${isOffline ? " offline" : ""}" data-clip="${c.id}" data-tk="${tk}" style="left:${left}px;width:${width}px" title="[${tk.toUpperCase()}] ${isOffline ? "[OFFLINE] " : ""}${escH(c.title)} · Arraste para mover, Duplo-clique para nó de áudio, Botão direito para opções">
         ${filmstripHtml}
         ${waveSvg}
+        ${rubberbandSvg}
         <span class="trim-l" data-trim="l"></span>
         <div class="clip-text-box">
-          <span>${fxBadge}${escH(c.title)}</span>
+          <span>${isOffline ? '<span class="badge-offline">OFFLINE</span> ' : ""}${fxBadge}${escH(c.title)}</span>
           <small>${escH(sub)}</small>
         </div>
         <span class="trim-r" data-trim="r"></span>
@@ -3895,6 +4219,7 @@ function renderTimeline() {
 
     el.addEventListener("pointerdown", (ev) => {
       if (ev.button !== 0) return;
+      if (ev.target.closest(".rb-node")) return;
       ev.stopPropagation();
       closeMenus();
       const cid = el.dataset.clip;
@@ -4158,8 +4483,122 @@ function renderTimeline() {
 
     el.addEventListener("dblclick", (ev) => {
       ev.stopPropagation();
+      const cid = el.dataset.clip;
+      const tk = el.dataset.tk;
+      const clip = (S.clips[tk] || []).find(x => x.id === cid);
+      if (!clip) return;
+
+      if (!isVideoTrack(tk)) {
+        // Inserção interativa de nó de volume (Rubberband Envelope)
+        ensureClipRubberband(clip);
+        const rect = el.getBoundingClientRect();
+        const relX = Math.max(0, Math.min(rect.width, ev.clientX - rect.left));
+        const relY = Math.max(0, Math.min(rect.height, ev.clientY - rect.top));
+        const offset = Math.max(0.01, Math.min((clip.dur || 1) - 0.01, (relX / Math.max(1, rect.width)) * (clip.dur || 1)));
+        const vol = Math.round(Math.max(0, Math.min(150, (1 - (relY / Math.max(1, rect.height))) * 150)));
+        clip.rubberband.push({ offset: Number(offset.toFixed(2)), vol });
+        clip.rubberband.sort((a, b) => a.offset - b.offset);
+        saveUndoSnapshot();
+        renderTimeline();
+        syncHtmlMediaPlayback();
+        toast(`Ponto de volume adicionado: ${vol}% em ${offset.toFixed(2)}s`);
+        return;
+      }
+
       S.sideTab = "fx";
       renderSide();
+    });
+  });
+
+  // Eventos de arrasto e controle dos nós de Rubberband de Áudio
+  area.querySelectorAll(".rb-node").forEach(nodeEl => {
+    nodeEl.addEventListener("pointerdown", (ev) => {
+      if (ev.button !== 0) return;
+      ev.stopPropagation();
+      const clipId = nodeEl.dataset.clipid;
+      const tk = nodeEl.dataset.tk;
+      const idx = parseInt(nodeEl.dataset.nodeidx, 10);
+      const clip = (S.clips[tk] || []).find(x => x.id === clipId);
+      if (!clip || !clip.rubberband || !clip.rubberband[idx]) return;
+      ensureClipRubberband(clip);
+
+      // Alt+Clique remove nó intermediário
+      if (ev.altKey && idx > 0 && idx < clip.rubberband.length - 1) {
+        clip.rubberband.splice(idx, 1);
+        saveUndoSnapshot();
+        renderTimeline();
+        syncHtmlMediaPlayback();
+        toast("Ponto de volume removido.");
+        return;
+      }
+
+      const clipEl = nodeEl.closest(".tl-clip");
+      if (!clipEl) return;
+      const rect = clipEl.getBoundingClientRect();
+      const startY = ev.clientY;
+      const startX = ev.clientX;
+      const origVol = clip.rubberband[idx].vol;
+      const origOffset = clip.rubberband[idx].offset;
+      nodeEl.setPointerCapture(ev.pointerId);
+
+      const onNodeMove = (me) => {
+        const deltaY = startY - me.clientY;
+        const volDelta = (deltaY / Math.max(20, rect.height)) * 150;
+        const newVol = Math.round(Math.max(0, Math.min(150, origVol + volDelta)));
+        clip.rubberband[idx].vol = newVol;
+
+        if (idx > 0 && idx < clip.rubberband.length - 1) {
+          const deltaX = me.clientX - startX;
+          const offsetDelta = (deltaX / Math.max(16, rect.width)) * (clip.dur || 1);
+          const prevOffset = (clip.rubberband[idx - 1] ? clip.rubberband[idx - 1].offset : 0) + 0.05;
+          const nextOffset = (clip.rubberband[idx + 1] ? clip.rubberband[idx + 1].offset : clip.dur) - 0.05;
+          clip.rubberband[idx].offset = Math.max(prevOffset, Math.min(nextOffset, origOffset + offsetDelta));
+        }
+
+        const sorted = clip.rubberband.slice().sort((a, b) => a.offset - b.offset);
+        const pts = sorted.map(n => {
+          const nx = Math.max(0, Math.min(100, (n.offset / Math.max(0.01, clip.dur)) * 100));
+          const ny = Math.max(6, Math.min(94, 90 - (n.vol / 150) * 80));
+          return `${nx.toFixed(1)},${ny.toFixed(1)}`;
+        }).join(" ");
+        const lineEl = clipEl.querySelector(".rb-line");
+        if (lineEl) lineEl.setAttribute("points", pts);
+
+        const ny = Math.max(6, Math.min(94, 90 - (clip.rubberband[idx].vol / 150) * 80));
+        const nx = Math.max(0, Math.min(100, (clip.rubberband[idx].offset / Math.max(0.01, clip.dur)) * 100));
+        nodeEl.setAttribute("cy", ny.toFixed(1) + "%");
+        nodeEl.setAttribute("cx", nx.toFixed(1) + "%");
+        nodeEl.setAttribute("title", `Volume: ${newVol}% (${clip.rubberband[idx].offset.toFixed(2)}s)`);
+
+        syncHtmlMediaPlayback();
+        updateVUMeterFromTimeline();
+      };
+
+      const onNodeUp = () => {
+        nodeEl.removeEventListener("pointermove", onNodeMove);
+        nodeEl.removeEventListener("pointerup", onNodeUp);
+        clip.rubberband.sort((a, b) => a.offset - b.offset);
+        saveUndoSnapshot();
+        renderTimeline();
+      };
+
+      nodeEl.addEventListener("pointermove", onNodeMove);
+      nodeEl.addEventListener("pointerup", onNodeUp);
+    });
+
+    nodeEl.addEventListener("contextmenu", (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      const clipId = nodeEl.dataset.clipid;
+      const tk = nodeEl.dataset.tk;
+      const idx = parseInt(nodeEl.dataset.nodeidx, 10);
+      const clip = (S.clips[tk] || []).find(x => x.id === clipId);
+      if (!clip || !clip.rubberband || idx <= 0 || idx >= clip.rubberband.length - 1) return;
+      clip.rubberband.splice(idx, 1);
+      saveUndoSnapshot();
+      renderTimeline();
+      syncHtmlMediaPlayback();
+      toast("Ponto de volume removido.");
     });
   });
 
@@ -5657,13 +6096,13 @@ function registerImportedFileObject(fileInfo, autoInsert = false) {
   }
 }
 
-async function importMediaFiles(tipo = "all", autoInsert = true) {
+async function importMediaFiles(tipo = "all", autoInsert = false) {
   if (window.editorNative && typeof window.editorNative.pickMedia === "function") {
     const files = await window.editorNative.pickMedia(tipo);
     if (files && files.length) {
       files.forEach(f => registerImportedFileObject(f, autoInsert));
       if (autoInsert) setPlayhead(0, false);
-      toast(`${files.length} arquivo(s) importado(s) e colocados em sequência na Linha do Tempo!`);
+      toast(`${files.length} arquivo(s) importado(s) para o Cesto de Mídia (Bin)!`);
     }
     return;
   }
@@ -5686,10 +6125,9 @@ function setupDragAndDrop() {
           name: file.name,
           url,
           kind: isAud ? "audio" : (isImg ? "image" : "video")
-        }, true);
+        }, false);
       });
-      setPlayhead(0, false);
-      toast("Mídia(s) importada(s) em sequência na Linha do Tempo!");
+      toast("Mídia(s) importada(s) para o Cesto de Mídia (Bin)!");
       return;
     }
 
@@ -5911,20 +6349,33 @@ function openChyronDialog() {
 function openGeneratorDialog() {
   dialog({
     id: "genWin",
-    title: "Gerador de Sinal de Vídeo (SMPTE / Leader / VT 95)",
-    width: 440,
+    title: "Gerador de Sinais e Tons Broadcast 1995",
+    width: 480,
     body: `
-      <label class="fld"><span>Tipo de Mídia Sintética:</span>
+      <label class="fld"><span>Tipo de Sinal de Vídeo ou Tom de Áudio:</span>
         <select id="gn-type">
-          <option value="leader">Contagem Regressiva Universal (Leader 6..1 com Bip)</option>
-          <option value="bars">Barras de Cor Padrão SMPTE NTSC</option>
-          <option value="vhs_home">Cena Filmadora Doméstica VHS 1995</option>
-          <option value="commercial">Fundo Dinâmico VT Comercial Anos 90</option>
+          <optgroup label="Padrões de Calibração de Vídeo">
+            <option value="bars">Barras de Cor Padrão SMPTE NTSC</option>
+            <option value="bars_pluge">Barras SMPTE com Pulso Pluge (-3.5 / 0 / +3.5 IRE)</option>
+            <option value="crosshatch">Grade de Alinhamento CRT &amp; Geometria (Crosshatch 16×12)</option>
+            <option value="grayscale_10">Escala de Cinza em 10 Passos (0 a 100 IRE)</option>
+            <option value="leader">Contagem Regressiva Universal (Leader 6..1 com Bip)</option>
+            <option value="vhs_home">Cena Filmadora Doméstica VHS 1995</option>
+            <option value="commercial">Fundo Dinâmico VT Comercial Anos 90</option>
+          </optgroup>
+          <optgroup label="Geradores de Tons e Ruídos de Áudio (DSP)">
+            <option value="tone_1khz">Tom de Referência 1 kHz (-20 dBFS / 0 VU SMPTE)</option>
+            <option value="pink_noise">Ruído Rosa (Pink Noise - Calibração Acústica RTA)</option>
+            <option value="white_noise">Ruído Branco (White Noise - Espectro Contínuo)</option>
+          </optgroup>
         </select>
       </label>
       <label class="fld"><span>Duração (segundos):</span>
-        <input type="number" id="gn-dur" value="6" min="2" max="120">
+        <input type="number" id="gn-dur" value="6" min="1" max="300">
       </label>
+      <div class="muted" style="font-size:11px;margin-top:4px" id="gn-hint">
+        Sinais de vídeo serão inseridos na faixa de vídeo alvo (${(S.targetVideoTrack || "v1").toUpperCase()}). Tons de áudio irão para a faixa ${(S.targetAudioTrack || "a1").toUpperCase()}.
+      </div>
     `,
     buttons: [
       {
@@ -5933,21 +6384,54 @@ function openGeneratorDialog() {
         run: (w) => {
           saveUndoSnapshot();
           const tp = w.querySelector("#gn-type").value;
-          const dur = Math.max(2, +w.querySelector("#gn-dur").value || 6);
+          const dur = Math.max(1, +w.querySelector("#gn-dur").value || 6);
+          const isAud = ["tone_1khz", "pink_noise", "white_noise"].includes(tp);
+
           const names = {
-            leader: "CONTAGEM_REGRESSIVA_95.MOV",
             bars: "BARRAS_SMPTE_NTSC.MOV",
+            bars_pluge: "SMPTE_BARS_PLUGE.MOV",
+            crosshatch: "CROSSHATCH_16x12.MOV",
+            grayscale_10: "GRAYSCALE_10_STEPS.MOV",
+            leader: "CONTAGEM_REGRESSIVA_95.MOV",
             vhs_home: "FITA_VHS_CASEIRA_95.AVI",
-            commercial: "VT_COMERCIAL_95.AVI"
+            commercial: "VT_COMERCIAL_95.AVI",
+            tone_1khz: "TOM_1KHZ_0VU.WAV",
+            pink_noise: "RUIDO_ROSA_RTA.WAV",
+            white_noise: "RUIDO_BRANCO_DSP.WAV"
           };
-          const tk = S.targetVideoTrack || "v1";
+
+          const tk = isAud ? (S.targetAudioTrack || "a1") : (S.targetVideoTrack || "v1");
           ensureTrackExists(tk);
+
           const newClip = {
-            id: uid(tk + "_"), track: tk, title: names[tp], synthType: tp,
-            start: Number(S.playhead.toFixed(2)), inPoint: 0, dur, speed: 1, volume: 100,
-            opacity: 100, scale: 100, posX: 0, posY: 0, brightness: 0, contrast: 0, saturation: 100,
-            filter: "none", trans: "Corte Seco", transDur: 1.0
+            id: uid(tk + "_"),
+            track: tk,
+            title: names[tp] || "SINAL_SINTETICO_95",
+            synthType: tp,
+            start: Number(S.playhead.toFixed(2)),
+            inPoint: 0,
+            dur,
+            speed: 1,
+            volume: 100,
+            opacity: 100,
+            scale: 100,
+            posX: 0,
+            posY: 0,
+            brightness: 0,
+            contrast: 0,
+            saturation: 100,
+            filter: "none",
+            trans: "Corte Seco",
+            transDur: 1.0
           };
+
+          if (isAud) {
+            newClip.rubberband = [
+              { offset: 0, vol: 100 },
+              { offset: dur, vol: 100 }
+            ];
+          }
+
           S.clips[tk].push(newClip);
           resolveTrackOverlaps(tk, newClip.id);
           S.selectedClipId = newClip.id;
@@ -6063,6 +6547,300 @@ function openSlateDialog() {
       { label: "Fechar" }
     ]
   });
+}
+
+/* ---------- Reconexão de Mídia Offline (Media Relink 1995) ---------- */
+function openMediaRelinkDialog() {
+  const allClips = [];
+  getAllTrackIds().forEach(tk => {
+    (S.clips[tk] || []).forEach(c => {
+      if (c.mediaUrl || c.mediaId) allClips.push(c);
+    });
+  });
+
+  const getMediaStatus = (item) => {
+    if (!item.url) return { offline: true, reason: "Sem caminho" };
+    if (item.offline) return { offline: true, reason: "Marcado como ausente" };
+    if (item.kind === "video" && S.videoEls.has(item.url)) {
+      const v = S.videoEls.get(item.url);
+      if (v.error) return { offline: true, reason: "Erro de decodificação" };
+    }
+    if (item.kind === "audio" && S.audioEls.has(item.url)) {
+      const a = S.audioEls.get(item.url);
+      if (a.error) return { offline: true, reason: "Erro no fluxo de áudio" };
+    }
+    return { offline: false, reason: "Conectado" };
+  };
+
+  const renderTableRows = () => {
+    if (!S.mediaBin.length) {
+      return `<tr><td colspan="5" class="muted" style="text-align:center;padding:16px">Nenhuma mídia importada no projeto atual.</td></tr>`;
+    }
+    return S.mediaBin.map((item, idx) => {
+      const st = getMediaStatus(item);
+      const linkedClips = allClips.filter(c => c.mediaUrl === item.url || c.mediaId === item.id);
+      const isOff = st.offline;
+      return `<tr>
+        <td style="text-align:center">
+          <span class="badge-${isOff ? "offline" : "online"}">${isOff ? "OFFLINE" : "ONLINE"}</span>
+        </td>
+        <td><b>${escH(item.name)}</b></td>
+        <td>${escH(item.res || item.kind)}</td>
+        <td style="text-align:center">${linkedClips.length} clipe(s)</td>
+        <td>
+          <button type="button" class="btn sm" data-relinkidx="${idx}">Localizar Arquivo…</button>
+          <button type="button" class="btn sm" data-toggleoffidx="${idx}">${isOff ? "Tornar Online" : "Marcar Offline"}</button>
+        </td>
+      </tr>`;
+    }).join("");
+  };
+
+  const w = dialog({
+    id: "relinkWin",
+    title: "Reconectar Mídias Ausentes (Media Relink 1995)",
+    width: 630,
+    body: `
+      <div style="margin-bottom:8px">
+        <span>O ScriptEditor 95 mantém referências aos arquivos originais do seu disco sem alterá-los. Se você moveu ou renomeou seus arquivos de vídeo ou áudio, use esta ferramenta para restabelecer a conexão sem perder seus cortes e transições:</span>
+      </div>
+      <div style="max-height:260px;overflow:auto;border:2px inset #fff;background:#fff;margin-bottom:8px">
+        <table class="tbl" style="width:100%;font-size:11px" id="relinkTable">
+          <thead>
+            <tr>
+              <th style="width:75px">Status</th>
+              <th>Nome da Mídia</th>
+              <th>Formato</th>
+              <th style="width:85px">Timeline</th>
+              <th style="width:185px">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${renderTableRows()}
+          </tbody>
+        </table>
+      </div>
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <span class="muted" id="relinkSummary">${S.mediaBin.length} mídias no Bin · ${allClips.length} referências na Linha do Tempo</span>
+        <button type="button" class="btn" id="btnRelinkBatch">Buscar Pasta com Mídias…</button>
+      </div>
+    `,
+    buttons: [
+      { label: "Fechar", def: 1 }
+    ]
+  });
+
+  const applyRelinkReplacement = (item, newFile) => {
+    saveUndoSnapshot();
+    const oldUrl = item.url;
+    item.url = newFile.url;
+    item.name = newFile.name;
+    item.offline = false;
+    if (newFile.path) item.path = newFile.path;
+
+    if (item.kind === "video") {
+      const v = document.createElement("video");
+      v.src = item.url;
+      v.preload = "auto";
+      getMediaPool().appendChild(v);
+      S.videoEls.set(item.url, v);
+      extractAudioPeaksForItem(item);
+    } else if (item.kind === "audio") {
+      const a = document.createElement("audio");
+      a.src = item.url;
+      a.preload = "auto";
+      getMediaPool().appendChild(a);
+      S.audioEls.set(item.url, a);
+      extractAudioPeaksForItem(item);
+    }
+
+    let affectedClips = 0;
+    getAllTrackIds().forEach(tk => {
+      (S.clips[tk] || []).forEach(c => {
+        if (c.mediaUrl === oldUrl || c.mediaId === item.id) {
+          c.mediaUrl = newFile.url;
+          c.title = newFile.name;
+          c.offline = false;
+          affectedClips++;
+        }
+      });
+    });
+
+    renderAll();
+    toast(`Mídia "${newFile.name}" reconectada com sucesso (${affectedClips} clipe(s) atualizados)!`);
+  };
+
+  const bindActions = () => {
+    const tb = w.querySelector("#relinkTable tbody");
+    if (!tb) return;
+    tb.innerHTML = renderTableRows();
+
+    tb.querySelectorAll("[data-relinkidx]").forEach(b => {
+      b.onclick = async () => {
+        const idx = +b.dataset.relinkidx;
+        const item = S.mediaBin[idx];
+        if (!item) return;
+
+        if (window.editorNative && typeof window.editorNative.pickMedia === "function") {
+          const files = await window.editorNative.pickMedia(item.kind === "audio" ? "audio" : "video");
+          if (files && files.length) {
+            applyRelinkReplacement(item, files[0]);
+            bindActions();
+          }
+        } else {
+          const inp = document.createElement("input");
+          inp.type = "file";
+          inp.accept = item.kind === "audio" ? "audio/*" : (item.kind === "image" ? "image/*" : "video/*");
+          inp.onchange = () => {
+            if (inp.files && inp.files[0]) {
+              const file = inp.files[0];
+              const url = URL.createObjectURL(file);
+              applyRelinkReplacement(item, { name: file.name, url, kind: item.kind });
+              bindActions();
+            }
+          };
+          inp.click();
+        }
+      };
+    });
+
+    tb.querySelectorAll("[data-toggleoffidx]").forEach(b => {
+      b.onclick = () => {
+        const idx = +b.dataset.toggleoffidx;
+        const item = S.mediaBin[idx];
+        if (!item) return;
+        item.offline = !item.offline;
+        getAllTrackIds().forEach(tk => {
+          (S.clips[tk] || []).forEach(c => {
+            if (c.mediaUrl === item.url || c.mediaId === item.id) {
+              c.offline = item.offline;
+            }
+          });
+        });
+        renderAll();
+        bindActions();
+        toast(`Mídia "${item.name}" ${item.offline ? "marcada como OFFLINE" : "marcada como ONLINE"}.`);
+      };
+    });
+  };
+
+  const bBatch = w.querySelector("#btnRelinkBatch");
+  if (bBatch) {
+    bBatch.onclick = async () => {
+      if (window.editorNative && typeof window.editorNative.pickMedia === "function") {
+        const files = await window.editorNative.pickMedia("all");
+        if (files && files.length) {
+          let reconnected = 0;
+          files.forEach(f => {
+            const matchItem = S.mediaBin.find(m => m.name.toLowerCase() === f.name.toLowerCase());
+            if (matchItem) {
+              applyRelinkReplacement(matchItem, f);
+              reconnected++;
+            }
+          });
+          bindActions();
+          toast(`${reconnected} mídia(s) reconectada(s) automaticamente pelo lote!`);
+        }
+      } else {
+        toast("Selecione os arquivos individualmente pelo botão [Localizar Arquivo…].");
+      }
+    };
+  }
+
+  bindActions();
+}
+
+/* ---------- Janela de Timecode na Tela (Window Dub 1995) ---------- */
+function openWindowDubDialog() {
+  prefs.windowDub = prefs.windowDub || {
+    enabled: false,
+    mode: "master",
+    pos: "bottom-center",
+    size: 22,
+    opacity: 85,
+    burnExport: false
+  };
+
+  const w = dialog({
+    id: "wdWin",
+    title: "Janela de Timecode na Tela (Window Dub 1995)",
+    width: 480,
+    body: `
+      <div style="margin-bottom:8px">
+        <span>O recurso <b>Window Dub</b> insere uma sobreposição técnica de código de tempo (SMPTE Timecode) de alta precisão sobre a tela de prévia e/ou no arquivo final exportado:</span>
+      </div>
+      <label class="fld" style="flex-direction:row;align-items:center;gap:8px;margin-bottom:8px">
+        <input type="checkbox" id="wd-enabled" ${prefs.windowDub.enabled ? "checked" : ""}>
+        <b>Ativar Sobreposição de Timecode (Window Dub OSD)</b>
+      </label>
+      <div style="border:2px groove #fff;padding:10px;background:#C0C0C0;margin-bottom:8px">
+        <label class="fld"><span>Formato do Timecode:</span>
+          <select id="wd-mode">
+            <option value="master" ${prefs.windowDub.mode === "master" ? "selected" : ""}>TCR Master (hh:mm:ss:ff - Tempo da Sequência)</option>
+            <option value="source" ${prefs.windowDub.mode === "source" ? "selected" : ""}>TCO Origem (hh:mm:ss:ff - Fotograma da Fita Bruta)</option>
+            <option value="both" ${prefs.windowDub.mode === "both" ? "selected" : ""}>Mestre + Origem (TCR &amp; TCO Lado a Lado)</option>
+            <option value="frames" ${prefs.windowDub.mode === "frames" ? "selected" : ""}>Contador Absoluto de Fotogramas (Frame Count)</option>
+            <option value="countdown" ${prefs.windowDub.mode === "countdown" ? "selected" : ""}>Contagem Regressiva para o Fim da Fita (REM)</option>
+          </select>
+        </label>
+        <div class="row" style="gap:8px">
+          <label class="fld" style="flex:1"><span>Posicionamento:</span>
+            <select id="wd-pos">
+              <option value="bottom-center" ${prefs.windowDub.pos === "bottom-center" ? "selected" : ""}>Centro Inferior (Padrão Broadcast)</option>
+              <option value="bottom-left" ${prefs.windowDub.pos === "bottom-left" ? "selected" : ""}>Canto Inferior Esquerdo</option>
+              <option value="bottom-right" ${prefs.windowDub.pos === "bottom-right" ? "selected" : ""}>Canto Inferior Direito</option>
+              <option value="top-center" ${prefs.windowDub.pos === "top-center" ? "selected" : ""}>Centro Superior</option>
+              <option value="top-left" ${prefs.windowDub.pos === "top-left" ? "selected" : ""}>Canto Superior Esquerdo</option>
+              <option value="top-right" ${prefs.windowDub.pos === "top-right" ? "selected" : ""}>Canto Superior Direito</option>
+            </select>
+          </label>
+          <label class="fld" style="width:125px"><span>Tamanho Fonte:</span>
+            <select id="wd-size">
+              <option value="16" ${prefs.windowDub.size === 16 ? "selected" : ""}>16 px (Discreto)</option>
+              <option value="22" ${prefs.windowDub.size === 22 ? "selected" : ""}>22 px (Médio)</option>
+              <option value="28" ${prefs.windowDub.size === 28 ? "selected" : ""}>28 px (Grande)</option>
+              <option value="36" ${prefs.windowDub.size === 36 ? "selected" : ""}>36 px (Estúdio)</option>
+            </select>
+          </label>
+        </div>
+        <div class="row" style="gap:8px;margin-top:6px;align-items:center">
+          <label class="fld" style="flex:1"><span>Opacidade do Fundo (%):</span>
+            <input type="range" id="wd-opacity" min="0" max="100" value="${prefs.windowDub.opacity || 85}">
+          </label>
+          <span style="font-family:monospace;min-width:40px" id="wd-opVal">${prefs.windowDub.opacity || 85}%</span>
+        </div>
+      </div>
+      <label class="fld" style="flex-direction:row;align-items:center;gap:8px">
+        <input type="checkbox" id="wd-burn" ${prefs.windowDub.burnExport ? "checked" : ""}>
+        <span><b>Gravar no Arquivo Master Exportado (Burn-in na Exportação)</b></span>
+      </label>
+    `,
+    buttons: [
+      {
+        label: "Aplicar",
+        def: 1,
+        run: (wBox) => {
+          prefs.windowDub = {
+            enabled: wBox.querySelector("#wd-enabled").checked,
+            mode: wBox.querySelector("#wd-mode").value,
+            pos: wBox.querySelector("#wd-pos").value,
+            size: +wBox.querySelector("#wd-size").value || 22,
+            opacity: +wBox.querySelector("#wd-opacity").value || 85,
+            burnExport: wBox.querySelector("#wd-burn").checked
+          };
+          savePrefs();
+          renderMonitorFrame();
+          toast(prefs.windowDub.enabled ? "Window Dub ativado no Monitor!" : "Window Dub desativado.");
+        }
+      },
+      { label: "Fechar" }
+    ]
+  });
+
+  const opR = w.querySelector("#wd-opacity");
+  const opV = w.querySelector("#wd-opVal");
+  if (opR && opV) {
+    opR.oninput = () => { opV.textContent = opR.value + "%"; };
+  }
 }
 
 /* ---------- Modelo de Projeto Não-Destrutivo (.PPJ), Salvamento, Autosave & Crash Recovery ---------- */
@@ -6283,7 +7061,7 @@ function openWelcomeDialog() {
 
   w.querySelector("#wBtnImport").onclick = () => {
     closeDialog(w);
-    importMediaFiles("all", true);
+    importMediaFiles("all", false);
   };
 
   w.querySelector("#wBtnSR").onclick = () => {
@@ -7426,6 +8204,9 @@ async function executeRenderJob(job, updateProgressCb) {
     expCtx.fillStyle = "#000000";
     expCtx.fillRect(0, 0, expCanvas.width, expCanvas.height);
     expCtx.drawImage(srcCanvas, 0, 0, expCanvas.width, expCanvas.height);
+    if (prefs.windowDub && prefs.windowDub.enabled && prefs.windowDub.burnExport) {
+      drawWindowDubOverlay(expCtx, expCanvas.width, expCanvas.height, true);
+    }
   };
 
   updateProgressCb(0, `Preparando faixas de áudio e vídeo (${outW}×${outH} @ ${fps}fps)...`);
@@ -8235,7 +9016,18 @@ function aboutDialog() {
       <b style="margin-top:4px">Recursos da Edição 95 (Moldes Adobe Premiere 4.2)</b>
       <div class="listview vers" style="max-height:175px">
         <div class="ver-block">
-          <b>1.0.4 · Multicâmera 4-Up, Rack Dinâmico DSP, Cor 3-Way &amp; Fila de Render</b><span class="chip95">você está nesta</span>
+          <b>1.0.5 · Rubberbanding de Áudio, Calibração Broadcast, Relink 95 &amp; Window Dub</b><span class="chip95">você está nesta</span>
+          <ul>
+            <li>Importação Limpa no Cesto de Mídia (Bin) sem poluição ou auto-inserção na Linha do Tempo</li>
+            <li>Rubberbanding de Áudio na Timeline: Envelopes de volume com nós interativos arrastáveis e curva cosseno</li>
+            <li>Geradores de Sinais e Tons DSP: Tom SMPTE de 1 kHz (-20 dBFS / 0 VU), Ruído Rosa e Ruído Branco</li>
+            <li>Padrões de Calibração Broadcast: Barras SMPTE com Pulso Pluge (-3.5 / 0 / +3.5 IRE), Crosshatch 16×12 e Grayscale 10 Passos</li>
+            <li>Reconexão de Mídia Offline (Media Relink 1995): Busca em lote e reconexão de arquivos preservando cortes e efeitos</li>
+            <li>Janela de Timecode na Tela (Window Dub): OSD técnico configurável (TCR, TCO, Frames, Countdown) com Burn-in no Export</li>
+          </ul>
+        </div>
+        <div class="ver-block">
+          <b>1.0.4 · Multicâmera 4-Up, Rack Dinâmico DSP, Cor 3-Way &amp; Fila de Render</b>
           <ul>
             <li>Multicâmera 4-Up (Live Switcher 95) com comutação e corte ao vivo pelas teclas 1–4</li>
             <li>Rack Dinâmico DSP: Compressor Óptico, Noise Gate e Brickwall Peak Limiter (-0.1 dBFS) com GR Meter</li>
@@ -8368,7 +9160,18 @@ function openWhatsNewDialog() {
       </div>
       <div class="listview vers" style="max-height:220px;overflow:auto">
         <div class="ver-block">
-          <b>1.0.4 · Multicâmera 4-Up, Rack Dinâmico DSP, Cor 3-Way &amp; Fila de Render</b><span class="chip95">versão instalada</span>
+          <b>1.0.5 · Rubberbanding de Áudio, Calibração Broadcast, Relink 95 &amp; Window Dub</b><span class="chip95">versão instalada</span>
+          <ul>
+            <li><b>Importação Limpa no Cesto de Mídia (Bin):</b> Mídias importadas (Ctrl+I, arrasto do Windows ou barra de ferramentas) vão exclusivamente para o Cesto de Mídia e monitor de origem, permitindo ao montador decidir quando e onde inseri-las.</li>
+            <li><b>Rubberbanding de Volume de Áudio na Linha do Tempo:</b> Linhas de envelope de volume com nós interativos arrastáveis (0% a 150%) com interpolação suave de curva cosseno e de-click. Duplo clique no clipe cria novos nós.</li>
+            <li><b>Geradores de Sinais e Tons Broadcast (DSP):</b> Tom senoidal de referência SMPTE de 1 kHz (-20 dBFS / 0 VU), Ruído Rosa (Pink Noise 1/f para calibração acústica RTA) e Ruído Branco com prévia em osciloscópio.</li>
+            <li><b>Padrões de Calibração de Vídeo Broadcast:</b> Barras de cor SMPTE completas com o clássico pulso PLUGE (-3.5 / 0 / +3.5 IRE), grade geométrica Crosshatch 16×12 para alinhamento CRT e rampa de escala de cinza em 10 passos (0 a 100 IRE).</li>
+            <li><b>Reconexão de Mídia Offline (Media Relink 1995):</b> Ferramenta de auditoria e reconexão em lote de arquivos movidos ou renomeados no disco, preservando pontos de corte IN/OUT, transições e remapeamento de tempo.</li>
+            <li><b>Janela de Timecode na Tela (Window Dub):</b> OSD técnico flutuante com TCR Master, TCO Origem, contador absoluto de fotogramas e regressivo, com opção de gravação definitiva (Burn-in) no filme exportado.</li>
+          </ul>
+        </div>
+        <div class="ver-block">
+          <b>1.0.4 · Multicâmera 4-Up, Rack Dinâmico DSP, Cor 3-Way &amp; Fila de Render</b>
           <ul>
             <li><b>Multicâmera 4-Up (Live Switcher 95):</b> Visualização de 4 câmeras simultâneas com comutação e corte ao vivo na agulha pelas teclas numéricas 1, 2, 3 e 4.</li>
             <li><b>Rack Dinâmico de Áudio Analógico:</b> Compressor óptico estéreo, Noise Gate redutor de ruído de fita VHS e Brickwall Peak Limiter (-0.1 dBFS) com medidor de redução de ganho em LEDs (GR Meter).</li>
@@ -8847,7 +9650,7 @@ const CMD = {
   abrirProjeto: { label: "Abrir Projeto (.PPJ)…", icon: "open", key: "Ctrl+O", run: () => openProjectDialog() },
   salvarProjeto: { label: "Salvar Projeto (.PPJ)", icon: "save", key: "Ctrl+S", run: () => saveCurrentProject(false) },
   salvarProjetoComo: { label: "Salvar Projeto Como…", icon: "save", key: "Ctrl+Shift+S", run: () => saveCurrentProject(true) },
-  importarMidia: { label: "Importar Vídeo, Áudio ou Imagem…", icon: "folder", key: "Ctrl+I", run: () => importMediaFiles("all", true) },
+  importarMidia: { label: "Importar Vídeo, Áudio ou Imagem…", icon: "folder", key: "Ctrl+I", run: () => importMediaFiles("all", false) },
   importarSRT: { label: "Importar Legendas (.SRT)…", icon: "tv", run: () => importSrtSubtitles() },
   exportarSRT: { label: "Exportar Legendas (.SRT)…", icon: "tv", run: () => exportSrtSubtitles() },
   mesaSom: { label: "Mesa de Som Analógica 95…", icon: "speaker", run: () => openAudioMixerDialog() },
@@ -8919,22 +9722,24 @@ const CMD = {
   desacoplarTimeline: { label: "Desacoplar Linha do Tempo (MDI/Externa)", run: () => detachPanel("timelineDock", "floating") },
   reacoplarTodos: { label: "Reacoplar Todas as Janelas à Bancada", run: () => { ["sideRack", "sourceBox", "programBox", "timelineDock"].forEach(attachPanel); } },
   resetLayout: { label: "Redefinir Dimensões das Telas para o Padrão", run: () => { prefs.layoutSizes = null; savePrefs(); document.documentElement.style.removeProperty("--side-width"); document.documentElement.style.removeProperty("--src-width"); document.documentElement.style.removeProperty("--prog-width"); document.documentElement.style.removeProperty("--tl-height"); resizeCanvasMonitors(); renderAll(); toast("Dimensões originais restauradas!"); } },
+  relinkMidias: { label: "Reconectar Mídias Ausentes (Media Relink 1995)…", icon: "folder", run: () => openMediaRelinkDialog() },
+  janelaDub: { label: "Janela de Timecode na Tela (Window Dub 1995)…", icon: "tv", run: () => openWindowDubDialog() },
   esquema: { label: "Esquema de Cores Windows 95…", icon: "gear", run: () => openSchemeDialog() },
   atalhosAjuda: { label: "Atalhos de teclado", icon: "help", run: () => { S.sideTab = "atalhos"; prefs.painel = true; document.body.dataset.painel = "on"; renderSide(); } },
   dicaDoDia: { label: "Dica do dia…", icon: "bulb", run: () => openTipOfDayDialog() },
   procurarAtualizacoes: { label: "Procurar atualizações…", icon: "sync", run: () => openUpdateDialog(false) },
   oQueHaDeNovo: { label: "O que há de novo…", icon: "bulb", run: () => openWhatsNewDialog() },
   telaAbertura: { label: "Tela de abertura (Splash Screen)…", icon: "splash", run: () => { if (window.editorNative) window.editorNative.openSplash(); } },
-  sobre: { label: "Sobre o ScriptEditor 95…", run: () => aboutDialog() }
+  sobre: { label: "Sobre o ScriptEditor 95…", icon: "info", run: () => aboutDialog() }
 };
 
 const MENUS = [
-  ["Arquivo", "A", ["telaInicial", "-", "novoProjetoLivre", "abrirProjeto", "salvarProjeto", "salvarProjetoComo", "-", "importarMidia", "importarEDL", "exportarEDL", "exportarCueSheet", "-", "importarSRT", "exportarSRT", "-", "gerarSinal", "geradorGC", "-", "importarSR", "salvarNoSR", "-", "exportarMaster", "filaRender", "-", "abrirScriptRoom", "-", "desligar"]],
+  ["Arquivo", "A", ["telaInicial", "-", "novoProjetoLivre", "abrirProjeto", "salvarProjeto", "salvarProjetoComo", "-", "importarMidia", "relinkMidias", "importarEDL", "exportarEDL", "exportarCueSheet", "-", "importarSRT", "exportarSRT", "-", "gerarSinal", "geradorGC", "-", "importarSR", "salvarNoSR", "-", "exportarMaster", "filaRender", "-", "abrirScriptRoom", "-", "desligar"]],
   ["Editar", "E", ["desfazer", "refazer", "-", "copiarClipe", "colarClipe", "duplicarClipe", "congelarQuadro", "-", "cortarAgulha", "excluirClipe", "excluirRipple", "-", "configTeclas"]],
-  ["Projeto", "P", ["importarMidia", "abrirProjeto", "salvarProjeto", "-", "gerarSinal", "geradorGC", "adicionarMarcador", "abaMarcadores", "-", "addVideoTrack", "addAudioTrack", "-", "mesaSom", "rackDinamica", "equalizadorDSP", "corretor3Way", "-", "importarSRT", "exportarSRT", "-", "importarSR"]],
+  ["Projeto", "P", ["importarMidia", "relinkMidias", "abrirProjeto", "salvarProjeto", "-", "gerarSinal", "geradorGC", "adicionarMarcador", "abaMarcadores", "-", "addVideoTrack", "addAudioTrack", "-", "mesaSom", "rackDinamica", "equalizadorDSP", "corretor3Way", "-", "importarSRT", "exportarSRT", "-", "importarSR"]],
   ["Clipe", "C", ["velocidadeClipe", "congelarQuadro", "cortarAgulha", "duplicarClipe", "excluirClipe", "excluirRipple", "-", "addVideoTrack", "addAudioTrack", "-", "toolSelect", "toolTrack", "toolRazor", "toolTrim", "toolRipple", "toolRolling", "toolSlip", "toolSlide", "toolHand"]],
-  ["Janela", "J", ["layDual", "layMulticam", "laySingle", "layScript", "-", "multicamSwitcher", "filaRender", "-", "verPainel", "-", "desacoplarProgram", "desacoplarSource", "desacoplarSide", "desacoplarTimeline", "-", "reacoplarTodos", "resetLayout", "-", "esquema"]],
-  ["Áudio/Vídeo", "V", ["mesaSom", "rackDinamica", "equalizadorDSP", "corretor3Way", "-", "addVideoTrack", "addAudioTrack", "-", "mesaFoley", "gravadorADR", "claqueteCam", "-", "exportarMaster", "filaRender"]],
+  ["Janela", "J", ["layDual", "layMulticam", "laySingle", "layScript", "-", "janelaDub", "multicamSwitcher", "filaRender", "-", "verPainel", "-", "desacoplarProgram", "desacoplarSource", "desacoplarSide", "desacoplarTimeline", "-", "reacoplarTodos", "resetLayout", "-", "esquema"]],
+  ["Áudio/Vídeo", "V", ["mesaSom", "rackDinamica", "equalizadorDSP", "corretor3Way", "-", "janelaDub", "-", "addVideoTrack", "addAudioTrack", "-", "mesaFoley", "gravadorADR", "claqueteCam", "-", "exportarMaster", "filaRender"]],
   ["Ajuda", "u", ["atalhosAjuda", "dicaDoDia", "procurarAtualizacoes", "-", "oQueHaDeNovo", "telaAbertura", "sobre"]]
 ];
 
@@ -9615,13 +10420,14 @@ async function boot() {
   const fMed = document.getElementById("fMediaFallback");
   if (fMed) {
     fMed.onchange = () => {
-      [...(fMed.files || [])].forEach((file) => {
+      const files = [...(fMed.files || [])];
+      files.forEach((file) => {
         const url = URL.createObjectURL(file);
         const isAud = file.type.startsWith("audio/");
         const isImg = file.type.startsWith("image/");
-        registerImportedFileObject({ name: file.name, url, kind: isAud ? "audio" : (isImg ? "image" : "video") }, true);
+        registerImportedFileObject({ name: file.name, url, kind: isAud ? "audio" : (isImg ? "image" : "video") }, false);
       });
-      setPlayhead(0, false);
+      if (files.length) toast(`${files.length} arquivo(s) importado(s) para o Cesto de Mídia (Bin)!`);
     };
   }
 
@@ -9668,7 +10474,7 @@ async function boot() {
     else if (match("copyClip")) { e.preventDefault(); copySelectedClip(); }
     else if (match("pasteClip")) { e.preventDefault(); pasteClipAtPlayhead(); }
     else if (match("addMarker")) { e.preventDefault(); addTimelineMarker(); }
-    else if (match("importMedia")) { e.preventDefault(); importMediaFiles("all", true); }
+    else if (match("importMedia")) { e.preventDefault(); importMediaFiles("all", false); }
     else if (match("exportMovie")) { e.preventDefault(); openExportDialog(); }
     else if (match("undo")) { e.preventDefault(); undoEdit(); }
     else if (match("redo")) { e.preventDefault(); redoEdit(); }
