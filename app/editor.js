@@ -5,7 +5,7 @@
    Zero emojis · Ícones SVG 16x16 pixel-art · Edição Comercial, Doméstica e Roteirizada
    ============================================================================ */
 
-let APP_VERSAO = "1.1.4"; // Substituída em boot() pela versão real do package.json
+let APP_VERSAO = "1.1.5"; // Substituída em boot() pela versão real do package.json
 const FPS = 29.97;
 
 const ICON = {
@@ -11094,7 +11094,7 @@ async function saveCurrentProject(asNew = false) {
     if (!targetPath || asNew) {
       const defaultName = S.projectName.toUpperCase().endsWith(".PPJ") ? S.projectName : `${S.projectName}.PPJ`;
       targetPath = await window.editorNative.pickProjectSavePath(defaultName);
-      if (!targetPath) return; // cancelou
+      if (!targetPath) return false; // cancelou
     }
     const ok = await window.editorNative.writeToPath(targetPath, jsonStr);
     if (ok) {
@@ -11104,8 +11104,10 @@ async function saveCurrentProject(asNew = false) {
       updateStatusBar();
       addRecentProject(targetPath, S.projectName);
       toast(`Projeto salvo em ${S.projectName} com sucesso!`);
+      return true;
     } else {
       toast("Erro ao gravar arquivo de projeto no disco.");
+      return false;
     }
   } else {
     // Fallback Web / LocalStorage + Download direto do arquivo .PPJ
@@ -11123,6 +11125,7 @@ async function saveCurrentProject(asNew = false) {
     S.isDirty = false;
     updateStatusBar();
     toast(`Projeto ${S.projectName} salvo! Arquivo .PPJ baixado.`);
+    return true;
   }
 }
 
@@ -11229,6 +11232,66 @@ function revealProjectWorkspace(customToast = null) {
 }
 
 function fecharProjeto() {
+  const hasClips = getAllTrackIds().some(tk => (S.clips[tk] || []).length > 0);
+  const needsPrompt = S.hasActiveProject && (S.isDirty || hasClips || S.mediaBin.length > 0);
+
+  if (needsPrompt) {
+    const win95QuestionSvg = `
+      <svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="filter:drop-shadow(1px 1px 0 #fff)">
+        <circle cx="16" cy="16" r="14" fill="#000080" stroke="#000" stroke-width="1.2"/>
+        <circle cx="16" cy="16" r="12" fill="#FFFF00"/>
+        <path d="M11 11a5 5 0 0 1 9.5-1.5c.8 1.5 0 3.2-1.5 4.5-1.2 1-1.8 1.8-1.8 3.5h-2.5c0-2.5 1-3.6 2.4-4.8 1-0.9 1.4-1.6 1-2.4a2.8 2.8 0 0 0-5.3.7z" fill="#000"/>
+        <rect x="14.7" y="20.5" width="2.8" height="2.8" fill="#000"/>
+      </svg>
+    `;
+
+    dialog({
+      id: "closeProjectConfirmWin",
+      title: "ScriptEditor 95",
+      width: 440,
+      modal: true,
+      body: `
+        <div class="row" style="gap:16px;align-items:flex-start;padding:8px 4px 6px">
+          <div style="flex-shrink:0;padding-top:2px">
+            ${win95QuestionSvg}
+          </div>
+          <div class="col" style="gap:10px;font-size:12px;line-height:1.45;color:var(--hi-text, #000)">
+            <div style="font-weight:700">O projeto "${escH(S.projectName || "PROJETO_LIVRE.PPJ")}" foi alterado.</div>
+            <div>Deseja salvar as alterações antes de fechar o projeto e voltar à tela inicial?</div>
+          </div>
+        </div>
+      `,
+      buttons: [
+        {
+          label: "Sim",
+          def: 1,
+          run: async (w) => {
+            closeDialog(w);
+            const ok = await saveCurrentProject(false);
+            if (ok !== false) {
+              doCloseProject();
+            }
+          }
+        },
+        {
+          label: "Não",
+          run: (w) => {
+            closeDialog(w);
+            S.isDirty = false;
+            doCloseProject();
+          }
+        },
+        {
+          label: "Cancelar"
+        }
+      ]
+    });
+    return;
+  }
+  doCloseProject();
+}
+
+function doCloseProject() {
   stop();
   stopSourcePlayback();
   saveUndoSnapshot();
@@ -14757,7 +14820,16 @@ function aboutDialog() {
       <b style="margin-top:4px">Recursos da Edição 95 (Moldes Adobe Premiere 4.2)</b>
       <div class="listview vers" style="max-height:175px">
         <div class="ver-block">
-          <b>1.1.4 · Tela de Início MDI Limpa, Roll &amp; Crawl Designer, RTA 31-Bandas, SMPTE &amp; VHS Glitch</b><span class="chip95">você está nesta</span>
+          <b>1.1.5 · Diálogo de Fechamento Windows 95 (Salvar Alterações) &amp; Confirmação</b><span class="chip95">você está nesta</span>
+          <ul>
+            <li>Diálogo Oficial de Confirmação Windows 95 ao Clicar no "X": Ao fechar a janela, pressionar Alt+F4 ou acionar Arquivo &gt; Sair, o sistema exibe a clássica caixa de diálogo perguntando se deseja salvar as alterações do projeto antes de sair.</li>
+            <li>Botões [ Sim ], [ Não ] e [ Cancelar ]: "Sim" salva o projeto (.PPJ) e fecha; "Não" descarta alterações e fecha; "Cancelar" ou "Esc" mantém o editor aberto. Suporte a atalhos rápidos de teclado (S, N, Esc e Enter).</li>
+            <li>Proteção ao Fechar Projeto: Ao fechar o projeto para a área de espera MDI (Ctrl+W), o montador também é consultado caso haja mídias ou cortes não salvos.</li>
+            <li>Interceptação Segura no Processo Principal: Integração com o evento native close do Electron impedindo perda inadvertida de trabalho por fechamento via barra de tarefas.</li>
+          </ul>
+        </div>
+        <div class="ver-block">
+          <b>1.1.4 · Tela de Início MDI Limpa, Roll &amp; Crawl Designer, RTA 31-Bandas, SMPTE &amp; VHS Glitch</b>
           <ul>
             <li>Área de Trabalho MDI Limpa na Inicialização: Tela de boas-vindas sobreposta a fundo cinza fosco MDI com marca d'água em baixo relevo biselado sem expor a timeline nem monitores até abrir ou criar um projeto</li>
             <li>Roll &amp; Crawl Designer 95: Gerador de Créditos Rolantes verticais em duas colunas sincronizadas e Letreiro Contínuo de Notícias (Crawl) com badge de identificação lateral</li>
@@ -14955,7 +15027,16 @@ function openWhatsNewDialog() {
       </div>
       <div class="listview vers" style="max-height:220px;overflow:auto">
         <div class="ver-block">
-          <b>1.1.4 · Tela de Início MDI Limpa, Roll &amp; Crawl Designer, RTA 31-Bandas, SMPTE &amp; VHS Glitch</b><span class="chip95">versão instalada</span>
+          <b>1.1.5 · Diálogo de Fechamento Windows 95 (Salvar Alterações) &amp; Confirmação</b><span class="chip95">versão instalada</span>
+          <ul>
+            <li><b>Diálogo Oficial de Confirmação Windows 95 ao Fechar pelo "X":</b> Ao clicar no botão "×" da barra de título, pressionar <code>Alt+F4</code> ou selecionar <code>Arquivo &gt; Sair do ScriptEditor</code>, o aplicativo exibe a clássica caixa de diálogo modal de confirmação com o selo de interrogação azul/amarelo perguntando: <i>"O projeto '[NOME].PPJ' foi alterado. Deseja salvar as alterações feitas no projeto antes de fechar o ScriptEditor 95?"</i>.</li>
+            <li><b>Botões Canônicos [ Sim ] [ Não ] [ Cancelar ]:</b> O botão <b>Sim</b> (atalho <kbd>S</kbd> ou <kbd>Enter</kbd>) salva o projeto no disco antes de fechar; o botão <b>Não</b> (atalho <kbd>N</kbd>) descarta as alterações e encerra o aplicativo imediatamente; o botão <b>Cancelar</b> (atalho <kbd>Esc</kbd> ou botão "×" do diálogo) anula a saída e mantém o editor na bancada com todos os cortes intactos.</li>
+            <li><b>Confirmação ao Fechar Projeto (Ctrl+W):</b> Ao acionar <code>Arquivo &gt; Fechar Projeto</code> para retornar à bancada de espera MDI limpa, o montador também é consultado caso existam clipes ou alterações não salvas.</li>
+            <li><b>Interceptação Nativa no Processo Principal do Electron:</b> Bloqueio de fechamentos acidentais disparados pela barra de tarefas do Windows ou atalhos do sistema operacional, direcionando o evento com segurança para a caixa de diálogo de confirmação.</li>
+          </ul>
+        </div>
+        <div class="ver-block">
+          <b>1.1.4 · Tela de Início MDI Limpa, Roll &amp; Crawl Designer, RTA 31-Bandas, SMPTE &amp; VHS Glitch</b>
           <ul>
             <li><b>Área de Trabalho MDI Limpa na Inicialização:</b> O assistente de boas-vindas agora abre sobre um fundo fosco MDI autêntico dos anos 90 com baixo-relevo chiseled, mantendo a timeline, monitores e cesto de mídias ocultos até que um projeto seja aberto ou iniciado.</li>
             <li><b>Roll &amp; Crawl Designer 95 (Ctrl+Alt+R):</b> Criação de créditos rolantes verticais (Roll) com diagramação precisa em duas colunas sincronizadas (Função e Nome) com canaleta central ajustável, e letreiros contínuos horizontais (Crawl) de notícias com badge informativo lateral.</li>
@@ -15527,6 +15608,113 @@ function renderAll() {
   updateStatusBar();
 }
 
+/* ---------- Diálogo de Confirmação de Saída Windows 95 (Salvar Alterações) ---------- */
+function executeAppQuit() {
+  localStorage.setItem("varguelia.scripteditor.session_unclean", "0");
+  if (window.editorNative && typeof window.editorNative.forceClose === "function") {
+    window.editorNative.forceClose();
+  } else if (window.editorNative && typeof window.editorNative.close === "function") {
+    window.editorNative.close();
+  } else {
+    window.close();
+  }
+}
+
+function promptCloseApp() {
+  const hasClips = getAllTrackIds().some(tk => (S.clips[tk] || []).length > 0);
+  const needsSave = S.hasActiveProject && (S.isDirty || hasClips || S.mediaBin.length > 0);
+
+  if (!needsSave) {
+    executeAppQuit();
+    return;
+  }
+
+  const projName = S.projectName || "PROJETO_LIVRE_01.PPJ";
+
+  const win95QuestionSvg = `
+    <svg viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="filter:drop-shadow(1px 1px 0 #fff)">
+      <circle cx="16" cy="16" r="14" fill="#000080" stroke="#000" stroke-width="1.2"/>
+      <circle cx="16" cy="16" r="12" fill="#FFFF00"/>
+      <path d="M11 11a5 5 0 0 1 9.5-1.5c.8 1.5 0 3.2-1.5 4.5-1.2 1-1.8 1.8-1.8 3.5h-2.5c0-2.5 1-3.6 2.4-4.8 1-0.9 1.4-1.6 1-2.4a2.8 2.8 0 0 0-5.3.7z" fill="#000"/>
+      <rect x="14.7" y="20.5" width="2.8" height="2.8" fill="#000"/>
+    </svg>
+  `;
+
+  let keyHandler = null;
+
+  dialog({
+    id: "closeConfirmWin",
+    title: "ScriptEditor 95",
+    width: 440,
+    modal: true,
+    body: `
+      <div class="row" style="gap:16px;align-items:flex-start;padding:8px 4px 6px">
+        <div style="flex-shrink:0;padding-top:2px">
+          ${win95QuestionSvg}
+        </div>
+        <div class="col" style="gap:10px;font-size:12px;line-height:1.45;color:var(--hi-text, #000)">
+          <div style="font-weight:700">O projeto "${escH(projName)}" foi alterado.</div>
+          <div>Deseja salvar as alterações feitas no projeto antes de fechar o <b>ScriptEditor 95</b>?</div>
+        </div>
+      </div>
+    `,
+    buttons: [
+      {
+        label: "Sim",
+        def: 1,
+        run: async (w) => {
+          if (keyHandler) window.removeEventListener("keydown", keyHandler);
+          closeDialog(w);
+          const ok = await saveCurrentProject(false);
+          if (ok !== false) {
+            executeAppQuit();
+          }
+          return false;
+        }
+      },
+      {
+        label: "Não",
+        run: (w) => {
+          if (keyHandler) window.removeEventListener("keydown", keyHandler);
+          closeDialog(w);
+          S.isDirty = false;
+          executeAppQuit();
+          return false;
+        }
+      },
+      {
+        label: "Cancelar",
+        run: (w) => {
+          if (keyHandler) window.removeEventListener("keydown", keyHandler);
+          closeDialog(w);
+          return false;
+        }
+      }
+    ],
+    onOpen: (w) => {
+      keyHandler = (e) => {
+        if (e.key === "s" || e.key === "S") {
+          e.preventDefault();
+          const btn = w.querySelector("[data-b='0']");
+          if (btn) btn.click();
+        } else if (e.key === "n" || e.key === "N") {
+          e.preventDefault();
+          const btn = w.querySelector("[data-b='1']");
+          if (btn) btn.click();
+        } else if (e.key === "Escape" || e.key === "c" || e.key === "C") {
+          e.preventDefault();
+          const btn = w.querySelector("[data-b='2']");
+          if (btn) btn.click();
+        }
+      };
+      window.addEventListener("keydown", keyHandler);
+    },
+    onClose: () => {
+      if (keyHandler) window.removeEventListener("keydown", keyHandler);
+    }
+  });
+}
+
 const CMD = {
   novaSequencia: { label: "Nova Sequência / Linha do Tempo…", icon: "seq", key: "Ctrl+N", run: () => createNewSequence() },
   duplicarSequencia: { label: "Duplicar Sequência Atual", icon: "new", run: () => duplicateActiveSequence() },
@@ -15573,7 +15761,7 @@ const CMD = {
   chromaProcessor: { label: "Processador Chroma Key & Blue/Green Screen 1995…", icon: "sparkle", run: () => openChromaKeyDialog() },
   abaMarcadores: { label: "Lista de Marcadores & Decupagem", run: () => { S.sideTab = "marcadores"; prefs.painel = true; renderSide(); } },
   abrirScriptRoom: { label: "Abrir o aplicativo ScriptRoom", icon: "clapper", run: () => { if (window.editorNative) window.editorNative.launchScriptRoom(); } },
-  desligar: { label: "Sair do ScriptEditor", icon: "power", run: () => { if (window.editorNative) window.editorNative.close(); } },
+  desligar: { label: "Sair do ScriptEditor", icon: "power", run: () => promptCloseApp() },
   minimizar: { label: "Minimizar", run: () => { if (window.editorNative) window.editorNative.minimize(); } },
   maximizar: { label: "Maximizar", run: () => { if (window.editorNative) window.editorNative.maximize(); } },
   desfazer: { label: "Desfazer", icon: "undo", key: "Ctrl+Z", run: () => undoEdit() },
@@ -16482,11 +16670,18 @@ async function boot() {
     else if (e.key === "+" || e.key === "=") { e.preventDefault(); setTimelineZoom((Number(prefs.tlZoom) || 10) + 2, true); }
     else if (e.key === "-" || e.key === "_") { e.preventDefault(); setTimelineZoom((Number(prefs.tlZoom) || 10) - 2, true); }
     else if (e.key === "Home") { e.preventDefault(); setPlayhead(0, false); }
+    else if (e.altKey && (e.key === "F4" || e.keyCode === 115)) { e.preventDefault(); promptCloseApp(); }
   });
 
   // Salvamento Automático (Autosave a cada 60s) e Recuperação de Quedas de Energia
   setInterval(autoSaveProject, 60000);
   setTimeout(checkCrashRecovery, 800);
+
+  if (window.editorNative && typeof window.editorNative.onRequestClose === "function") {
+    window.editorNative.onRequestClose(() => {
+      promptCloseApp();
+    });
+  }
 
   window.addEventListener("beforeunload", (e) => {
     localStorage.setItem("varguelia.scripteditor.session_unclean", "0");

@@ -843,10 +843,17 @@ ipcMain.handle("export:finish", async () => {
 });
 
 /* ---------- IPC: Controle de Janelas ---------- */
+let forceQuitApp = false;
 const janelaDe = (e) => BrowserWindow.fromWebContents(e.sender);
 ipcMain.handle("win:min", (e) => { const w = janelaDe(e); if (w) w.minimize(); });
 ipcMain.handle("win:max", (e) => { const w = janelaDe(e); if (w) w.isMaximized() ? w.unmaximize() : w.maximize(); });
 ipcMain.handle("win:close", (e) => { const w = janelaDe(e); if (w) w.close(); });
+ipcMain.handle("win:forceClose", (e) => {
+  forceQuitApp = true;
+  const w = janelaDe(e);
+  if (w && !w.isDestroyed()) w.close();
+  else app.quit();
+});
 ipcMain.handle("app:openData", () => shell.openPath(DATA_EDITOR));
 ipcMain.handle("app:version", () => app.getVersion());
 
@@ -1168,6 +1175,13 @@ function criarJanela() {
   win.once("ready-to-show", () => {
     mainPronta = true;
     transitarParaPrincipal();
+  });
+  win.on("close", (e) => {
+    if (forceQuitApp) return;
+    if (win && !win.isDestroyed()) {
+      e.preventDefault();
+      win.webContents.send("app:requestClose");
+    }
   });
   win.on("closed", () => {
     win = null;

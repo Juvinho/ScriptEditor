@@ -82,14 +82,12 @@ run(`git push origin ${tag}`);
 
 // 6. Publica Release no GitHub via gh CLI com o instalador anexado
 console.log(`Criando Release ${tag} no GitHub...`);
-const notes = `### ScriptEditor ${version} · Edição 95 — Atualização 1.1.4 (Tela de Início MDI Limpa, Roll & Crawl Designer, RTA 31-Bandas, SMPTE & Tracking VHS)\n\n` +
-  `- **Área de Trabalho MDI Limpa na Inicialização:** O assistente de boas-vindas abre sobre um fundo fosco MDI autêntico dos anos 90 com textura pontilhada e baixo-relevo chiseled, ocultando linha do tempo, monitores e cesto de mídias até que um projeto seja aberto ou iniciado;\n` +
-  `- **Roll & Crawl Designer 95 (Ctrl+Alt+R):** Gerador profissional de créditos rolantes verticais em duas colunas sincronizadas (Cargo | Nome) com canaleta central e letreiros contínuos de notícias (Crawl) com badges e gradientes metálicos tridimensionais dos anos 90;\n` +
-  `- **Analisador de Áudio RTA 31-Bandas Rack 19" (Ctrl+Alt+A):** Chassi Klark Teknik / BSS em rack com 31 bandas ISO (20 Hz a 20 kHz), escada de LEDs fluorescentes tricolores com retenção de pico e goniômetro de correlação de fase estéreo;\n` +
-  `- **Calculadora Broadcast SMPTE 12M & Película (Ctrl+Alt+K):** Display digital VFD verde-esmeralda, conversões DF/NDF/PAL/Cinema, metragem de película 35mm e 16mm e teclas de inserção rápida de comerciais de TV;\n` +
-  `- **Simulador de Desajuste de Tracking VHS & Ruído RF:** Barra móvel de erro de alinhamento de cabeçote com chuvisco analógico estático, distorção H-Sync (Flag Waving) e interferência de rádio-frequência VHF/UHF;\n` +
-  `- **Novas Transições 3D Vintage:** Cubo 3D Giratório (Cube Spin 3D) com faces mapeadas e perspectiva, e Mosaico Explosivo em Blocos (Block Dissolve 95);\n` +
-  `- **Bateria Completa de 29 Testes Automatizados E2E Homologada:** Todos os 29 testes e capturas de tela aprovados com saída 100% limpa em \`testes_e2e_screenshots/\`.`;
+const notes = `### ScriptEditor ${version} · Edição 95 — Atualização 1.1.5 (Diálogo de Fechamento Windows 95 & Salvar Alterações)\n\n` +
+  `- **Diálogo Oficial de Confirmação Windows 95 ao Fechar pelo "X":** Ao clicar no botão "×" da barra de título, pressionar Alt+F4 ou selecionar Arquivo > Sair do ScriptEditor, o aplicativo exibe a clássica caixa de diálogo modal de confirmação com o selo de interrogação azul/amarelo perguntando: "O projeto '[NOME].PPJ' foi alterado. Deseja salvar as alterações feitas no projeto antes de fechar o ScriptEditor 95?";\n` +
+  `- **Botões Canônicos [ Sim ] [ Não ] [ Cancelar ]:** O botão Sim (atalho S ou Enter) salva o projeto no disco antes de fechar; o botão Não (atalho N) descarta as alterações e encerra o aplicativo imediatamente; o botão Cancelar (atalho Esc ou botão "×" do diálogo) anula a saída e mantém o editor na bancada com todos os cortes intactos;\n` +
+  `- **Confirmação ao Fechar Projeto (Ctrl+W):** Ao acionar Arquivo > Fechar Projeto para retornar à bancada de espera MDI limpa, o montador também é consultado caso existam clipes ou alterações não salvas;\n` +
+  `- **Interceptação Nativa no Processo Principal do Electron:** Bloqueio de fechamentos acidentais disparados pela barra de tarefas do Windows ou atalhos do sistema operacional, direcionando o evento com segurança para a caixa de diálogo de confirmação;\n` +
+  `- **Bateria Completa de 30 Testes Automatizados E2E Homologada:** Todos os 30 testes e capturas de tela aprovados com saída 100% limpa em \`testes_e2e_screenshots/\`.`;
 
 const releaseCheck = runSilent(`gh release view ${tag} --json tagName`);
 if (!releaseCheck) {

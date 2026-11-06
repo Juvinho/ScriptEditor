@@ -335,9 +335,19 @@ app.whenReady().then(async () => {
       await sleep(500);
       await capture("29_suite_vhs_desajuste_tracking_e_ruido_rf.png", "Suite Analógica VHS — Desajuste de Tracking & Interferência RF");
 
-      console.log("=== TODOS OS 29 TESTES E CAPTURAS CONCLUÍDOS COM SUCESSO! ===");
+      // 30. DIÁLOGO DE CONFIRMAÇÃO DE FECHAMENTO WINDOWS 95 (SALVAR ALTERAÇÕES)
+      await exec(`
+        document.querySelectorAll(".win:not(#appWin)").forEach(w => { if (w._close) w._close(); else w.remove(); });
+        document.querySelectorAll(".scrim").forEach(s => s.remove());
+        if (typeof S !== "undefined") { S.hasActiveProject = true; S.isDirty = true; }
+        if (typeof promptCloseApp === "function") promptCloseApp();
+      `);
       await sleep(500);
-      app.quit();
+      await capture("30_dialogo_fechamento_salvar_projeto_95.png", "Diálogo de Confirmação Windows 95 — Salvar Alterações ao Fechar");
+
+      console.log("=== TODOS OS 30 TESTES E CAPTURAS CONCLUÍDOS COM SUCESSO! ===");
+      await sleep(400);
+      app.exit(0);
     } catch (err) {
       console.error("Erro durante a execução dos testes E2E:", err);
       app.exit(1);

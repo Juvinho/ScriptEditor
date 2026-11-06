@@ -37,6 +37,12 @@ contextBridge.exposeInMainWorld("editorNative", {
   minimize: () => ipcRenderer.invoke("win:min"),
   maximize: () => ipcRenderer.invoke("win:max"),
   close: () => ipcRenderer.invoke("win:close"),
+  forceClose: () => ipcRenderer.invoke("win:forceClose"),
+  onRequestClose: (cb) => {
+    const fn = () => cb();
+    ipcRenderer.on("app:requestClose", fn);
+    return () => ipcRenderer.removeListener("app:requestClose", fn);
+  },
   version: () => ipcRenderer.invoke("app:version"),
   splashDone: () => ipcRenderer.invoke("splash:done"),
   openSplash: () => ipcRenderer.invoke("app:splash"),
