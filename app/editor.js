@@ -8618,230 +8618,6 @@ function renderSide() {
     return;
   }
 
-function openChromaKeyDialog(targetClip = null) {
-  const clip = targetClip || getSelectedClip() || S.clips[S.targetVideoTrack || "v1"]?.[0];
-  if (!clip) {
-    toast("Selecione um clipe na linha do tempo para ajustar o Chroma Key.");
-    return;
-  }
-
-  let previewMode = "composite"; // "composite" | "alpha" | "checker"
-  let eyedropperActive = false;
-
-  dialog({
-    id: "chromaWin",
-    title: `Processador Chroma Key & Blue/Green Screen 1995 — ${clip.title}`,
-    width: 680,
-    body: `
-      <div class="chroma-dialog-layout">
-        <div class="chroma-preview-pane">
-          <div class="chroma-canvas-box">
-            <canvas id="ckPreviewCanvas" width="384" height="256"></canvas>
-          </div>
-          <div class="row" style="justify-content:space-between;align-items:center;background:var(--field);padding:4px 6px;box-shadow:inset 1px 1px var(--lo);font-size:10.5px">
-            <span><b>Visualização:</b></span>
-            <div class="row" style="gap:6px">
-              <label class="row" style="gap:2px"><input type="radio" name="ckPrevMode" value="composite" checked> Composição</label>
-              <label class="row" style="gap:2px"><input type="radio" name="ckPrevMode" value="alpha"> Canal Alpha (P&amp;B)</label>
-              <label class="row" style="gap:2px"><input type="radio" name="ckPrevMode" value="checker"> Fundo Xadrez</label>
-            </div>
-          </div>
-        </div>
-
-        <div class="chroma-controls-pane">
-          <div class="fld" style="background:var(--face);padding:6px;border:1px solid var(--dk);box-shadow:inset 1px 1px var(--hi), inset -1px -1px var(--lo)">
-            <label class="row" style="gap:6px;align-items:center;font-weight:700">
-              <input type="checkbox" id="ckEnable" ${clip.chromaKey ? "checked" : ""}>
-              <span>Ativar Chroma Key neste Clipe</span>
-            </label>
-          </div>
-
-          <div class="col" style="gap:6px;background:var(--face);padding:6px;border:1px solid var(--dk);box-shadow:inset 1px 1px var(--hi), inset -1px -1px var(--lo);font-size:11px">
-            <b style="font-size:11px">Cor Chave (Key Color):</b>
-            <div class="row" style="gap:4px;flex-wrap:wrap">
-              <button type="button" class="btn sm" id="ckPresetGreen" style="background:#00FF00;color:#000;font-weight:700">Verde Broadcast</button>
-              <button type="button" class="btn sm" id="ckPresetBlue" style="background:#0040FF;color:#fff;font-weight:700">Azul Betacam</button>
-              <button type="button" class="btn sm" id="ckPresetBlack" style="background:#111;color:#fff">Preto Luma</button>
-              <button type="button" class="btn sm" id="ckPresetWhite" style="background:#fff;color:#000">Branco Luma</button>
-            </div>
-            <div class="row" style="gap:6px;align-items:center;margin-top:2px">
-              <span>Personalizada (Win95):</span>
-              ${createWin95ColorButtonHtml("ckColorPickerBtn", clip.chromaColor && clip.chromaColor.startsWith("#") ? clip.chromaColor : "#00FF00")}
-              <button type="button" class="btn sm" id="ckEyedropper" title="Clique para capturar cor direto da tela de prévia">Conta-gotas (Pipeta)</button>
-              <span id="ckEyedropperStatus" style="font-size:10px;color:#800"></span>
-            </div>
-          </div>
-
-          <div class="col" style="gap:5px;background:var(--face);padding:6px;border:1px solid var(--dk);box-shadow:inset 1px 1px var(--hi), inset -1px -1px var(--lo);font-size:11px">
-            <div class="slider-row">
-              <span>Tolerância:</span>
-              <input type="range" id="ckTolerance" min="5" max="95" value="${clip.chromaTol || 35}">
-              <span class="val" id="ckTolVal">${clip.chromaTol || 35}%</span>
-            </div>
-            <div class="slider-row">
-              <span>Limiar (Threshold):</span>
-              <input type="range" id="ckThreshold" min="0" max="80" value="${clip.chromaThreshold || 15}">
-              <span class="val" id="ckThreshVal">${clip.chromaThreshold || 15}%</span>
-            </div>
-            <div class="slider-row">
-              <span>Suavização de Borda:</span>
-              <input type="range" id="ckFeather" min="0" max="10" value="${clip.chromaFeather || 1}">
-              <span class="val" id="ckFeatherVal">${clip.chromaFeather || 1} px</span>
-            </div>
-            <div class="slider-row">
-              <span>Supressão de Spill:</span>
-              <input type="range" id="ckSpill" min="0" max="100" value="${clip.chromaSpill == null ? 60 : clip.chromaSpill}">
-              <span class="val" id="ckSpillVal">${clip.chromaSpill == null ? 60 : clip.chromaSpill}%</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    `,
-    buttons: [
-      {
-        label: "Aplicar e Fechar",
-        def: 1,
-        run: () => {
-          renderTimeline();
-          renderMonitorFrame();
-          toast(`Chroma Key atualizado para o clipe "${clip.title}"!`);
-        }
-      },
-      {
-        label: "Desativar Chroma",
-        run: () => {
-          clip.chromaKey = false;
-          clip.previewAlpha = false;
-          renderTimeline();
-          renderMonitorFrame();
-          toast(`Chroma Key desativado no clipe "${clip.title}".`);
-        }
-      },
-      { label: "Fechar" }
-    ]
-  });
-
-  const win = document.getElementById("chromaWin");
-  if (!win) return;
-  const cvs = win.querySelector("#ckPreviewCanvas");
-  const ctx = cvs?.getContext("2d");
-
-  const updatePreview = () => {
-    if (!ctx || !cvs) return;
-    const W = cvs.width, H = cvs.height;
-
-    if (previewMode === "checker") {
-      ctx.fillStyle = "#FFFFFF";
-      ctx.fillRect(0, 0, W, H);
-      ctx.fillStyle = "#D0D0D0";
-      const sz = 16;
-      for (let y = 0; y < H; y += sz) {
-        for (let x = 0; x < W; x += sz) {
-          if (((x / sz + y / sz) % 2) === 0) ctx.fillRect(x, y, sz, sz);
-        }
-      }
-    } else {
-      ctx.fillStyle = "#0A1422";
-      ctx.fillRect(0, 0, W, H);
-    }
-
-    const prevAlpha = clip.previewAlpha;
-    if (previewMode === "alpha") clip.previewAlpha = true;
-    else clip.previewAlpha = false;
-
-    drawSingleClipToContext(ctx, W, H, clip, S.playhead >= clip.start && S.playhead < clip.start + clip.dur ? S.playhead : clip.start);
-    clip.previewAlpha = prevAlpha;
-  };
-
-  win.querySelectorAll('input[name="ckPrevMode"]').forEach(r => {
-    r.onchange = () => {
-      previewMode = r.value;
-      updatePreview();
-    };
-  });
-
-  const chkEnable = win.querySelector("#ckEnable");
-  if (chkEnable) {
-    chkEnable.onchange = () => {
-      clip.chromaKey = chkEnable.checked;
-      updatePreview();
-      renderMonitorFrame();
-    };
-  }
-
-  const bindSlider = (id, prop, valId, suffix) => {
-    const s = win.querySelector("#" + id);
-    const v = win.querySelector("#" + valId);
-    if (!s) return;
-    s.oninput = () => {
-      clip[prop] = +s.value;
-      if (v) v.textContent = s.value + suffix;
-      updatePreview();
-      renderMonitorFrame();
-    };
-  };
-
-  bindSlider("ckTolerance", "chromaTol", "ckTolVal", "%");
-  bindSlider("ckThreshold", "chromaThreshold", "ckThreshVal", "%");
-  bindSlider("ckFeather", "chromaFeather", "ckFeatherVal", " px");
-  bindSlider("ckSpill", "chromaSpill", "ckSpillVal", "%");
-
-  const applyColor = (c) => {
-    clip.chromaColor = c;
-    clip.chromaKey = true;
-    if (chkEnable) chkEnable.checked = true;
-    const cpBtn = win.querySelector("#ckColorPickerBtn");
-    if (cpBtn && c.startsWith("#")) {
-      cpBtn.dataset.color = c;
-      const chip = cpBtn.querySelector(".win95-color-chip");
-      if (chip) chip.style.background = c;
-      const lbl = cpBtn.querySelector(".win95-color-hex-label");
-      if (lbl) lbl.textContent = c;
-    }
-    updatePreview();
-    renderMonitorFrame();
-  };
-
-  win.querySelector("#ckPresetGreen")?.addEventListener("click", () => applyColor("green"));
-  win.querySelector("#ckPresetBlue")?.addEventListener("click", () => applyColor("blue"));
-  win.querySelector("#ckPresetBlack")?.addEventListener("click", () => applyColor("#000000"));
-  win.querySelector("#ckPresetWhite")?.addEventListener("click", () => applyColor("#FFFFFF"));
-
-  const cpBtn = win.querySelector("#ckColorPickerBtn");
-  if (cpBtn) {
-    bindWin95ColorButton(cpBtn, (newHex) => {
-      applyColor(newHex);
-    });
-  }
-
-  const btnEye = win.querySelector("#ckEyedropper");
-  const eyeSt = win.querySelector("#ckEyedropperStatus");
-  if (btnEye) {
-    btnEye.onclick = () => {
-      eyedropperActive = !eyedropperActive;
-      btnEye.classList.toggle("def", eyedropperActive);
-      if (eyeSt) eyeSt.textContent = eyedropperActive ? "Clique na tela de prévia..." : "";
-    };
-  }
-
-  if (cvs) {
-    cvs.onclick = (e) => {
-      if (!eyedropperActive) return;
-      const rect = cvs.getBoundingClientRect();
-      const x = Math.floor((e.clientX - rect.left) * (cvs.width / rect.width));
-      const y = Math.floor((e.clientY - rect.top) * (cvs.height / rect.height));
-      const p = ctx.getImageData(x, y, 1, 1).data;
-      const hex = "#" + ((1 << 24) + (p[0] << 16) + (p[1] << 8) + p[2]).toString(16).slice(1);
-      applyColor(hex);
-      eyedropperActive = false;
-      btnEye?.classList.remove("def");
-      if (eyeSt) eyeSt.textContent = `Cor capturada: ${hex.toUpperCase()}`;
-    };
-  }
-
-  updatePreview();
-}
-
   if (S.sideTab === "trans") {
     const clip = getSelectedClip();
     const transitions = [
@@ -9091,6 +8867,231 @@ function openChromaKeyDialog(targetClip = null) {
       renderSide();
     };
   });
+}
+
+/* ---------- Processador Chroma Key & Blue/Green Screen 1995 ---------- */
+function openChromaKeyDialog(targetClip = null) {
+  const clip = targetClip || getSelectedClip() || S.clips[S.targetVideoTrack || "v1"]?.[0];
+  if (!clip) {
+    toast("Selecione um clipe na linha do tempo para ajustar o Chroma Key.");
+    return;
+  }
+
+  let previewMode = "composite"; // "composite" | "alpha" | "checker"
+  let eyedropperActive = false;
+
+  dialog({
+    id: "chromaWin",
+    title: `Processador Chroma Key & Blue/Green Screen 1995 — ${clip.title}`,
+    width: 680,
+    body: `
+      <div class="chroma-dialog-layout">
+        <div class="chroma-preview-pane">
+          <div class="chroma-canvas-box">
+            <canvas id="ckPreviewCanvas" width="384" height="256"></canvas>
+          </div>
+          <div class="row" style="justify-content:space-between;align-items:center;background:var(--field);padding:4px 6px;box-shadow:inset 1px 1px var(--lo);font-size:10.5px">
+            <span><b>Visualização:</b></span>
+            <div class="row" style="gap:6px">
+              <label class="row" style="gap:2px"><input type="radio" name="ckPrevMode" value="composite" checked> Composição</label>
+              <label class="row" style="gap:2px"><input type="radio" name="ckPrevMode" value="alpha"> Canal Alpha (P&amp;B)</label>
+              <label class="row" style="gap:2px"><input type="radio" name="ckPrevMode" value="checker"> Fundo Xadrez</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="chroma-controls-pane">
+          <div class="fld" style="background:var(--face);padding:6px;border:1px solid var(--dk);box-shadow:inset 1px 1px var(--hi), inset -1px -1px var(--lo)">
+            <label class="row" style="gap:6px;align-items:center;font-weight:700">
+              <input type="checkbox" id="ckEnable" ${clip.chromaKey ? "checked" : ""}>
+              <span>Ativar Chroma Key neste Clipe</span>
+            </label>
+          </div>
+
+          <div class="col" style="gap:6px;background:var(--face);padding:6px;border:1px solid var(--dk);box-shadow:inset 1px 1px var(--hi), inset -1px -1px var(--lo);font-size:11px">
+            <b style="font-size:11px">Cor Chave (Key Color):</b>
+            <div class="row" style="gap:4px;flex-wrap:wrap">
+              <button type="button" class="btn sm" id="ckPresetGreen" style="background:#00FF00;color:#000;font-weight:700">Verde Broadcast</button>
+              <button type="button" class="btn sm" id="ckPresetBlue" style="background:#0040FF;color:#fff;font-weight:700">Azul Betacam</button>
+              <button type="button" class="btn sm" id="ckPresetBlack" style="background:#111;color:#fff">Preto Luma</button>
+              <button type="button" class="btn sm" id="ckPresetWhite" style="background:#fff;color:#000">Branco Luma</button>
+            </div>
+            <div class="row" style="gap:6px;align-items:center;margin-top:2px">
+              <span>Personalizada (Win95):</span>
+              ${createWin95ColorButtonHtml("ckColorPickerBtn", clip.chromaColor && clip.chromaColor.startsWith("#") ? clip.chromaColor : "#00FF00")}
+              <button type="button" class="btn sm" id="ckEyedropper" title="Clique para capturar cor direto da tela de prévia">Conta-gotas (Pipeta)</button>
+              <span id="ckEyedropperStatus" style="font-size:10px;color:#800"></span>
+            </div>
+          </div>
+
+          <div class="col" style="gap:5px;background:var(--face);padding:6px;border:1px solid var(--dk);box-shadow:inset 1px 1px var(--hi), inset -1px -1px var(--lo);font-size:11px">
+            <div class="slider-row">
+              <span>Tolerância:</span>
+              <input type="range" id="ckTolerance" min="5" max="95" value="${clip.chromaTol || 35}">
+              <span class="val" id="ckTolVal">${clip.chromaTol || 35}%</span>
+            </div>
+            <div class="slider-row">
+              <span>Limiar (Threshold):</span>
+              <input type="range" id="ckThreshold" min="0" max="80" value="${clip.chromaThreshold || 15}">
+              <span class="val" id="ckThreshVal">${clip.chromaThreshold || 15}%</span>
+            </div>
+            <div class="slider-row">
+              <span>Suavização de Borda:</span>
+              <input type="range" id="ckFeather" min="0" max="10" value="${clip.chromaFeather || 1}">
+              <span class="val" id="ckFeatherVal">${clip.chromaFeather || 1} px</span>
+            </div>
+            <div class="slider-row">
+              <span>Supressão de Spill:</span>
+              <input type="range" id="ckSpill" min="0" max="100" value="${clip.chromaSpill == null ? 60 : clip.chromaSpill}">
+              <span class="val" id="ckSpillVal">${clip.chromaSpill == null ? 60 : clip.chromaSpill}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `,
+    buttons: [
+      {
+        label: "Aplicar e Fechar",
+        def: 1,
+        run: () => {
+          renderTimeline();
+          renderMonitorFrame();
+          toast(`Chroma Key atualizado para o clipe "${clip.title}"!`);
+        }
+      },
+      {
+        label: "Desativar Chroma",
+        run: () => {
+          clip.chromaKey = false;
+          clip.previewAlpha = false;
+          renderTimeline();
+          renderMonitorFrame();
+          toast(`Chroma Key desativado no clipe "${clip.title}".`);
+        }
+      },
+      { label: "Fechar" }
+    ]
+  });
+
+  const win = document.getElementById("chromaWin");
+  if (!win) return;
+  const cvs = win.querySelector("#ckPreviewCanvas");
+  const ctx = cvs?.getContext("2d");
+
+  const updatePreview = () => {
+    if (!ctx || !cvs) return;
+    const W = cvs.width, H = cvs.height;
+
+    if (previewMode === "checker") {
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = "#D0D0D0";
+      const sz = 16;
+      for (let y = 0; y < H; y += sz) {
+        for (let x = 0; x < W; x += sz) {
+          if (((x / sz + y / sz) % 2) === 0) ctx.fillRect(x, y, sz, sz);
+        }
+      }
+    } else {
+      ctx.fillStyle = "#0A1422";
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    const prevAlpha = clip.previewAlpha;
+    if (previewMode === "alpha") clip.previewAlpha = true;
+    else clip.previewAlpha = false;
+
+    drawSingleClipToContext(ctx, W, H, clip, S.playhead >= clip.start && S.playhead < clip.start + clip.dur ? S.playhead : clip.start);
+    clip.previewAlpha = prevAlpha;
+  };
+
+  win.querySelectorAll('input[name="ckPrevMode"]').forEach(r => {
+    r.onchange = () => {
+      previewMode = r.value;
+      updatePreview();
+    };
+  });
+
+  const chkEnable = win.querySelector("#ckEnable");
+  if (chkEnable) {
+    chkEnable.onchange = () => {
+      clip.chromaKey = chkEnable.checked;
+      updatePreview();
+      renderMonitorFrame();
+    };
+  }
+
+  const bindSlider = (id, prop, valId, suffix) => {
+    const s = win.querySelector("#" + id);
+    const v = win.querySelector("#" + valId);
+    if (!s) return;
+    s.oninput = () => {
+      clip[prop] = +s.value;
+      if (v) v.textContent = s.value + suffix;
+      updatePreview();
+      renderMonitorFrame();
+    };
+  };
+
+  bindSlider("ckTolerance", "chromaTol", "ckTolVal", "%");
+  bindSlider("ckThreshold", "chromaThreshold", "ckThreshVal", "%");
+  bindSlider("ckFeather", "chromaFeather", "ckFeatherVal", " px");
+  bindSlider("ckSpill", "chromaSpill", "ckSpillVal", "%");
+
+  const applyColor = (c) => {
+    clip.chromaColor = c;
+    clip.chromaKey = true;
+    if (chkEnable) chkEnable.checked = true;
+    const cpBtn = win.querySelector("#ckColorPickerBtn");
+    if (cpBtn && c.startsWith("#")) {
+      cpBtn.dataset.color = c;
+      const chip = cpBtn.querySelector(".win95-color-chip");
+      if (chip) chip.style.background = c;
+      const lbl = cpBtn.querySelector(".win95-color-hex-label");
+      if (lbl) lbl.textContent = c;
+    }
+    updatePreview();
+    renderMonitorFrame();
+  };
+
+  win.querySelector("#ckPresetGreen")?.addEventListener("click", () => applyColor("green"));
+  win.querySelector("#ckPresetBlue")?.addEventListener("click", () => applyColor("blue"));
+  win.querySelector("#ckPresetBlack")?.addEventListener("click", () => applyColor("#000000"));
+  win.querySelector("#ckPresetWhite")?.addEventListener("click", () => applyColor("#FFFFFF"));
+
+  const cpBtn = win.querySelector("#ckColorPickerBtn");
+  if (cpBtn) {
+    bindWin95ColorButton(cpBtn, (newHex) => {
+      applyColor(newHex);
+    });
+  }
+
+  const btnEye = win.querySelector("#ckEyedropper");
+  const eyeSt = win.querySelector("#ckEyedropperStatus");
+  if (btnEye) {
+    btnEye.onclick = () => {
+      eyedropperActive = !eyedropperActive;
+      btnEye.classList.toggle("def", eyedropperActive);
+      if (eyeSt) eyeSt.textContent = eyedropperActive ? "Clique na tela de prévia..." : "";
+    };
+  }
+
+  if (cvs) {
+    cvs.onclick = (e) => {
+      if (!eyedropperActive) return;
+      const rect = cvs.getBoundingClientRect();
+      const x = Math.floor((e.clientX - rect.left) * (cvs.width / rect.width));
+      const y = Math.floor((e.clientY - rect.top) * (cvs.height / rect.height));
+      const p = ctx.getImageData(x, y, 1, 1).data;
+      const hex = "#" + ((1 << 24) + (p[0] << 16) + (p[1] << 8) + p[2]).toString(16).slice(1);
+      applyColor(hex);
+      eyedropperActive = false;
+      btnEye?.classList.remove("def");
+      if (eyeSt) eyeSt.textContent = `Cor capturada: ${hex.toUpperCase()}`;
+    };
+  }
+
+  updatePreview();
 }
 
 /* ---------- Integração Opcional e Sincronizada com o ScriptRoom (.ROT) ---------- */
