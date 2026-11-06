@@ -82,17 +82,13 @@ run(`git push origin ${tag}`);
 
 // 6. Publica Release no GitHub via gh CLI com o instalador anexado
 console.log(`Criando Release ${tag} no GitHub...`);
-const notes = `### ScriptEditor ${version} · Edição 95 — A Atualização Magna da Ilha de Edição\n\n` +
-  `- **Ferramentas de Trim Profissionais:** Slip Tool (Y), Slide Tool (U), Rolling Edit (N) e Ripple Edit (B) estilo Adobe Premiere 4.2 e Avid 1995\n` +
-  `- **Filmstrip de Fotogramas na Timeline:** Pré-visualização de quadros de película com perfurações diretamente dentro das faixas de vídeo\n` +
-  `- **Travamento de Faixas (Cadeados 95) & Roteamento (Patching):** Bloqueio contra cortes acidentais e roteamento visual de canais V1/A1\n` +
-  `- **Equalizador Gráfico de 10 Bandas DSP:** Equalização profissional em tempo real (31Hz a 16kHz) via Web Audio com presets de estúdio\n` +
-  `- **Goniômetro Estéreo / Phase Scope:** Medição contínua de correlação de fase estéreo X/Y (Lissajous) em fósforo verde\n` +
-  `- **Auto-Ducking de Trilha Sonora:** Atenuação automática da trilha musical (-12dB) durante trechos de fala e locução\n` +
-  `- **Monitores Técnicos Broadcast (Vectorscope & Waveform IRE):** Análise polar de croma UV e luminância 0-100 IRE para calibração de sinal\n` +
-  `- **Title Designer 95 Avançado:** Sombras projetadas (Drop Shadow), bordas (Stroke), gradientes dourado/metálico e modelos de Lower Thirds para telejornal\n` +
-  `- **Pastas (Bins Aninhados) & Modo Storyboard:** Organização em pastas no Cesto de Mídia e prancha visual de ordenação de planos\n` +
-  `- **Interoperabilidade CMX3600 EDL:** Exportação e importação de listas de decisão de edição compatíveis com o padrão da indústria`;
+const notes = `### ScriptEditor ${version} · Edição 95 — A Estação Broadcast 1995\n\n` +
+  `- **Edição Multicâmera 4-Up (Live Switcher):** Monitor quádruplo sincronizado para corte ao vivo pelas teclas 1, 2, 3 e 4 com moldura de Tally Light vermelha\n` +
+  `- **Rack Dinâmico de Áudio DSP:** Compressor óptico com medidor LED de redução de ganho (GR Meter), Noise Gate e Brickwall Limiter (-0.1 dBFS)\n` +
+  `- **Corretor de Cor 3-Way Broadcast:** 3 rodas tonais analógicas (Lift/Sombras, Gamma/Médios, Gain/Altas) com controle de saturação global\n` +
+  `- **Remapeamento de Tempo & Freeze Frame:** Congelar quadro instantâneo (Shift+F), reprodução reversa (-100%) e velocidades variáveis com presets\n` +
+  `- **Marcadores Coloridos & Cue Sheet:** Categorização por 4 cores broadcast (Corte, GC, Áudio, Direção) com anotações e exportação de folha de decupagem (.TXT)\n` +
+  `- **Fila de Renderização em Lote (Batch Render Queue):** Gerenciador de fila para exportação sequencial em segundo plano com aviso sonoro`;
 
 const releaseCheck = runSilent(`gh release view ${tag} --json tagName`);
 if (!releaseCheck) {

@@ -5,7 +5,7 @@
    Zero emojis · Ícones SVG 16x16 pixel-art · Edição Comercial, Doméstica e Roteirizada
    ============================================================================ */
 
-let APP_VERSAO = "1.0.3"; // Substituída em boot() pela versão real do package.json
+let APP_VERSAO = "1.0.4"; // Substituída em boot() pela versão real do package.json
 const FPS = 29.97;
 
 const ICON = {
@@ -110,7 +110,8 @@ const DEFAULT_KEYMAP = {
   copyClip: "Ctrl+C",
   pasteClip: "Ctrl+V",
   undo: "Ctrl+Z",
-  redo: "Ctrl+Y"
+  redo: "Ctrl+Y",
+  congelarQuadro: "Shift+F"
 };
 
 const KEYMAP_LABELS = [
@@ -129,6 +130,7 @@ const KEYMAP_LABELS = [
   ["toolHand", "Ferramenta Mão (Arrastar Timeline)"],
   ["splitClip", "Dividir Clipe na Agulha (Split)"],
   ["duplicateClip", "Duplicar Clipe Selecionado"],
+  ["congelarQuadro", "Congelar Fotograma na Agulha (Freeze Frame)"],
   ["addMarker", "Inserir Marcador na Agulha"],
   ["markIn", "Marcar Entrada (IN) no Monitor de Origem"],
   ["markOut", "Marcar Saída (OUT) no Monitor de Origem"],
@@ -168,7 +170,7 @@ function formatKeyEvent(e) {
   const parts = [];
   if (e.ctrlKey || e.metaKey) parts.push("Ctrl");
   if (e.altKey) parts.push("Alt");
-  if (e.shiftKey && e.key.length > 1 && e.key !== " ") parts.push("Shift");
+  if (e.shiftKey && e.key !== " ") parts.push("Shift");
   let k = e.code === "Space" ? "Space" : e.key;
   if (k.length === 1) k = k.toUpperCase();
   parts.push(k);
@@ -244,8 +246,8 @@ const S = {
   trackVolumes: { a1: 100, a2: 85, a3: 100, master: 100 },
   trackPans: { a1: 0, a2: 0, a3: 0 },
   markers: [
-    { id: "mk_1", time: 6.0, label: "Início VT" },
-    { id: "mk_2", time: 16.0, label: "Oferta" }
+    { id: "mk_1", time: 6.0, label: "Início VT", color: "green", comment: "Entrada do VT principal" },
+    { id: "mk_2", time: 16.0, label: "Oferta", color: "yellow", comment: "Anotação da direção para GC" }
   ],
   clips: { v3: [], v2: [], v1: [], a1: [], a2: [], a3: [] },
   selectedClipId: null,
@@ -264,9 +266,34 @@ const S = {
   undoStack: [],
   redoStack: [],
 
-  // Processamento DSP de Áudio Analógico 1995 (Equalizador Gráfico 10 Bandas & Auto-Ducking)
+  // Processamento DSP de Áudio Analógico 1995 (Equalizador Gráfico 10 Bandas, Rack de Dinâmica & Auto-Ducking)
   graphicEQ: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   autoDucking: false,
+  dynamics: {
+    enabled: false,
+    compThresh: -18,
+    compRatio: 4,
+    compAttack: 10,
+    compRelease: 150,
+    compGain: 3,
+    gateThresh: -45,
+    limiterCeil: -0.1
+  },
+
+  // Colorimetria 3-Way Broadcast (Lift, Gamma, Gain) & Saturação Global
+  color3Way: {
+    lift: { r: 0, g: 0, b: 0, lum: 0 },
+    gamma: { r: 0, g: 0, b: 0, lum: 0 },
+    gain: { r: 0, g: 0, b: 0, lum: 0 },
+    saturation: 100
+  },
+
+  // Multicâmera 4-Up (Live Switcher 1995)
+  multicamActiveCam: 1,
+  multicamLiveCut: true,
+
+  // Fila de Renderização em Lote (Batch Render Queue)
+  renderQueue: [],
 
   // Elementos HTML5 de vídeo, imagem e áudio para reprodução em tempo real + envelopes reais de áudio (Web Audio API)
   videoEls: new Map(),
@@ -1293,7 +1320,14 @@ function getClipTransformAt(clip, globalSec) {
 
 function drawSingleClipToContext(tCtx, W, H, clip, globalSec) {
   if (!clip || clip.disabled) return;
-  const localSec = Math.max(0, (globalSec - clip.start) * (clip.speed || 1) + (clip.inPoint || 0));
+  const speed = clip.speed || 1;
+  let localSec;
+  if (clip.reverse) {
+    const rawElapsed = (globalSec - clip.start) * speed;
+    localSec = Math.max(0, (clip.inPoint || 0) + (clip.dur * speed) - rawElapsed);
+  } else {
+    localSec = Math.max(0, (globalSec - clip.start) * speed + (clip.inPoint || 0));
+  }
 
   tCtx.save();
 
@@ -1340,10 +1374,12 @@ function drawSingleClipToContext(tCtx, W, H, clip, globalSec) {
     tCtx.clip();
   }
 
-  // Filtros de Brilho, Contraste, Saturação
-  const bVal = 100 + (Number(clip.brightness) || 0);
-  const cVal = 100 + (Number(clip.contrast) || 0);
-  const sVal = clip.saturation == null ? 100 : Number(clip.saturation);
+  // Filtros de Brilho, Contraste, Saturação e Colorimetria 3-Way Broadcast (Lift, Gamma, Gain)
+  const c3 = S.color3Way || { lift: { lum: 0 }, gamma: { lum: 0 }, gain: { lum: 0 }, saturation: 100 };
+  const globalSat = (c3.saturation != null ? c3.saturation : 100) / 100;
+  const bVal = 100 + (Number(clip.brightness) || 0) + (c3.lift.lum * 0.4 + c3.gamma.lum * 0.5 + c3.gain.lum * 0.4);
+  const cVal = 100 + (Number(clip.contrast) || 0) + ((c3.gain.lum - c3.lift.lum) * 0.4);
+  const sVal = (clip.saturation == null ? 100 : Number(clip.saturation)) * globalSat;
   const flt = (clip.filter && clip.filter !== "none") ? clip.filter : (prefs.filter || "none");
 
   let filterStr = `brightness(${bVal}%) contrast(${cVal}%) saturate(${sVal}%)`;
@@ -1567,6 +1603,41 @@ function drawSingleClipToContext(tCtx, W, H, clip, globalSec) {
     tCtx.fillStyle = tintVal > 0 ? `rgba(255, 60, 200, ${Math.min(0.55, Math.abs(tintVal) / 160)})` : `rgba(60, 255, 100, ${Math.min(0.55, Math.abs(tintVal) / 160)})`;
     tCtx.fillRect(0, 0, W, H);
     tCtx.restore();
+  }
+
+  // Colorimetria 3-Way Broadcast (Lift, Gamma, Gain)
+  const c3w = S.color3Way;
+  if (c3w) {
+    if (c3w.gain && (c3w.gain.r !== 0 || c3w.gain.g !== 0 || c3w.gain.b !== 0)) {
+      tCtx.save();
+      tCtx.globalCompositeOperation = "color";
+      const gr = Math.max(0, Math.min(255, 128 + c3w.gain.r * 2.5));
+      const gg = Math.max(0, Math.min(255, 128 + c3w.gain.g * 2.5));
+      const gb = Math.max(0, Math.min(255, 128 + c3w.gain.b * 2.5));
+      tCtx.fillStyle = `rgba(${gr}, ${gg}, ${gb}, 0.28)`;
+      tCtx.fillRect(0, 0, W, H);
+      tCtx.restore();
+    }
+    if (c3w.lift && (c3w.lift.r !== 0 || c3w.lift.g !== 0 || c3w.lift.b !== 0)) {
+      tCtx.save();
+      tCtx.globalCompositeOperation = "multiply";
+      const lr = Math.max(0, Math.min(255, 255 + c3w.lift.r * 2.5));
+      const lg = Math.max(0, Math.min(255, 255 + c3w.lift.g * 2.5));
+      const lb = Math.max(0, Math.min(255, 255 + c3w.lift.b * 2.5));
+      tCtx.fillStyle = `rgba(${lr}, ${lg}, ${lb}, 0.32)`;
+      tCtx.fillRect(0, 0, W, H);
+      tCtx.restore();
+    }
+    if (c3w.gamma && (c3w.gamma.r !== 0 || c3w.gamma.g !== 0 || c3w.gamma.b !== 0)) {
+      tCtx.save();
+      tCtx.globalCompositeOperation = "overlay";
+      const mr = Math.max(0, Math.min(255, 128 + c3w.gamma.r * 2.5));
+      const mg = Math.max(0, Math.min(255, 128 + c3w.gamma.g * 2.5));
+      const mb = Math.max(0, Math.min(255, 128 + c3w.gamma.b * 2.5));
+      tCtx.fillStyle = `rgba(${mr}, ${mg}, ${mb}, 0.22)`;
+      tCtx.fillRect(0, 0, W, H);
+      tCtx.restore();
+    }
   }
 
   // Chroma Key (Green Screen / Blue Screen)
@@ -2007,6 +2078,7 @@ function renderMonitorFrame() {
   }
   syncDetachedWindows();
   renderBroadcastScopes(cv);
+  if (prefs.monLayout === "multicam") renderMulticamFrames();
 }
 
 /* ---------- Monitores Técnicos Broadcast: Vectorscope UV & Waveform IRE (Tektronix 1995) ---------- */
@@ -2460,6 +2532,55 @@ function getClipAudioSampleAt(clip, globalSec) {
   return { l: 0, r: 0 };
 }
 
+function applyAudioDynamics(amp) {
+  if (!S.dynamics || !S.dynamics.enabled || amp <= 0.0001) {
+    if (S.dynamics) {
+      S.dynamics._lastGR = 0;
+      S.dynamics._gateOpen = amp > 0.001;
+      S.dynamics._limiting = false;
+    }
+    return amp;
+  }
+  const d = S.dynamics;
+  const inDb = 20 * Math.log10(amp);
+
+  // 1. Noise Gate
+  if (inDb < d.gateThresh) {
+    d._gateOpen = false;
+    d._lastGR = 0;
+    d._limiting = false;
+    return 0;
+  }
+  d._gateOpen = true;
+
+  // 2. Compressor Óptico
+  let compDb = inDb;
+  let grDb = 0;
+  if (inDb > d.compThresh) {
+    const excess = inDb - d.compThresh;
+    const ratio = Math.max(1.2, d.compRatio || 4);
+    const compressed = excess / ratio;
+    grDb = excess - compressed;
+    compDb = d.compThresh + compressed;
+  }
+  d._lastGR = grDb;
+
+  // Makeup Gain
+  let outDb = compDb + (d.compGain || 0);
+
+  // 3. Brickwall Peak Limiter (-0.1 dBFS)
+  const ceilDb = d.limiterCeil != null ? d.limiterCeil : -0.1;
+  if (outDb > ceilDb) {
+    d._limiting = true;
+    outDb = ceilDb;
+  } else {
+    d._limiting = false;
+  }
+
+  const outLinear = Math.pow(10, outDb / 20);
+  return Math.max(0, outLinear);
+}
+
 function computeAudioLevelsAt(sec, useSourceMonitor = false) {
   if (!prefs.som) return { l: 0, r: 0 };
 
@@ -2499,9 +2620,15 @@ function computeAudioLevelsAt(sec, useSourceMonitor = false) {
     sumR += r;
   }
 
+  let outL = sumL, outR = sumR;
+  if (S.dynamics && S.dynamics.enabled) {
+    outL = applyAudioDynamics(sumL);
+    outR = applyAudioDynamics(sumR);
+  }
+
   return {
-    l: Math.min(1, sumL),
-    r: Math.min(1, sumR)
+    l: Math.min(1, outL),
+    r: Math.min(1, outR)
   };
 }
 
@@ -2687,7 +2814,12 @@ function syncHtmlMediaPlayback() {
       const tkVol = ((S.trackVolumes && S.trackVolumes[activeClip.track]) != null ? S.trackVolumes[activeClip.track] : 100) / 100;
       const mastVol = ((S.trackVolumes && S.trackVolumes.master) != null ? S.trackVolumes.master : 100) / 100;
       const dynVol = evaluateKeyframedProperty(activeClip, "volume", (activeClip.volume == null ? 100 : activeClip.volume), localSec) / 100;
-      el.volume = Math.max(0, Math.min(1, dynVol * tkVol * mastVol));
+      let dynGain = 1;
+      if (S.dynamics && S.dynamics.enabled) {
+        const makeup = Math.pow(10, ((S.dynamics.compGain || 0) - (S.dynamics._lastGR || 0)) / 20);
+        dynGain = Math.min(1.5, Math.max(0.1, makeup));
+      }
+      el.volume = Math.max(0, Math.min(1, dynVol * tkVol * mastVol * dynGain));
       el.playbackRate = Math.max(0.25, Math.min(4, (activeClip.speed || 1) * S.shuttleSpeed));
       if (el.paused) el.play().catch(() => {});
     } else {
@@ -2728,7 +2860,13 @@ function syncHtmlMediaPlayback() {
         if (hasVoiceA1) duckFactor = 0.25;
       }
 
-      el.volume = Math.max(0, Math.min(1, dynVol * cFade * tkVol * mastVol * duckFactor));
+      let dynGain = 1;
+      if (S.dynamics && S.dynamics.enabled) {
+        const makeup = Math.pow(10, ((S.dynamics.compGain || 0) - (S.dynamics._lastGR || 0)) / 20);
+        dynGain = Math.min(1.5, Math.max(0.1, makeup));
+      }
+
+      el.volume = Math.max(0, Math.min(1, dynVol * cFade * tkVol * mastVol * duckFactor * dynGain));
       el.playbackRate = Math.max(0.25, Math.min(4, (activeClip.speed || 1) * S.shuttleSpeed));
       if (el.paused) el.play().catch(() => {});
     } else {
@@ -3136,20 +3274,174 @@ function snapTimelineSecForClip(rawStart, clipDur, ignoreClipId = null) {
   return Math.max(0, Number(bestStart.toFixed(2)));
 }
 
+function createFreezeFrameAtPlayhead() {
+  const vCv = document.getElementById("vCanvas");
+  if (!vCv) return;
+  const tk = S.targetVideoTrack || "v1";
+
+  if (S.tracksLocked[tk]) {
+    toast(`A faixa ${tk.toUpperCase()} está bloqueada com cadeado.`);
+    return;
+  }
+
+  const dataUrl = vCv.toDataURL("image/png");
+  saveUndoSnapshot();
+  const insertT = Number(S.playhead.toFixed(2));
+  const freezeDur = 4.0;
+
+  // Empurra clipes posteriores na faixa para abrir espaço (Insert / Ripple)
+  (S.clips[tk] || []).forEach(c => {
+    if (c.start >= insertT - 0.02) {
+      c.start = Number((c.start + freezeDur).toFixed(2));
+    }
+  });
+
+  const img = new Image();
+  img.src = dataUrl;
+  S.videoEls.set(dataUrl, img);
+
+  const newClip = {
+    id: uid(tk + "_freeze_"),
+    track: tk,
+    title: `Congelado [${fmtSMPTE(insertT)}]`,
+    start: insertT,
+    dur: freezeDur,
+    inPoint: 0,
+    speed: 1,
+    mediaUrl: dataUrl,
+    mediaKind: "image",
+    isFreezeFrame: true
+  };
+
+  S.clips[tk].push(newClip);
+  resolveTrackOverlaps(tk, newClip.id);
+  S.selectedClipId = newClip.id;
+  S.selectedClipTrack = tk;
+
+  recalcSequenceDuration();
+  renderAll();
+  playFoleySound("claquete", 0.05);
+  toast(`Quadro congelado (4.0s) criado e inserido em ${tk.toUpperCase()}!`);
+}
+
+function openMarkerDialog(marker, isNew = false) {
+  const m = marker || {
+    id: uid("mk_"),
+    time: Number(S.playhead.toFixed(2)),
+    label: `M${S.markers.length + 1}`,
+    color: "green",
+    comment: ""
+  };
+
+  dialog({
+    id: "mkWin",
+    title: isNew ? "Novo Marcador de Linha do Tempo" : `Editar Marcador — ${m.label}`,
+    width: 400,
+    body: `
+      <div class="col" style="gap:6px">
+        <div class="grid2">
+          <label class="fld"><span>Tempo / Timecode:</span>
+            <input type="text" id="mk-tc" value="${fmtSMPTE(m.time)}" readonly style="background:var(--face);font-family:monospace;font-weight:bold">
+          </label>
+          <label class="fld"><span>Rótulo / Nome:</span>
+            <input type="text" id="mk-lbl" value="${escH(m.label)}" maxlength="20" autofocus>
+          </label>
+        </div>
+        <label class="fld"><span>Categoria / Cor do Marcador:</span>
+          <select id="mk-color">
+            <option value="green"${m.color === "green" ? " selected" : ""}>🟢 Verde — Inserção de GC / Letreiro / Cartela</option>
+            <option value="red"${m.color === "red" ? " selected" : ""}>🔴 Vermelho — Ponto de Corte Crítico / Emenda</option>
+            <option value="blue"${m.color === "blue" ? " selected" : ""}>🔵 Azul — Ponto de Entrada Áudio / Trilha / Foley</option>
+            <option value="yellow"${m.color === "yellow" ? " selected" : ""}>🟡 Amarelo — Anotação do Diretor / Roteiro</option>
+          </select>
+        </label>
+        <label class="fld"><span>Comentários / Decupagem da Cena:</span>
+          <textarea id="mk-comment" rows="3" style="resize:vertical;font-size:11px" placeholder="Instruções para a equipe de pós-produção ou notas de corte...">${escH(m.comment || "")}</textarea>
+        </label>
+      </div>
+    `,
+    buttons: [
+      {
+        label: isNew ? "Adicionar" : "Salvar",
+        def: 1,
+        run: (w) => {
+          m.label = w.querySelector("#mk-lbl").value.trim() || `M${S.markers.length + 1}`;
+          m.color = w.querySelector("#mk-color").value;
+          m.comment = w.querySelector("#mk-comment").value.trim();
+          if (isNew) {
+            S.markers.push(m);
+            S.markers.sort((a, b) => a.time - b.time);
+            toast(`Marcador "${m.label}" adicionado em ${fmtSMPTE(m.time)}!`);
+          } else {
+            toast(`Marcador "${m.label}" atualizado.`);
+          }
+          renderTimeline();
+          if (S.sideTab === "marcadores") renderSide();
+        }
+      },
+      ...(!isNew ? [{
+        label: "Excluir",
+        run: () => {
+          S.markers = S.markers.filter(x => x.id !== m.id);
+          renderTimeline();
+          if (S.sideTab === "marcadores") renderSide();
+          toast("Marcador excluído.");
+        }
+      }] : []),
+      { label: "Cancelar" }
+    ]
+  });
+}
+
+function exportCueSheet() {
+  if (!S.markers.length) {
+    toast("Nenhum marcador registrado na Linha do Tempo para exportar.");
+    return;
+  }
+  const lines = [
+    `======================================================================`,
+    `   SCRIPTEDITOR 95 — FOLHA DE DECUPAGEM & CUE SHEET BROADCAST        `,
+    `======================================================================`,
+    `PROJETO:       ${S.projectName}`,
+    `DATA:          ${new Date().toLocaleDateString("pt-BR")} ${new Date().toLocaleTimeString("pt-BR")}`,
+    `TOTAL ITENS:   ${S.markers.length} marcadores`,
+    `DURAÇÃO TOTAL: ${fmtSMPTE(S.totalDur)}`,
+    `PADRÃO:        NTSC 29.97 FPS (Drop Frame) · Ilha Analógica 1995`,
+    `----------------------------------------------------------------------`,
+    `#   TIMECODE      COR        RÓTULO               ANOTAÇÃO / DECUPAGEM`,
+    `----------------------------------------------------------------------`
+  ];
+
+  const colMap = { red: "VERMELHO (Corte)", green: "VERDE (GC/Texto)", blue: "AZUL (Áudio)", yellow: "AMARELO (Direção)" };
+
+  S.markers.forEach((m, idx) => {
+    const num = String(idx + 1).padStart(2, "0");
+    const tc = fmtSMPTE(m.time).padEnd(12, " ");
+    const col = (colMap[m.color] || m.color || "VERDE").padEnd(18, " ");
+    const lbl = (m.label || "").padEnd(20, " ");
+    const comm = m.comment || "—";
+    lines.push(`${num}  ${tc}  ${col} ${lbl} ${comm}`);
+  });
+
+  lines.push(`----------------------------------------------------------------------`);
+  lines.push(`[Fim da Folha de Decupagem · ScriptEditor 95 Broadcast Edition]`);
+
+  const blob = new Blob([lines.join("\r\n")], { type: "text/plain;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `CUESHEET_${S.projectName.replace(/\.[^.]+$/, "")}_95.TXT`;
+  a.click();
+  toast(`Folha de Decupagem (.TXT) exportada com sucesso!`);
+}
+
 function addTimelineMarker() {
   const t = Number(S.playhead.toFixed(2));
   const existing = S.markers.find(m => Math.abs(m.time - t) < 0.25);
   if (existing) {
-    S.markers = S.markers.filter(m => m.id !== existing.id);
-    renderTimeline();
-    toast(`Marcador removido de ${fmtSMPTE(t)}.`);
-    return;
+    openMarkerDialog(existing, false);
+  } else {
+    openMarkerDialog(null, true);
   }
-  const m = { id: uid("mk_"), time: t, label: `M${S.markers.length + 1}` };
-  S.markers.push(m);
-  S.markers.sort((a, b) => a.time - b.time);
-  renderTimeline();
-  toast(`Marcador "${m.label}" adicionado em ${fmtSMPTE(t)}!`);
 }
 
 function duplicateSelectedClip() {
@@ -3223,7 +3515,7 @@ function openClipSpeedDialog(clip) {
   dialog({
     id: "spdWin",
     title: `Velocidade / Duração — ${clip.title}`,
-    width: 390,
+    width: 420,
     body: `
       <div class="grid2">
         <label class="fld"><span>Velocidade (%):</span>
@@ -3233,7 +3525,18 @@ function openClipSpeedDialog(clip) {
           <input type="number" id="spd-dur" value="${clip.dur}" min="0.5" max="600" step="0.5">
         </label>
       </div>
-      <label class="row" style="gap:5px;margin-top:4px">
+      <div class="row" style="gap:4px;margin-top:6px;flex-wrap:wrap">
+        <span class="muted" style="font-size:10.5px">Predefinições:</span>
+        <button type="button" class="btn sm" data-spdpreset="25">25% (Super Slow)</button>
+        <button type="button" class="btn sm" data-spdpreset="50">50% (Câmera Lenta)</button>
+        <button type="button" class="btn sm" data-spdpreset="100">100% (Normal)</button>
+        <button type="button" class="btn sm" data-spdpreset="200">200% (Rápido)</button>
+        <button type="button" class="btn sm" data-spdpreset="400">400% (Timelapse)</button>
+      </div>
+      <label class="row" style="gap:5px;margin-top:6px;font-size:11px">
+        <input type="checkbox" id="spd-reverse"${clip.reverse ? " checked" : ""}> <b>Reproduzir Invertido / Trás para Frente (Reverse -100%)</b>
+      </label>
+      <label class="row" style="gap:5px;margin-top:4px;font-size:11px">
         <input type="checkbox" id="spd-ripple" checked> Ajustar clipes seguintes na faixa (Ripple)
       </label>
     `,
@@ -3245,9 +3548,11 @@ function openClipSpeedDialog(clip) {
           saveUndoSnapshot();
           const pct = Math.max(10, Math.min(400, +w.querySelector("#spd-pct").value || 100));
           const newDur = Math.max(0.5, +w.querySelector("#spd-dur").value || clip.dur);
+          const isReverse = !!w.querySelector("#spd-reverse").checked;
           const diff = newDur - clip.dur;
           clip.speed = Number((pct / 100).toFixed(2));
           clip.dur = Number(newDur.toFixed(2));
+          clip.reverse = isReverse;
           if (w.querySelector("#spd-ripple").checked && Math.abs(diff) > 0.01) {
             (S.clips[clip.track] || []).forEach(c => {
               if (c.id !== clip.id && c.start >= clip.start) {
@@ -3258,7 +3563,7 @@ function openClipSpeedDialog(clip) {
           resolveTrackOverlaps(clip.track, clip.id);
           recalcSequenceDuration();
           renderAll();
-          toast(`Velocidade ${pct}% (${clip.dur}s) aplicada!`);
+          toast(`Velocidade ${pct}% (${clip.dur}s${isReverse ? ", Invertido" : ""}) aplicada!`);
         }
       },
       { label: "Cancelar" }
@@ -3267,10 +3572,17 @@ function openClipSpeedDialog(clip) {
       const pIn = w.querySelector("#spd-pct");
       const dIn = w.querySelector("#spd-dur");
       const baseMediaDur = clip.dur * (clip.speed || 1);
-      pIn.oninput = () => {
+      const updateDurFromPct = () => {
         const sp = Math.max(0.1, (+pIn.value || 100) / 100);
         dIn.value = String(Number(Math.max(0.5, baseMediaDur / sp).toFixed(2)));
       };
+      pIn.oninput = updateDurFromPct;
+      w.querySelectorAll("[data-spdpreset]").forEach(b => {
+        b.onclick = () => {
+          pIn.value = b.dataset.spdpreset;
+          updateDurFromPct();
+        };
+      });
     }
   });
 }
@@ -3398,7 +3710,8 @@ function renderTimeline() {
   }
   for (const mk of S.markers) {
     const mx = Math.round(mk.time * pxPerSec);
-    rHtml += `<div class="tl-marker" data-mkid="${mk.id}" style="left:${mx}px" title="Marcador ${escH(mk.label)} (${fmtSMPTE(mk.time)}) · Clique para ir / Botão direito para remover">${escH(mk.label)}</div>`;
+    const colCls = `mk-${mk.color || "green"}`;
+    rHtml += `<div class="tl-marker ${colCls}" data-mkid="${mk.id}" style="left:${mx}px" title="Marcador ${escH(mk.label)} [${(mk.color || "verde").toUpperCase()}] (${fmtSMPTE(mk.time)}) · Clique para ir / Duplo-clique para editar / Botão direito para remover">${escH(mk.label)}</div>`;
   }
   ruler.innerHTML = rHtml;
 
@@ -3408,11 +3721,17 @@ function renderTimeline() {
       const mk = S.markers.find(m => m.id === mel.dataset.mkid);
       if (mk) setPlayhead(mk.time, false);
     });
+    mel.addEventListener("dblclick", (ev) => {
+      ev.stopPropagation();
+      const mk = S.markers.find(m => m.id === mel.dataset.mkid);
+      if (mk) openMarkerDialog(mk, false);
+    });
     mel.addEventListener("contextmenu", (ev) => {
       ev.preventDefault();
       ev.stopPropagation();
       S.markers = S.markers.filter(m => m.id !== mel.dataset.mkid);
       renderTimeline();
+      if (S.sideTab === "marcadores") renderSide();
       toast("Marcador removido.");
     });
   });
@@ -4895,6 +5214,87 @@ function renderSide() {
           `).join("") : `<div class="muted" style="padding:10px">Nenhum take registrado ainda.</div>`}
         </div>
       </div>`;
+    return;
+  }
+
+  if (S.sideTab === "marcadores") {
+    box.innerHTML = `
+      <div class="col" style="height:100%;gap:4px">
+        <div class="row" style="justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px">
+          <b>Marcadores & Decupagem (${S.markers.length})</b>
+          <div class="row" style="gap:3px">
+            <button type="button" class="btn sm def" id="btnSideAddMarker">+ Marcador</button>
+            <button type="button" class="btn sm" id="btnSideExportCue">Exportar Cue Sheet (.TXT)</button>
+          </div>
+        </div>
+        <div class="muted" style="font-size:10px">Pontos de corte (vermelho), GC (verde), áudio (azul) e anotações (amarelo).</div>
+        <div class="panel-list" style="flex:1;overflow:auto">
+          ${S.markers.length ? `
+            <table class="queue-table">
+              <thead>
+                <tr>
+                  <th style="width:20px">Cor</th>
+                  <th>Tempo</th>
+                  <th>Rótulo</th>
+                  <th>Anotação</th>
+                  <th style="text-align:right">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${S.markers.map(m => `
+                  <tr data-mkrow="${m.id}" style="cursor:pointer" title="Clique duplo para ir até o marcador">
+                    <td><span class="mk-badge ${m.color || "green"}"></span></td>
+                    <td><b>${fmtSMPTE(m.time)}</b></td>
+                    <td><b>${escH(m.label)}</b></td>
+                    <td class="muted">${escH(m.comment || "—")}</td>
+                    <td style="text-align:right">
+                      <button type="button" class="btn sm" data-mkjump="${m.id}" title="Ir para marcador">Ir</button>
+                      <button type="button" class="btn sm" data-mkedit="${m.id}" title="Editar marcador">✎</button>
+                      <button type="button" class="btn sm" data-mkdel="${m.id}" title="Excluir">✕</button>
+                    </td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          ` : `<div class="muted" style="padding:16px;text-align:center">Nenhum marcador registrado na Linha do Tempo.<br>Pressione <b>M</b> na agulha para adicionar!</div>`}
+        </div>
+      </div>`;
+
+    box.querySelector("#btnSideAddMarker").onclick = () => addTimelineMarker();
+    box.querySelector("#btnSideExportCue").onclick = () => exportCueSheet();
+
+    box.querySelectorAll("[data-mkjump]").forEach(b => {
+      b.onclick = (e) => {
+        e.stopPropagation();
+        const m = S.markers.find(x => x.id === b.dataset.mkjump);
+        if (m) setPlayhead(m.time, false);
+      };
+    });
+
+    box.querySelectorAll("[data-mkedit]").forEach(b => {
+      b.onclick = (e) => {
+        e.stopPropagation();
+        const m = S.markers.find(x => x.id === b.dataset.mkedit);
+        if (m) openMarkerDialog(m, false);
+      };
+    });
+
+    box.querySelectorAll("[data-mkdel]").forEach(b => {
+      b.onclick = (e) => {
+        e.stopPropagation();
+        S.markers = S.markers.filter(x => x.id !== b.dataset.mkdel);
+        renderTimeline();
+        renderSide();
+        toast("Marcador excluído.");
+      };
+    });
+
+    box.querySelectorAll("[data-mkrow]").forEach(tr => {
+      tr.ondblclick = () => {
+        const m = S.markers.find(x => x.id === tr.dataset.mkrow);
+        if (m) setPlayhead(m.time, false);
+      };
+    });
     return;
   }
 
@@ -6383,6 +6783,786 @@ function openGraphicEQDialog() {
   }
 }
 
+/* ---------- Rack Dinâmico de Áudio Analógico (Compressor, Limiter & Gate 1995) ---------- */
+function openDynamicsRackDialog() {
+  const d = S.dynamics;
+  let grInterval = null;
+
+  dialog({
+    id: "dynRackWin",
+    title: "Rack de Processamento Dinâmico Analógico (DSP 1995)",
+    width: 620,
+    body: `
+      <div class="col" style="gap:8px">
+        <div class="row" style="justify-content:space-between;align-items:center;background:var(--field);padding:4px 8px;box-shadow:inset 1px 1px var(--lo);font-size:11px">
+          <span><b>Console Dinâmico Estéreo</b> · Compressor Óptico + Noise Gate + Limiter -0.1 dBFS</span>
+          <div class="row" style="gap:6px">
+            <label class="row" style="gap:4px">
+              <b>Preset:</b>
+              <select id="dynPresetSel" style="font-size:11px;height:22px">
+                <option value="broadcast">Padrão Broadcast (Equilibrado)</option>
+                <option value="voice">Voz / Locução de Rádio Encorpada</option>
+                <option value="master">Mastering Comercial (Pico -0.1 dB)</option>
+                <option value="dehiss">Remoção de Chiado de Fita VHS</option>
+                <option value="gentle">Nivelador Suave Transparente</option>
+              </select>
+            </label>
+            <button type="button" class="btn sm${d.enabled ? " def" : ""}" id="btnToggleDynEnabled">${d.enabled ? "DSP: ATIVO" : "DSP: BYPASS"}</button>
+          </div>
+        </div>
+
+        <div class="dynamics-rack-wrap">
+          <!-- 1. COMPRESSOR ÓPTICO -->
+          <div class="col" style="gap:4px">
+            <div class="row" style="justify-content:space-between;align-items:center">
+              <b style="color:#FFE040;font-size:11px">1. COMPRESSOR ÓPTICO ESTÉREO</b>
+              <!-- GR Meter em LEDs -->
+              <div class="gr-meter-wrap" id="grMeterBox" title="Gain Reduction (Redução de Ganho Dinâmica em dB)">
+                <span style="color:#8090a0;font:700 9px monospace;margin-right:2px">GR dB:</span>
+                <div class="gr-led" id="grLed-0" title="0 dB"></div>
+                <div class="gr-led" id="grLed-2" title="-2 dB"></div>
+                <div class="gr-led" id="grLed-4" title="-4 dB"></div>
+                <div class="gr-led" id="grLed-8" title="-8 dB"></div>
+                <div class="gr-led" id="grLed-12" title="-12 dB"></div>
+                <div class="gr-led" id="grLed-16" title="-16 dB"></div>
+                <div class="gr-led red" id="grLed-20" title="-20 dB"></div>
+                <span id="grNumLbl" style="color:#FFE040;font:700 10px monospace;min-width:32px;text-align:right">0.0dB</span>
+              </div>
+            </div>
+            <div class="grid2" style="gap:8px">
+              <label class="fld"><span>Threshold (Limiar de Atuação): <b id="lblCompThresh">${d.compThresh} dB</b></span>
+                <input type="range" id="slCompThresh" min="-40" max="0" step="1" value="${d.compThresh}">
+              </label>
+              <label class="fld"><span>Ratio (Taxa de Compressão): <b id="lblCompRatio">${d.compRatio}:1</b></span>
+                <input type="range" id="slCompRatio" min="1.5" max="12" step="0.5" value="${d.compRatio}">
+              </label>
+            </div>
+            <div class="grid2" style="gap:8px">
+              <label class="fld"><span>Attack (Ataque): <b id="lblCompAttack">${d.compAttack} ms</b></span>
+                <input type="range" id="slCompAttack" min="1" max="50" step="1" value="${d.compAttack}">
+              </label>
+              <label class="fld"><span>Release (Recuperação): <b id="lblCompRelease">${d.compRelease} ms</b></span>
+                <input type="range" id="slCompRelease" min="20" max="1000" step="20" value="${d.compRelease}">
+              </label>
+            </div>
+            <label class="fld"><span>Makeup Gain (Ganho de Compensação): <b id="lblCompGain">+${d.compGain} dB</b></span>
+              <input type="range" id="slCompGain" min="0" max="18" step="0.5" value="${d.compGain}">
+            </label>
+          </div>
+
+          <hr style="border:0;border-top:1px solid #303640;margin:4px 0">
+
+          <!-- 2. NOISE GATE DE ESTÚDIO -->
+          <div class="row" style="justify-content:space-between;align-items:center;gap:12px">
+            <div style="flex:1">
+              <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:3px">
+                <b style="color:#00FF66;font-size:11px">2. NOISE GATE DE ESTÚDIO (Corta Chiado &amp; Hiss)</b>
+                <span class="tc-led" id="gateStatusLed" style="font-size:9.5px;padding:1px 5px">GATE ABERTO</span>
+              </div>
+              <label class="fld"><span>Threshold do Gate: <b id="lblGateThresh">${d.gateThresh} dB</b></span>
+                <input type="range" id="slGateThresh" min="-60" max="-20" step="1" value="${d.gateThresh}">
+              </label>
+            </div>
+            <!-- 3. BRICKWALL PEAK LIMITER -->
+            <div style="flex:1;border-left:1px solid #303640;padding-left:12px">
+              <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:3px">
+                <b style="color:#FF4040;font-size:11px">3. BRICKWALL LIMITER</b>
+                <span class="tc-led red" id="limiterLed" style="font-size:9.5px;padding:1px 5px">TETO: -0.1 dBFS</span>
+              </div>
+              <div class="muted" style="font-size:10px;margin-top:6px">Trava matemática absoluta para impedir qualquer distorção ou estouro digital em televisores e monitores CRT.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `,
+    buttons: [
+      {
+        label: "Fechar",
+        def: 1,
+        run: () => {
+          if (grInterval) clearInterval(grInterval);
+        }
+      }
+    ],
+    onOpen: (w) => {
+      const btnToggle = w.querySelector("#btnToggleDynEnabled");
+      btnToggle.onclick = () => {
+        d.enabled = !d.enabled;
+        btnToggle.textContent = d.enabled ? "DSP: ATIVO" : "DSP: BYPASS";
+        btnToggle.classList.toggle("def", d.enabled);
+        toast(`DSP de Dinâmica ${d.enabled ? "ativado" : "em bypass"}!`);
+      };
+
+      const bindSlider = (id, prop, lblId, suffix, isFloat) => {
+        const sl = w.querySelector("#" + id);
+        const lb = w.querySelector("#" + lblId);
+        if (!sl || !lb) return;
+        sl.oninput = (e) => {
+          const val = isFloat ? parseFloat(e.target.value) : parseInt(e.target.value, 10);
+          d[prop] = val;
+          lb.textContent = (val > 0 && suffix.includes("dB") ? "+" : "") + val + suffix;
+        };
+      };
+
+      bindSlider("slCompThresh", "compThresh", "lblCompThresh", " dB", false);
+      bindSlider("slCompRatio", "compRatio", "lblCompRatio", ":1", true);
+      bindSlider("slCompAttack", "compAttack", "lblCompAttack", " ms", false);
+      bindSlider("slCompRelease", "compRelease", "lblCompRelease", " ms", false);
+      bindSlider("slCompGain", "compGain", "lblCompGain", " dB", true);
+      bindSlider("slGateThresh", "gateThresh", "lblGateThresh", " dB", false);
+
+      const preSel = w.querySelector("#dynPresetSel");
+      preSel.onchange = (e) => {
+        const p = e.target.value;
+        if (p === "voice") {
+          Object.assign(d, { compThresh: -22, compRatio: 6, compAttack: 5, compRelease: 120, compGain: 5, gateThresh: -42 });
+        } else if (p === "master") {
+          Object.assign(d, { compThresh: -14, compRatio: 2.5, compAttack: 25, compRelease: 200, compGain: 2, gateThresh: -52 });
+        } else if (p === "dehiss") {
+          Object.assign(d, { compThresh: -20, compRatio: 4, compAttack: 10, compRelease: 150, compGain: 2, gateThresh: -34 });
+        } else if (p === "gentle") {
+          Object.assign(d, { compThresh: -12, compRatio: 2, compAttack: 30, compRelease: 350, compGain: 1, gateThresh: -55 });
+        } else {
+          Object.assign(d, { compThresh: -18, compRatio: 4, compAttack: 10, compRelease: 150, compGain: 3, gateThresh: -45 });
+        }
+        w.querySelector("#slCompThresh").value = d.compThresh;
+        w.querySelector("#lblCompThresh").textContent = d.compThresh + " dB";
+        w.querySelector("#slCompRatio").value = d.compRatio;
+        w.querySelector("#lblCompRatio").textContent = d.compRatio + ":1";
+        w.querySelector("#slCompAttack").value = d.compAttack;
+        w.querySelector("#lblCompAttack").textContent = d.compAttack + " ms";
+        w.querySelector("#slCompRelease").value = d.compRelease;
+        w.querySelector("#lblCompRelease").textContent = d.compRelease + " ms";
+        w.querySelector("#slCompGain").value = d.compGain;
+        w.querySelector("#lblCompGain").textContent = "+" + d.compGain + " dB";
+        w.querySelector("#slGateThresh").value = d.gateThresh;
+        w.querySelector("#lblGateThresh").textContent = d.gateThresh + " dB";
+        toast("Preset carregado no Rack de Dinâmica!");
+      };
+
+      // Loop do Medidor de Redução de Ganho (GR Meter)
+      grInterval = setInterval(() => {
+        if (!document.getElementById("dynRackWin")) {
+          clearInterval(grInterval);
+          return;
+        }
+        const gr = S.dynamics.enabled ? (S.dynamics._lastGR || 0) : 0;
+        const grLbl = w.querySelector("#grNumLbl");
+        if (grLbl) grLbl.textContent = gr > 0 ? `-${gr.toFixed(1)}dB` : "0.0dB";
+
+        const leds = [
+          [0, w.querySelector("#grLed-0")],
+          [2, w.querySelector("#grLed-2")],
+          [4, w.querySelector("#grLed-4")],
+          [8, w.querySelector("#grLed-8")],
+          [12, w.querySelector("#grLed-12")],
+          [16, w.querySelector("#grLed-16")],
+          [20, w.querySelector("#grLed-20")]
+        ];
+        leds.forEach(([thresh, el]) => {
+          if (el) el.classList.toggle("on", gr >= thresh && S.dynamics.enabled);
+        });
+
+        const gLed = w.querySelector("#gateStatusLed");
+        if (gLed) {
+          const isOpen = S.dynamics.enabled ? !!S.dynamics._gateOpen : true;
+          gLed.textContent = isOpen ? "GATE ABERTO" : "GATE FECHADO";
+          gLed.style.background = isOpen ? "#006020" : "#601010";
+          gLed.style.color = isOpen ? "#00FF66" : "#FFA0A0";
+        }
+
+        const lLed = w.querySelector("#limiterLed");
+        if (lLed) {
+          const isLim = S.dynamics.enabled && S.dynamics._limiting;
+          lLed.style.boxShadow = isLim ? "0 0 8px #FF0000" : "none";
+          lLed.textContent = isLim ? "LIMITANDO!" : "TETO: -0.1 dBFS";
+        }
+      }, 50);
+    }
+  });
+}
+
+/* ---------- Corretor de Cor 3-Way Broadcast (Lift, Gamma, Gain) ---------- */
+function open3WayColorDialog() {
+  const c3 = S.color3Way;
+
+  dialog({
+    id: "color3WayWin",
+    title: "Corretor de Cor 3-Way Broadcast (Lift, Gamma, Gain)",
+    width: 640,
+    body: `
+      <div class="col" style="gap:8px">
+        <div class="row" style="justify-content:space-between;align-items:center;background:var(--field);padding:4px 8px;box-shadow:inset 1px 1px var(--lo);font-size:11px">
+          <span><b>Equilíbrio Colorimétrico de Transmissão</b> · 3 Rodas Tonais Analógicas</span>
+          <label class="row" style="gap:4px">
+            <b>Predefinição:</b>
+            <select id="c3PresetSel" style="font-size:11px;height:22px">
+              <option value="neutral">Neutro (Bypass)</option>
+              <option value="warm">Quente Comercial (Golden Hour)</option>
+              <option value="cool">Frio Cinema (Tungstênio Noturno)</option>
+              <option value="sepia">Vintage Sépia 1930</option>
+              <option value="bw">P&amp;B Alto Contraste Noir</option>
+              <option value="technicolor">Technicolor Anos 50</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="color-wheels-container">
+          <!-- 1. LIFT (SOMBRAS / ESCUROS) -->
+          <div class="color-wheel-box">
+            <b style="color:#80A0FF">LIFT (SOMBRAS)</b>
+            <canvas id="wheelLift" class="color-wheel-canvas" width="120" height="120"></canvas>
+            <div class="row" style="gap:4px;align-items:center">
+              <span style="font-size:10px">Lum:</span>
+              <input type="range" class="color-lum-slider" id="slLiftLum" min="-50" max="50" step="1" value="${c3.lift.lum || 0}">
+              <span id="lblLiftLum" style="font:700 10px monospace;min-width:24px">${c3.lift.lum || 0}</span>
+            </div>
+          </div>
+
+          <!-- 2. GAMMA (MÉDIOS / TONS DE PELE) -->
+          <div class="color-wheel-box">
+            <b style="color:#00FF88">GAMMA (MÉDIOS)</b>
+            <canvas id="wheelGamma" class="color-wheel-canvas" width="120" height="120"></canvas>
+            <div class="row" style="gap:4px;align-items:center">
+              <span style="font-size:10px">Lum:</span>
+              <input type="range" class="color-lum-slider" id="slGammaLum" min="-50" max="50" step="1" value="${c3.gamma.lum || 0}">
+              <span id="lblGammaLum" style="font:700 10px monospace;min-width:24px">${c3.gamma.lum || 0}</span>
+            </div>
+          </div>
+
+          <!-- 3. GAIN (ALTAS / BRANCOS) -->
+          <div class="color-wheel-box">
+            <b style="color:#FFA040">GAIN (ALTAS)</b>
+            <canvas id="wheelGain" class="color-wheel-canvas" width="120" height="120"></canvas>
+            <div class="row" style="gap:4px;align-items:center">
+              <span style="font-size:10px">Lum:</span>
+              <input type="range" class="color-lum-slider" id="slGainLum" min="-50" max="50" step="1" value="${c3.gain.lum || 0}">
+              <span id="lblGainLum" style="font:700 10px monospace;min-width:24px">${c3.gain.lum || 0}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="row" style="justify-content:space-between;align-items:center;background:var(--field);padding:6px 10px;box-shadow:inset 1px 1px var(--lo);font-size:11px">
+          <label class="row" style="gap:6px;align-items:center;flex:1">
+            <b>Saturação Global:</b>
+            <input type="range" id="slGlobalSat" min="0" max="200" step="5" value="${c3.saturation || 100}" style="flex:1;max-width:220px">
+            <b id="lblGlobalSat">${c3.saturation || 100}%</b>
+          </label>
+          <div class="row" style="gap:4px">
+            <button type="button" class="btn sm" id="btnSatBW">P&amp;B Instantâneo</button>
+            <button type="button" class="btn sm" id="btnResetWheels">Resetar Rodas (Flat)</button>
+          </div>
+        </div>
+      </div>
+    `,
+    buttons: [
+      { label: "Fechar", def: 1 }
+    ],
+    onOpen: (w) => {
+      const initWheel = (cvId, propKey, lblLumId, slLumId) => {
+        const cv = w.querySelector("#" + cvId);
+        if (!cv) return;
+        const ctx = cv.getContext("2d");
+        const sz = cv.width;
+        const radius = sz / 2 - 4;
+        const cx = sz / 2, cy = sz / 2;
+
+        const drawWheel = () => {
+          ctx.clearRect(0, 0, sz, sz);
+          ctx.beginPath();
+          ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+          ctx.fillStyle = "#181c22";
+          ctx.fill();
+
+          for (let angle = 0; angle < 360; angle += 4) {
+            const rad1 = (angle * Math.PI) / 180;
+            const rad2 = ((angle + 5) * Math.PI) / 180;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.arc(cx, cy, radius, rad1, rad2);
+            ctx.closePath();
+            ctx.fillStyle = `hsl(${angle}, 75%, 50%)`;
+            ctx.fill();
+          }
+
+          const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+          grad.addColorStop(0, "rgba(128,128,128,1)");
+          grad.addColorStop(0.25, "rgba(128,128,128,0.7)");
+          grad.addColorStop(1, "rgba(128,128,128,0)");
+          ctx.beginPath();
+          ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+          ctx.fillStyle = grad;
+          ctx.fill();
+
+          ctx.strokeStyle = "#404c5a";
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          const curObj = c3[propKey] || { r: 0, g: 0, b: 0 };
+          const posX = cx + ((curObj.r - curObj.b) / 40) * (radius * 0.75);
+          const posY = cy - ((curObj.g - (curObj.r + curObj.b) / 2) / 40) * (radius * 0.75);
+
+          ctx.strokeStyle = "#FFFFFF";
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(posX, posY, 5, 0, Math.PI * 2);
+          ctx.moveTo(posX - 8, posY); ctx.lineTo(posX + 8, posY);
+          ctx.moveTo(posX, posY - 8); ctx.lineTo(posX, posY + 8);
+          ctx.stroke();
+        };
+
+        const updateFromPos = (clientX, clientY) => {
+          const rect = cv.getBoundingClientRect();
+          const dx = clientX - (rect.left + cx);
+          const dy = clientY - (rect.top + cy);
+          const dist = Math.hypot(dx, dy);
+          const clampedDist = Math.min(radius - 2, dist);
+          const angle = Math.atan2(dy, dx);
+
+          const rOffset = Math.round(Math.cos(angle) * (clampedDist / radius) * 35);
+          const gOffset = Math.round(-Math.sin(angle) * (clampedDist / radius) * 35);
+          const bOffset = Math.round(-Math.cos(angle) * (clampedDist / radius) * 35);
+
+          c3[propKey].r = rOffset;
+          c3[propKey].g = gOffset;
+          c3[propKey].b = bOffset;
+
+          drawWheel();
+          renderMonitorFrame();
+        };
+
+        let dragging = false;
+        cv.onpointerdown = (e) => {
+          dragging = true;
+          cv.setPointerCapture(e.pointerId);
+          updateFromPos(e.clientX, e.clientY);
+        };
+        cv.onpointermove = (e) => {
+          if (dragging) updateFromPos(e.clientX, e.clientY);
+        };
+        cv.onpointerup = () => { dragging = false; };
+        cv.ondblclick = () => {
+          c3[propKey].r = 0; c3[propKey].g = 0; c3[propKey].b = 0;
+          drawWheel();
+          renderMonitorFrame();
+          toast(`Roda ${propKey.toUpperCase()} resetada para o centro neutro.`);
+        };
+
+        drawWheel();
+
+        const slLum = w.querySelector("#" + slLumId);
+        const lbLum = w.querySelector("#" + lblLumId);
+        if (slLum && lbLum) {
+          slLum.oninput = (e) => {
+            const v = parseInt(e.target.value, 10) || 0;
+            c3[propKey].lum = v;
+            lbLum.textContent = v > 0 ? "+" + v : v;
+            renderMonitorFrame();
+          };
+        }
+      };
+
+      initWheel("wheelLift", "lift", "lblLiftLum", "slLiftLum");
+      initWheel("wheelGamma", "gamma", "lblGammaLum", "slGammaLum");
+      initWheel("wheelGain", "gain", "lblGainLum", "slGainLum");
+
+      const slSat = w.querySelector("#slGlobalSat");
+      const lbSat = w.querySelector("#lblGlobalSat");
+      slSat.oninput = (e) => {
+        const v = parseInt(e.target.value, 10);
+        c3.saturation = v;
+        lbSat.textContent = v + "%";
+        renderMonitorFrame();
+      };
+
+      w.querySelector("#btnSatBW").onclick = () => {
+        c3.saturation = 0;
+        slSat.value = "0";
+        lbSat.textContent = "0%";
+        renderMonitorFrame();
+        toast("Saturação ajustada para 0% (Monocromático Clássico)!");
+      };
+
+      w.querySelector("#btnResetWheels").onclick = () => {
+        c3.lift = { r: 0, g: 0, b: 0, lum: 0 };
+        c3.gamma = { r: 0, g: 0, b: 0, lum: 0 };
+        c3.gain = { r: 0, g: 0, b: 0, lum: 0 };
+        c3.saturation = 100;
+        slSat.value = "100";
+        lbSat.textContent = "100%";
+        w.querySelector("#slLiftLum").value = 0;
+        w.querySelector("#lblLiftLum").textContent = "0";
+        w.querySelector("#slGammaLum").value = 0;
+        w.querySelector("#lblGammaLum").textContent = "0";
+        w.querySelector("#slGainLum").value = 0;
+        w.querySelector("#lblGainLum").textContent = "0";
+        open3WayColorDialog();
+        renderMonitorFrame();
+        toast("Corretor de cor 3-Way resetado para o padrão neutro.");
+      };
+
+      w.querySelector("#c3PresetSel").onchange = (e) => {
+        const p = e.target.value;
+        if (p === "warm") {
+          c3.lift = { r: 5, g: 0, b: -8, lum: -2 };
+          c3.gamma = { r: 8, g: 4, b: -4, lum: 2 };
+          c3.gain = { r: 15, g: 8, b: -10, lum: 4 };
+          c3.saturation = 115;
+        } else if (p === "cool") {
+          c3.lift = { r: -8, g: 0, b: 12, lum: 1 };
+          c3.gamma = { r: -4, g: 2, b: 8, lum: 0 };
+          c3.gain = { r: -10, g: -2, b: 16, lum: 2 };
+          c3.saturation = 90;
+        } else if (p === "sepia") {
+          c3.lift = { r: 10, g: 4, b: -12, lum: 4 };
+          c3.gamma = { r: 14, g: 8, b: -8, lum: 6 };
+          c3.gain = { r: 18, g: 12, b: -4, lum: 8 };
+          c3.saturation = 65;
+        } else if (p === "bw") {
+          c3.lift = { r: 0, g: 0, b: 0, lum: -10 };
+          c3.gamma = { r: 0, g: 0, b: 0, lum: 0 };
+          c3.gain = { r: 0, g: 0, b: 0, lum: 12 };
+          c3.saturation = 0;
+        } else if (p === "technicolor") {
+          c3.lift = { r: -4, g: -4, b: 6, lum: -4 };
+          c3.gamma = { r: 10, g: -2, b: 4, lum: 4 };
+          c3.gain = { r: 16, g: 12, b: -6, lum: 6 };
+          c3.saturation = 145;
+        } else {
+          c3.lift = { r: 0, g: 0, b: 0, lum: 0 };
+          c3.gamma = { r: 0, g: 0, b: 0, lum: 0 };
+          c3.gain = { r: 0, g: 0, b: 0, lum: 0 };
+          c3.saturation = 100;
+        }
+        open3WayColorDialog();
+        renderMonitorFrame();
+        toast("Predefinição colorimétrica aplicada!");
+      };
+    }
+  });
+}
+
+/* ---------- Fila de Renderização em Lote (Batch Render Queue 1995) ---------- */
+let isBatchRendering = false;
+
+function openRenderQueueDialog() {
+  dialog({
+    id: "queueWin",
+    title: "Fila de Renderização em Lote (Batch Render Queue 95)",
+    width: 650,
+    body: `
+      <div class="col" style="gap:8px">
+        <div class="row" style="justify-content:space-between;align-items:center;background:var(--field);padding:4px 8px;box-shadow:inset 1px 1px var(--lo);font-size:11px">
+          <b>Processamento Sequencial de Exportações em Segundo Plano</b>
+          <div class="row" style="gap:3px">
+            <button type="button" class="btn sm def" id="btnQueueAddCurrent">+ Enfileirar Projeto Atual</button>
+            <button type="button" class="btn sm" id="btnQueueClearDone">Limpar Concluídos</button>
+          </div>
+        </div>
+
+        <div style="background:var(--field);box-shadow:inset 1px 1px var(--lo);max-height:240px;overflow:auto">
+          <table class="queue-table">
+            <thead>
+              <tr>
+                <th>Item / Projeto</th>
+                <th>Resolução</th>
+                <th>Formato</th>
+                <th>Intervalo</th>
+                <th>Status</th>
+                <th style="text-align:right">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="queueTableBody">
+              ${S.renderQueue.length ? S.renderQueue.map((job) => `
+                <tr>
+                  <td><b>${escH(job.name)}</b><br><span class="muted" style="font-size:9.5px">${escH(job.targetPath)}</span></td>
+                  <td>${job.outW}×${job.outH}</td>
+                  <td>.${job.fmt.toUpperCase()}</td>
+                  <td>${fmtSMPTE(job.stSec)} → ${fmtSMPTE(job.endSec)}</td>
+                  <td>
+                    ${job.status === "waiting" ? `<span class="queue-status-waiting">Aguardando</span>` :
+                      (job.status === "busy" ? `<span class="queue-status-busy">Renderizando (${job.progress}%)</span>` :
+                      (job.status === "done" ? `<span class="queue-status-done">Concluído ✓</span>` : `<span style="color:#FF4040">Erro</span>`))}
+                  </td>
+                  <td style="text-align:right">
+                    <button type="button" class="btn sm" data-deljob="${job.id}" ${isBatchRendering ? "disabled" : ""}>✕</button>
+                  </td>
+                </tr>
+              `).join("") : `<tr><td colspan="6" class="muted" style="text-align:center;padding:16px">Nenhum item na fila. Clique em <b>[+ Enfileirar Projeto Atual]</b> para agendar.</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+
+        <div id="queueBatchProgWrap" ${isBatchRendering ? "" : "hidden"} style="background:var(--field);padding:6px;box-shadow:inset 1px 1px var(--lo)">
+          <div class="row" style="justify-content:space-between;font-size:10.5px;margin-bottom:2px">
+            <b id="queueBatchLbl">Processando lote...</b>
+            <span id="queueBatchPct">0%</span>
+          </div>
+          <div style="height:14px;background:#222;box-shadow:inset 1px 1px #000">
+            <div id="queueBatchBar" style="height:100%;width:0%;background:var(--accent)"></div>
+          </div>
+        </div>
+
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <span class="muted" style="font-size:10.5px">Total: ${S.renderQueue.length} arquivo(s) na fila</span>
+          <button type="button" class="btn rec def" id="btnStartBatchRender" ${isBatchRendering || !S.renderQueue.some(j => j.status === "waiting") ? "disabled" : ""}>
+            ● Iniciar Processamento em Lote
+          </button>
+        </div>
+      </div>
+    `,
+    buttons: [{ label: "Fechar", def: 1 }],
+    onOpen: (w) => {
+      w.querySelector("#btnQueueAddCurrent").onclick = () => {
+        addCurrentToRenderQueue();
+        openRenderQueueDialog();
+      };
+      w.querySelector("#btnQueueClearDone").onclick = () => {
+        S.renderQueue = S.renderQueue.filter(j => j.status !== "done");
+        openRenderQueueDialog();
+      };
+      w.querySelectorAll("[data-deljob]").forEach(b => {
+        b.onclick = () => {
+          S.renderQueue = S.renderQueue.filter(j => j.id !== b.dataset.deljob);
+          openRenderQueueDialog();
+        };
+      });
+
+      const bStart = w.querySelector("#btnStartBatchRender");
+      bStart.onclick = async () => {
+        await processBatchRenderQueue(w);
+      };
+    }
+  });
+}
+
+function addCurrentToRenderQueue() {
+  let maxEnd = 0;
+  for (const tk of getAllTrackIds()) {
+    for (const c of (S.clips[tk] || [])) if (c.start + c.dur > maxEnd) maxEnd = c.start + c.dur;
+  }
+  if (maxEnd <= 0) maxEnd = 10;
+
+  const baseProj = String(S.projectName || "FILME_MASTER_95").replace(/\.[^.]+$/, "").replace(/[\\/:*?"<>|]/g, "_");
+  const fmt = S.lastExportFmt || "mp4";
+  const defPath = S.lastExportPath || `C:\\Documentos\\ScriptEditor\\exportados\\${baseProj}_${S.renderQueue.length + 1}.${fmt}`;
+
+  const job = {
+    id: uid("job_"),
+    name: `${S.projectName} (Lote #${S.renderQueue.length + 1})`,
+    targetPath: defPath,
+    fmt,
+    outW: 640,
+    outH: 480,
+    fps: 30,
+    bitrate: 8000000,
+    burnTC: false,
+    stSec: 0,
+    endSec: Number(maxEnd.toFixed(1)),
+    status: "waiting",
+    progress: 0,
+    error: null
+  };
+
+  S.renderQueue.push(job);
+  toast(`"${job.name}" adicionado à Fila de Renderização!`);
+}
+
+async function processBatchRenderQueue(winEl) {
+  if (isBatchRendering) return;
+  const waitingJobs = S.renderQueue.filter(j => j.status === "waiting");
+  if (!waitingJobs.length) {
+    toast("Nenhum item aguardando renderização na fila.");
+    return;
+  }
+
+  isBatchRendering = true;
+  const progWrap = winEl ? winEl.querySelector("#queueBatchProgWrap") : null;
+  const progLbl = winEl ? winEl.querySelector("#queueBatchLbl") : null;
+  const progPct = winEl ? winEl.querySelector("#queueBatchPct") : null;
+  const progBar = winEl ? winEl.querySelector("#queueBatchBar") : null;
+  if (progWrap) progWrap.hidden = false;
+
+  for (let i = 0; i < waitingJobs.length; i++) {
+    const job = waitingJobs[i];
+    job.status = "busy";
+    job.progress = 0;
+    if (winEl) openRenderQueueDialog();
+
+    try {
+      await executeRenderJob(job, (pct, statusText) => {
+        job.progress = pct;
+        if (progBar) progBar.style.width = pct + "%";
+        if (progPct) progPct.textContent = pct + "%";
+        if (progLbl) progLbl.textContent = `[Item ${i + 1}/${waitingJobs.length}] ${job.name}: ${statusText}`;
+      });
+      job.status = "done";
+      job.progress = 100;
+    } catch (err) {
+      job.status = "error";
+      job.error = err.message || String(err);
+      toast(`Erro ao renderizar item da fila: ${job.name}`);
+    }
+  }
+
+  isBatchRendering = false;
+  playFoleySound("acorde", 1.8);
+  toast("Fila de Renderização concluída! Todos os arquivos foram processados.");
+  if (document.getElementById("queueWin")) openRenderQueueDialog();
+}
+
+async function executeRenderJob(job, updateProgressCb) {
+  const { targetPath, fmt, outW, outH, fps, bitrate, burnTC, stSec, endSec } = job;
+  const totalDurSec = Number((endSec - stSec).toFixed(2));
+  const totalFrames = Math.max(1, Math.round(totalDurSec * (fps || 30)));
+
+  const expCanvas = document.createElement("canvas");
+  expCanvas.width = outW || 640;
+  expCanvas.height = outH || 480;
+  const expCtx = expCanvas.getContext("2d");
+
+  S._exportBurnTC = burnTC;
+  S._exportFrameHook = (srcCanvas) => {
+    expCtx.fillStyle = "#000000";
+    expCtx.fillRect(0, 0, expCanvas.width, expCanvas.height);
+    expCtx.drawImage(srcCanvas, 0, 0, expCanvas.width, expCanvas.height);
+  };
+
+  updateProgressCb(0, `Preparando faixas de áudio e vídeo (${outW}×${outH} @ ${fps}fps)...`);
+
+  try {
+    const audioClipsPayload = [];
+    const anySoloAudio = S.audioTracks.some(k => S.tracksSolo[k]);
+    for (const tk of getAllTrackIds()) {
+      const isAud = isAudioTrack(tk);
+      if (S.tracksMuted[tk]) continue;
+      if (isAud && anySoloAudio && !S.tracksSolo[tk]) continue;
+
+      for (const c of (S.clips[tk] || [])) {
+        if (c.disabled) continue;
+        const ovStart = Math.max(stSec, c.start);
+        const ovEnd = Math.min(endSec, c.start + c.dur);
+        if (ovEnd <= ovStart + 0.02) continue;
+
+        const offsetSec = Number((ovStart - stSec).toFixed(3));
+        const skipSec = ovStart - c.start;
+        const inPointSec = Number(((c.inPoint || 0) + skipSec * (c.speed || 1)).toFixed(3));
+        const durSec = Number((ovEnd - ovStart).toFixed(3));
+
+        if (c.synthType === "leader") {
+          for (let s = Math.ceil(ovStart); s < ovEnd; s++) {
+            audioClipsPayload.push({
+              sfxPreset: "bip",
+              offsetSec: Math.max(0, s - stSec),
+              durSec: 0.1,
+              volume: c.volume == null ? 100 : c.volume
+            });
+          }
+          continue;
+        }
+
+        if (c.sfxPreset) {
+          audioClipsPayload.push({
+            sfxPreset: c.sfxPreset,
+            offsetSec,
+            durSec,
+            volume: c.volume == null ? 100 : c.volume
+          });
+          continue;
+        }
+
+        if (c.mediaUrl && c.mediaKind !== "image") {
+          let audioBytes = null;
+          if (c.mediaUrl.startsWith("blob:")) {
+            try {
+              const resp = await fetch(c.mediaUrl);
+              audioBytes = new Uint8Array(await resp.arrayBuffer());
+            } catch (_e) {}
+          }
+          audioClipsPayload.push({
+            filePath: c.mediaPath || "",
+            mediaUrl: c.mediaUrl || "",
+            audioBytes,
+            offsetSec,
+            inPointSec,
+            durSec,
+            volume: c.volume == null ? 100 : c.volume,
+            speed: c.speed || 1
+          });
+        }
+      }
+    }
+
+    if (window.editorNative && typeof window.editorNative.exportBegin === "function") {
+      await window.editorNative.exportBegin({
+        targetPath,
+        fmt,
+        width: outW || 640,
+        height: outH || 480,
+        fps: fps || 30,
+        bitrate: bitrate || 6000000,
+        totalDurSec,
+        audioClips: audioClipsPayload
+      });
+
+      let batch = [];
+      for (let f = 0; f < totalFrames; f++) {
+        const t = stSec + (f / (fps || 30));
+        S.playhead = t;
+
+        const active = getActiveClipsAt(t);
+        for (const vc of active.videoList) {
+          if (vc && vc.mediaUrl) {
+            const vEl = S.videoEls.get(vc.mediaUrl);
+            if (vEl && vEl.tagName === "VIDEO" && vEl.readyState >= 1) {
+              const localSec = Math.max(0, (t - vc.start) * (vc.speed || 1) + (vc.inPoint || 0));
+              const targetT = vEl.duration ? Math.min(Math.max(0, vEl.duration - 0.02), localSec) : localSec;
+              if (Math.abs(vEl.currentTime - targetT) > 0.018) {
+                await new Promise(resolve => {
+                  let done = false;
+                  const finish = () => {
+                    if (done) return;
+                    done = true;
+                    vEl.removeEventListener("seeked", finish);
+                    resolve();
+                  };
+                  vEl.addEventListener("seeked", finish, { once: true });
+                  setTimeout(finish, 110);
+                  try { vEl.currentTime = targetT; } catch (_e) { finish(); }
+                });
+              }
+            }
+          }
+        }
+
+        renderMonitorFrame();
+        const dataUrl = expCanvas.toDataURL("image/jpeg", 0.90);
+        const commaIdx = dataUrl.indexOf(",");
+        if (commaIdx > 0) batch.push(dataUrl.slice(commaIdx + 1));
+
+        if (batch.length >= 15 || f === totalFrames - 1) {
+          await window.editorNative.exportPushFrames(batch);
+          batch = [];
+          const pct = Math.min(86, Math.round(((f + 1) / totalFrames) * 86));
+          updateProgressCb(pct, `Renderizando quadro ${f + 1} de ${totalFrames} (${fmtSMPTE(t)})...`);
+          await new Promise(r => setTimeout(r, 0));
+        }
+      }
+
+      updateProgressCb(92, `Codificando arquivo .${fmt.toUpperCase()} e mixando áudio...`);
+      await new Promise(r => setTimeout(r, 20));
+
+      const res = await window.editorNative.exportFinish();
+      updateProgressCb(100, `Concluído! Salvo em: ${res.path}`);
+      return res;
+    }
+  } finally {
+    S._exportFrameHook = null;
+    S._exportBurnTC = false;
+    setPlayhead(stSec, false);
+  }
+}
+
 /* ---------- Interoperabilidade Profissional: CMX3600 EDL (Importação & Exportação) ---------- */
 function parseSmpteToSec(smpte) {
   const parts = String(smpte || "").split(/[:;]/);
@@ -6781,6 +7961,7 @@ async function openExportDialog() {
           </div>
           <div class="row" style="justify-content:space-between;gap:6px">
             <button type="button" class="btn rec def" id="btnRenderVideo" style="flex:1">● Exportar Vídeo Agora (.MP4)</button>
+            <button type="button" class="btn" id="btnAddExportToQueue" title="Agendar esta exportação na Fila de Renderização">+ Fila de Render</button>
             <button type="button" class="btn" id="btnOpenSavedFolder" hidden>Abrir Pasta do Vídeo</button>
           </div>
         </div>
@@ -6802,6 +7983,7 @@ async function openExportDialog() {
       const btnPick = w.querySelector("#btnPickDest");
       const askChk = w.querySelector("#ex-ask-first");
       const bRender = w.querySelector("#btnRenderVideo");
+      const bAddToQueue = w.querySelector("#btnAddExportToQueue");
       const bOpenFolder = w.querySelector("#btnOpenSavedFolder");
       const progWrap = w.querySelector("#ex-prog-wrap");
       const progLbl = w.querySelector("#ex-prog-lbl");
@@ -6872,6 +8054,37 @@ async function openExportDialog() {
         }
       };
 
+      bAddToQueue.onclick = () => {
+        const fmt = fmtSel.value;
+        const meta = FORMAT_META[fmt] || FORMAT_META.mp4;
+        const stSec = Math.max(0, +w.querySelector("#ex-start").value || 0);
+        const endSec = Math.max(stSec + 0.5, +w.querySelector("#ex-end").value || 10);
+        const [outW, outH] = (w.querySelector("#ex-res").value || "640x480").split("x").map(Number);
+        const [fps, bitrate] = (w.querySelector("#ex-fps-q").value || "30|8000000").split("|").map(Number);
+        const burnTC = !!w.querySelector("#ex-burntc").checked;
+        let targetPath = pathInp.value.trim();
+        if (!/\.[a-z0-9]{2,4}$/i.test(targetPath)) targetPath += "." + meta.ext;
+
+        const job = {
+          id: uid("job_"),
+          name: `${S.projectName} (${outW}×${outH} .${fmt.toUpperCase()})`,
+          targetPath,
+          fmt,
+          outW,
+          outH,
+          fps,
+          bitrate,
+          burnTC,
+          stSec,
+          endSec,
+          status: "waiting",
+          progress: 0,
+          error: null
+        };
+        S.renderQueue.push(job);
+        toast(`"${job.name}" adicionado à Fila de Renderização! (Total: ${S.renderQueue.length})`);
+      };
+
       bRender.onclick = async () => {
         const fmt = fmtSel.value;
         const meta = FORMAT_META[fmt] || FORMAT_META.mp4;
@@ -6900,22 +8113,9 @@ async function openExportDialog() {
         const [fps, bitrate] = (w.querySelector("#ex-fps-q").value || "30|8000000").split("|").map(Number);
         const burnTC = !!w.querySelector("#ex-burntc").checked;
         const totalDurSec = Number((endSec - stSec).toFixed(2));
-        const totalFrames = Math.max(1, Math.round(totalDurSec * (fps || 30)));
-
-        // Cria canvas de exportação na resolução escolhida pelo usuário
-        const expCanvas = document.createElement("canvas");
-        expCanvas.width = outW || 640;
-        expCanvas.height = outH || 480;
-        const expCtx = expCanvas.getContext("2d");
-
-        S._exportBurnTC = burnTC;
-        S._exportFrameHook = (srcCanvas) => {
-          expCtx.fillStyle = "#000000";
-          expCtx.fillRect(0, 0, expCanvas.width, expCanvas.height);
-          expCtx.drawImage(srcCanvas, 0, 0, expCanvas.width, expCanvas.height);
-        };
 
         bRender.disabled = true;
+        bAddToQueue.disabled = true;
         btnPick.disabled = true;
         fmtSel.disabled = true;
         bOpenFolder.hidden = true;
@@ -6925,142 +8125,26 @@ async function openExportDialog() {
         progLbl.textContent = `Preparando faixas de áudio e vídeo (${outW}×${outH} @ ${fps}fps)...`;
 
         try {
-          // 2. Coleta todos os clipes de áudio e vídeo com som no intervalo [stSec, endSec]
-          const audioClipsPayload = [];
-          const anySoloAudio = S.audioTracks.some(k => S.tracksSolo[k]);
-          for (const tk of getAllTrackIds()) {
-            const isAud = isAudioTrack(tk);
-            if (S.tracksMuted[tk]) continue;
-            if (isAud && anySoloAudio && !S.tracksSolo[tk]) continue;
-
-            for (const c of (S.clips[tk] || [])) {
-              if (c.disabled) continue;
-              const ovStart = Math.max(stSec, c.start);
-              const ovEnd = Math.min(endSec, c.start + c.dur);
-              if (ovEnd <= ovStart + 0.02) continue;
-
-              const offsetSec = Number((ovStart - stSec).toFixed(3));
-              const skipSec = ovStart - c.start;
-              const inPointSec = Number(((c.inPoint || 0) + skipSec * (c.speed || 1)).toFixed(3));
-              const durSec = Number((ovEnd - ovStart).toFixed(3));
-
-              if (c.synthType === "leader") {
-                for (let s = Math.ceil(ovStart); s < ovEnd; s++) {
-                  audioClipsPayload.push({
-                    sfxPreset: "bip",
-                    offsetSec: Math.max(0, s - stSec),
-                    durSec: 0.1,
-                    volume: c.volume == null ? 100 : c.volume
-                  });
-                }
-                continue;
-              }
-
-              if (c.sfxPreset) {
-                audioClipsPayload.push({
-                  sfxPreset: c.sfxPreset,
-                  offsetSec,
-                  durSec,
-                  volume: c.volume == null ? 100 : c.volume
-                });
-                continue;
-              }
-
-              if (c.mediaUrl && c.mediaKind !== "image") {
-                let audioBytes = null;
-                if (c.mediaUrl.startsWith("blob:")) {
-                  try {
-                    const resp = await fetch(c.mediaUrl);
-                    audioBytes = new Uint8Array(await resp.arrayBuffer());
-                  } catch (_e) {}
-                }
-                audioClipsPayload.push({
-                  filePath: c.mediaPath || "",
-                  mediaUrl: c.mediaUrl || "",
-                  audioBytes,
-                  offsetSec,
-                  inPointSec,
-                  durSec,
-                  volume: c.volume == null ? 100 : c.volume,
-                  speed: c.speed || 1
-                });
-              }
-            }
-          }
-
-          if (window.editorNative && typeof window.editorNative.exportBegin === "function") {
-            await window.editorNative.exportBegin({
-              targetPath,
-              fmt,
-              width: outW || 640,
-              height: outH || 480,
-              fps: fps || 30,
-              bitrate: bitrate || 6000000,
-              totalDurSec,
-              audioClips: audioClipsPayload
-            });
-
-            // 3. Renderiza quadro a quadro com precisão absoluta (nunca pula quadros nem trava em 0:00)
-            let batch = [];
-            for (let f = 0; f < totalFrames; f++) {
-              const t = stSec + (f / (fps || 30));
-              S.playhead = t;
-
-              // Se houver vídeo HTML5 ativo neste instante, posiciona no quadro exato e aguarda decodificar
-              const active = getActiveClipsAt(t);
-              for (const vc of active.videoList) {
-                if (vc && vc.mediaUrl) {
-                  const vEl = S.videoEls.get(vc.mediaUrl);
-                  if (vEl && vEl.tagName === "VIDEO" && vEl.readyState >= 1) {
-                    const localSec = Math.max(0, (t - vc.start) * (vc.speed || 1) + (vc.inPoint || 0));
-                    const targetT = vEl.duration ? Math.min(Math.max(0, vEl.duration - 0.02), localSec) : localSec;
-                    if (Math.abs(vEl.currentTime - targetT) > 0.018) {
-                      await new Promise(resolve => {
-                        let done = false;
-                        const finish = () => {
-                          if (done) return;
-                          done = true;
-                          vEl.removeEventListener("seeked", finish);
-                          resolve();
-                        };
-                        vEl.addEventListener("seeked", finish, { once: true });
-                        setTimeout(finish, 110);
-                        try { vEl.currentTime = targetT; } catch (_e) { finish(); }
-                      });
-                    }
-                  }
-                }
-              }
-
-              renderMonitorFrame();
-              const dataUrl = expCanvas.toDataURL("image/jpeg", 0.90);
-              const commaIdx = dataUrl.indexOf(",");
-              if (commaIdx > 0) batch.push(dataUrl.slice(commaIdx + 1));
-
-              if (batch.length >= 15 || f === totalFrames - 1) {
-                await window.editorNative.exportPushFrames(batch);
-                batch = [];
-                const pct = Math.min(86, Math.round(((f + 1) / totalFrames) * 86));
-                progBar.style.width = pct + "%";
-                progPct.textContent = pct + "%";
-                progLbl.textContent = `Renderizando quadro ${f + 1} de ${totalFrames} (${fmtSMPTE(t)})...`;
-                await new Promise(r => setTimeout(r, 0));
-              }
-            }
-
-            progBar.style.width = "92%";
-            progPct.textContent = "92%";
-            progLbl.textContent = `Codificando arquivo .${meta.ext.toUpperCase()} e mixando áudio...`;
-            await new Promise(r => setTimeout(r, 20));
-
-            const res = await window.editorNative.exportFinish();
-            progBar.style.width = "100%";
-            progPct.textContent = "100%";
-            if (res && res.status === "saved") {
-              progLbl.textContent = `Concluído! Salvo em: ${res.path}`;
-              bOpenFolder.hidden = false;
-              toast(`Vídeo (${totalDurSec}s) exportado com sucesso em: ${res.path}`);
-            }
+          const job = {
+            targetPath,
+            fmt,
+            outW,
+            outH,
+            fps,
+            bitrate,
+            burnTC,
+            stSec,
+            endSec
+          };
+          const res = await executeRenderJob(job, (pct, statusText) => {
+            progBar.style.width = pct + "%";
+            progPct.textContent = pct + "%";
+            progLbl.textContent = statusText;
+          });
+          if (res && res.status === "saved") {
+            progLbl.textContent = `Concluído! Salvo em: ${res.path}`;
+            bOpenFolder.hidden = false;
+            toast(`Vídeo (${totalDurSec}s) exportado com sucesso em: ${res.path}`);
           }
         } catch (err) {
           progLbl.textContent = "Erro na exportação: " + (err.message || err);
@@ -7069,10 +8153,9 @@ async function openExportDialog() {
             window.editorNative.exportCancel().catch(() => {});
           }
         } finally {
-          S._exportFrameHook = null;
-          S._exportBurnTC = false;
           setPlayhead(stSec, false);
           bRender.disabled = false;
+          bAddToQueue.disabled = false;
           btnPick.disabled = false;
           fmtSel.disabled = false;
           syncFormatExtension();
@@ -7152,7 +8235,18 @@ function aboutDialog() {
       <b style="margin-top:4px">Recursos da Edição 95 (Moldes Adobe Premiere 4.2)</b>
       <div class="listview vers" style="max-height:175px">
         <div class="ver-block">
-          <b>1.0.3 · Trim Suite 95, Áudio DSP, Scopes Broadcast &amp; Storyboard</b><span class="chip95">você está nesta</span>
+          <b>1.0.4 · Multicâmera 4-Up, Rack Dinâmico DSP, Cor 3-Way &amp; Fila de Render</b><span class="chip95">você está nesta</span>
+          <ul>
+            <li>Multicâmera 4-Up (Live Switcher 95) com comutação e corte ao vivo pelas teclas 1–4</li>
+            <li>Rack Dinâmico DSP: Compressor Óptico, Noise Gate e Brickwall Peak Limiter (-0.1 dBFS) com GR Meter</li>
+            <li>Corretor de Cor 3-Way Broadcast (Lift, Gamma, Gain) e controle de Saturação Global (0% a 200%)</li>
+            <li>Congelar Fotograma na Agulha (Freeze Frame - Shift+F) e Reprodução Reversa (-100%)</li>
+            <li>Marcadores Coloridos de Transmissão (Corte, GC, Áudio, Direção) e Folha de Decupagem (.TXT)</li>
+            <li>Fila de Exportação em Lote (Batch Render Queue) com processamento sequencial em segundo plano</li>
+          </ul>
+        </div>
+        <div class="ver-block">
+          <b>1.0.3 · Trim Suite 95, Áudio DSP, Scopes Broadcast &amp; Storyboard</b>
           <ul>
             <li>Trim Suite Completa: Ferramentas Slip (Y), Slide (U), Rolling Edit (N) e Ripple Edit (B)</li>
             <li>Miniaturas de Película (Filmstrip) nos clipes e Trava de Faixas com Cadeado (L)</li>
@@ -7274,7 +8368,19 @@ function openWhatsNewDialog() {
       </div>
       <div class="listview vers" style="max-height:220px;overflow:auto">
         <div class="ver-block">
-          <b>1.0.3 · Trim Suite 95, Áudio DSP, Scopes Broadcast &amp; Storyboard</b><span class="chip95">versão instalada</span>
+          <b>1.0.4 · Multicâmera 4-Up, Rack Dinâmico DSP, Cor 3-Way &amp; Fila de Render</b><span class="chip95">versão instalada</span>
+          <ul>
+            <li><b>Multicâmera 4-Up (Live Switcher 95):</b> Visualização de 4 câmeras simultâneas com comutação e corte ao vivo na agulha pelas teclas numéricas 1, 2, 3 e 4.</li>
+            <li><b>Rack Dinâmico de Áudio Analógico:</b> Compressor óptico estéreo, Noise Gate redutor de ruído de fita VHS e Brickwall Peak Limiter (-0.1 dBFS) com medidor de redução de ganho em LEDs (GR Meter).</li>
+            <li><b>Corretor de Cor 3-Way Broadcast:</b> 3 rodas cromáticas analógicas interativas (Lift/Sombras, Gamma/Médios, Gain/Altas) com faders de luminância e saturação global (0% a 200%).</li>
+            <li><b>Congelamento de Quadro (Freeze Frame - Shift+F):</b> Captura instantânea do fotograma na agulha inserido como clipe com ripple na faixa alvo.</li>
+            <li><b>Remapeamento de Tempo &amp; Reversão:</b> Reprodução invertida (Reverse -100%) e botões de velocidade pré-definida (25%, 50%, 100%, 200%, 400%).</li>
+            <li><b>Marcadores Coloridos &amp; Folha de Decupagem (Cue Sheet):</b> 4 cores de transmissão (Corte, GC, Áudio, Direção), painel dedicado de marcadores e exportação de Cue Sheet em texto (.TXT).</li>
+            <li><b>Fila de Renderização em Lote (Batch Render Queue):</b> Enfileiramento de projetos e sequências com processamento em segundo plano e aviso sonoro de conclusão.</li>
+          </ul>
+        </div>
+        <div class="ver-block">
+          <b>1.0.3 · Trim Suite 95, Áudio DSP, Scopes Broadcast &amp; Storyboard</b>
           <ul>
             <li><b>Trim Suite 1995:</b> Ferramentas profissionais Slip (Y), Slide (U), Rolling Edit (N) e Ripple Edit (B) para montagem fina idêntica ao Adobe Premiere 4.2 e Media 100.</li>
             <li><b>Filmstrip na Timeline:</b> Exibição de fotogramas de película de cinema nos blocos dos clipes com opção de alternar no rodapé.</li>
@@ -7592,9 +8698,132 @@ function setMonitorLayout(lay) {
   if (ls) ls.value = lay;
   const inlineBox = document.getElementById("inlineScriptBox");
   if (inlineBox) inlineBox.hidden = lay !== "script";
+
+  const mcBox = document.getElementById("multicamBox");
+  const srcBox = document.getElementById("sourceBox");
+  if (mcBox) mcBox.style.display = (lay === "multicam") ? "flex" : "none";
+  if (srcBox) {
+    if (lay === "multicam" || lay === "single") srcBox.style.display = "none";
+    else srcBox.style.display = "";
+  }
+
   savePrefs();
   renderMonitorFrame();
   renderSourceFrame();
+  if (lay === "multicam") renderMulticamFrames();
+}
+
+function drawBroadcastTestPattern(ctx, W, H, label) {
+  const bars = ["#C0C0C0", "#C0C000", "#00C0C0", "#00C000", "#C000C0", "#C00000", "#0000C0"];
+  const barW = W / bars.length;
+  bars.forEach((col, idx) => {
+    ctx.fillStyle = col;
+    ctx.fillRect(idx * barW, 0, barW + 1, H * 0.75);
+  });
+  ctx.fillStyle = "#101010";
+  ctx.fillRect(0, H * 0.75, W, H * 0.25);
+
+  ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+  ctx.fillRect(10, H / 2 - 14, W - 20, 28);
+  ctx.fillStyle = "#FFE040";
+  ctx.font = "bold 11px monospace";
+  ctx.textAlign = "center";
+  ctx.fillText(`${label} · SEM SINAL`, W / 2, H / 2 + 4);
+}
+
+function renderMulticamFrames() {
+  const mcBox = document.getElementById("multicamBox");
+  if (!mcBox || mcBox.style.display === "none") return;
+
+  const activeCamLbl = document.getElementById("mcActiveCamLbl");
+  if (activeCamLbl) activeCamLbl.textContent = `CAM ${S.multicamActiveCam} [NO AR]`;
+
+  const cutBtn = document.getElementById("btnMcToggleCut");
+  if (cutBtn) {
+    cutBtn.textContent = S.multicamLiveCut ? "[ Gravar Cortes: ATIVO ]" : "[ Gravar Cortes: DESATIVADO ]";
+    cutBtn.classList.toggle("rec", !!S.multicamLiveCut);
+  }
+
+  for (let cam = 1; cam <= 4; cam++) {
+    const quad = document.querySelector(`[data-mccam="${cam}"]`);
+    const cv = document.getElementById(`mcCanvas${cam}`);
+    if (!cv) continue;
+    const ctx = cv.getContext("2d");
+    const W = cv.width, H = cv.height;
+
+    const isActive = (cam === S.multicamActiveCam);
+    if (quad) {
+      quad.classList.toggle("active", isActive);
+      const light = quad.querySelector(".mc-tally-light");
+      if (light) light.textContent = isActive ? "NO AR" : "PRONTO";
+    }
+
+    const tk = "v" + cam;
+    const clip = (S.clips[tk] || []).find(c => !c.disabled && S.playhead >= c.start && S.playhead < c.start + c.dur);
+
+    ctx.fillStyle = "#07090c";
+    ctx.fillRect(0, 0, W, H);
+
+    if (clip) {
+      drawSingleClipToContext(ctx, W, H, clip, S.playhead);
+      ctx.fillStyle = "rgba(0,0,0,0.68)";
+      ctx.fillRect(4, H - 22, W - 8, 18);
+      ctx.fillStyle = isActive ? "#FF4040" : "#FFE040";
+      ctx.font = "bold 11px monospace";
+      ctx.textAlign = "left";
+      ctx.fillText(`CAM ${cam}: ${clip.title.slice(0, 18)}`, 8, H - 9);
+    } else {
+      drawBroadcastTestPattern(ctx, W, H, `CAM ${cam} (${tk.toUpperCase()})`);
+    }
+  }
+}
+
+function switchMulticamCam(camNumber) {
+  if (camNumber < 1 || camNumber > 4) return;
+  S.multicamActiveCam = camNumber;
+
+  if (S.playing && S.multicamLiveCut) {
+    const targetTk = S.targetVideoTrack || "v1";
+    const srcTk = "v" + camNumber;
+    const srcClip = (S.clips[srcTk] || []).find(c => !c.disabled && S.playhead >= c.start && S.playhead < c.start + c.dur);
+
+    const curTargetClip = (S.clips[targetTk] || []).find(c => S.playhead > c.start + 0.1 && S.playhead < c.start + c.dur - 0.1);
+    if (curTargetClip) {
+      saveUndoSnapshot();
+      const splitTime = Number(S.playhead.toFixed(2));
+      const rightDur = Number((curTargetClip.start + curTargetClip.dur - splitTime).toFixed(2));
+      curTargetClip.dur = Number((splitTime - curTargetClip.start).toFixed(2));
+
+      let newClip;
+      if (srcClip) {
+        newClip = Object.assign({}, JSON.parse(JSON.stringify(srcClip)), {
+          id: uid(targetTk + "_"),
+          track: targetTk,
+          start: splitTime,
+          dur: rightDur,
+          inPoint: Number(((srcClip.inPoint || 0) + (splitTime - srcClip.start) * (srcClip.speed || 1)).toFixed(2))
+        });
+      } else {
+        newClip = Object.assign({}, JSON.parse(JSON.stringify(curTargetClip)), {
+          id: uid(targetTk + "_"),
+          title: `Câmera ${camNumber}`,
+          start: splitTime,
+          dur: rightDur
+        });
+      }
+      S.clips[targetTk].push(newClip);
+      resolveTrackOverlaps(targetTk, newClip.id);
+      S.selectedClipId = newClip.id;
+    }
+    playFoleySound("claquete", 0.04);
+    toast(`Corte no ar: Câmera ${camNumber} (${srcTk.toUpperCase()})!`);
+  } else {
+    playFoleySound("bip", 0.03);
+  }
+
+  renderMulticamFrames();
+  renderTimeline();
+  renderMonitorFrame();
 }
 
 function updateStatusBar() {
@@ -7636,6 +8865,13 @@ const CMD = {
   }},
   salvarNoSR: { label: "Sincronizar Roteiro no ScriptRoom", icon: "save", run: () => saveCurrentToScriptRoom() },
   exportarMaster: { label: "Exportar Filme Master (.MP4 / .AVI / .MOV / .WEBM)…", icon: "save", key: "Ctrl+M", run: () => openExportDialog() },
+  congelarQuadro: { label: "Congelar Fotograma na Agulha (Freeze Frame)", icon: "slate", key: "Shift+F", run: () => createFreezeFrameAtPlayhead() },
+  corretor3Way: { label: "Corretor de Cor 3-Way Broadcast (Lift, Gamma, Gain)…", icon: "sparkle", run: () => open3WayColorDialog() },
+  rackDinamica: { label: "Rack Dinâmico DSP (Compressor, Limiter & Gate)…", icon: "speaker", run: () => openDynamicsRackDialog() },
+  filaRender: { label: "Fila de Renderização em Lote (Batch Render Queue)…", icon: "film", run: () => openRenderQueueDialog() },
+  multicamSwitcher: { label: "Monitor Multicâmera 4-Up (Live Switcher)", run: () => setMonitorLayout("multicam") },
+  exportarCueSheet: { label: "Exportar Folha de Decupagem (Cue Sheet .TXT)…", icon: "script", run: () => exportCueSheet() },
+  abaMarcadores: { label: "Lista de Marcadores & Decupagem", run: () => { S.sideTab = "marcadores"; prefs.painel = true; renderSide(); } },
   abrirScriptRoom: { label: "Abrir o aplicativo ScriptRoom", icon: "clapper", run: () => { if (window.editorNative) window.editorNative.launchScriptRoom(); } },
   desligar: { label: "Sair do ScriptEditor", icon: "power", run: () => { if (window.editorNative) window.editorNative.close(); } },
   minimizar: { label: "Minimizar", run: () => { if (window.editorNative) window.editorNative.minimize(); } },
@@ -7647,7 +8883,7 @@ const CMD = {
   copiarClipe: { label: "Copiar Clipe", key: "Ctrl+C", run: () => copySelectedClip() },
   colarClipe: { label: "Colar Clipe na Agulha", key: "Ctrl+V", run: () => pasteClipAtPlayhead() },
   adicionarMarcador: { label: "Inserir Marcador na Linha do Tempo", key: "Tecla M", run: () => addTimelineMarker() },
-  velocidadeClipe: { label: "Velocidade / Duração do Clipe…", run: () => {
+  velocidadeClipe: { label: "Velocidade / Duração / Reversão do Clipe…", run: () => {
     const sel = getSelectedClip();
     if (!sel) { toast("Selecione um clipe na linha do tempo primeiro."); return; }
     openClipSpeedDialog(sel);
@@ -7669,6 +8905,7 @@ const CMD = {
   storyboardMode: { label: "Modo Prancha / Storyboard no Bin", run: () => { S.binView = "storyboard"; S.sideTab = "bin"; prefs.painel = true; renderSide(); } },
   configTeclas: { label: "Trocar e Personalizar Atalhos de Teclado…", icon: "gear", run: () => { S.sideTab = "atalhos"; prefs.painel = true; document.body.dataset.painel = "on"; renderSide(); toast("Clique em [Trocar] ao lado de qualquer atalho na aba esquerda!"); } },
   layDual: { label: "Monitores Duplos (Origem + Programa)", run: () => setMonitorLayout("dual") },
+  layMulticam: { label: "Monitor Multicâmera 4-Up (Live Switcher)", run: () => setMonitorLayout("multicam") },
   laySingle: { label: "Monitor Master Grande", run: () => setMonitorLayout("single") },
   layScript: { label: "Monitor Master + Roteiro Lado a Lado", run: () => setMonitorLayout("script") },
   verPainel: { label: "Mostrar/Ocultar Janela Projeto Lateral", run: () => { prefs.painel = !prefs.painel; document.body.dataset.painel = prefs.painel ? "on" : "off"; } },
@@ -7692,12 +8929,12 @@ const CMD = {
 };
 
 const MENUS = [
-  ["Arquivo", "A", ["telaInicial", "-", "novoProjetoLivre", "abrirProjeto", "salvarProjeto", "salvarProjetoComo", "-", "importarMidia", "importarEDL", "exportarEDL", "-", "importarSRT", "exportarSRT", "-", "gerarSinal", "geradorGC", "-", "importarSR", "salvarNoSR", "-", "exportarMaster", "-", "abrirScriptRoom", "-", "desligar"]],
-  ["Editar", "E", ["desfazer", "refazer", "-", "copiarClipe", "colarClipe", "duplicarClipe", "-", "cortarAgulha", "excluirClipe", "excluirRipple", "-", "configTeclas"]],
-  ["Projeto", "P", ["importarMidia", "abrirProjeto", "salvarProjeto", "-", "gerarSinal", "geradorGC", "adicionarMarcador", "-", "addVideoTrack", "addAudioTrack", "-", "mesaSom", "equalizadorDSP", "-", "importarSRT", "exportarSRT", "-", "importarSR"]],
-  ["Clipe", "C", ["velocidadeClipe", "cortarAgulha", "duplicarClipe", "excluirClipe", "excluirRipple", "-", "addVideoTrack", "addAudioTrack", "-", "toolSelect", "toolTrack", "toolRazor", "toolTrim", "toolRipple", "toolRolling", "toolSlip", "toolSlide", "toolHand"]],
-  ["Janela", "J", ["layDual", "laySingle", "layScript", "-", "verPainel", "-", "desacoplarProgram", "desacoplarSource", "desacoplarSide", "desacoplarTimeline", "-", "reacoplarTodos", "resetLayout", "-", "esquema"]],
-  ["Áudio/Vídeo", "V", ["mesaSom", "equalizadorDSP", "-", "addVideoTrack", "addAudioTrack", "-", "mesaFoley", "gravadorADR", "claqueteCam", "-", "exportarMaster"]],
+  ["Arquivo", "A", ["telaInicial", "-", "novoProjetoLivre", "abrirProjeto", "salvarProjeto", "salvarProjetoComo", "-", "importarMidia", "importarEDL", "exportarEDL", "exportarCueSheet", "-", "importarSRT", "exportarSRT", "-", "gerarSinal", "geradorGC", "-", "importarSR", "salvarNoSR", "-", "exportarMaster", "filaRender", "-", "abrirScriptRoom", "-", "desligar"]],
+  ["Editar", "E", ["desfazer", "refazer", "-", "copiarClipe", "colarClipe", "duplicarClipe", "congelarQuadro", "-", "cortarAgulha", "excluirClipe", "excluirRipple", "-", "configTeclas"]],
+  ["Projeto", "P", ["importarMidia", "abrirProjeto", "salvarProjeto", "-", "gerarSinal", "geradorGC", "adicionarMarcador", "abaMarcadores", "-", "addVideoTrack", "addAudioTrack", "-", "mesaSom", "rackDinamica", "equalizadorDSP", "corretor3Way", "-", "importarSRT", "exportarSRT", "-", "importarSR"]],
+  ["Clipe", "C", ["velocidadeClipe", "congelarQuadro", "cortarAgulha", "duplicarClipe", "excluirClipe", "excluirRipple", "-", "addVideoTrack", "addAudioTrack", "-", "toolSelect", "toolTrack", "toolRazor", "toolTrim", "toolRipple", "toolRolling", "toolSlip", "toolSlide", "toolHand"]],
+  ["Janela", "J", ["layDual", "layMulticam", "laySingle", "layScript", "-", "multicamSwitcher", "filaRender", "-", "verPainel", "-", "desacoplarProgram", "desacoplarSource", "desacoplarSide", "desacoplarTimeline", "-", "reacoplarTodos", "resetLayout", "-", "esquema"]],
+  ["Áudio/Vídeo", "V", ["mesaSom", "rackDinamica", "equalizadorDSP", "corretor3Way", "-", "addVideoTrack", "addAudioTrack", "-", "mesaFoley", "gravadorADR", "claqueteCam", "-", "exportarMaster", "filaRender"]],
   ["Ajuda", "u", ["atalhosAjuda", "dicaDoDia", "procurarAtualizacoes", "-", "oQueHaDeNovo", "telaAbertura", "sobre"]]
 ];
 
@@ -8361,6 +9598,19 @@ async function boot() {
     tlZoomEl.oninput = e => setTimelineZoom(+e.target.value, true);
   }
 
+  // Monitor Multicâmera 4-Up (Live Switcher)
+  document.querySelectorAll("[data-mccam]").forEach(q => {
+    q.onclick = () => switchMulticamCam(parseInt(q.dataset.mccam, 10));
+  });
+  const btnMcToggleCut = document.getElementById("btnMcToggleCut");
+  if (btnMcToggleCut) {
+    btnMcToggleCut.onclick = () => {
+      S.multicamLiveCut = !S.multicamLiveCut;
+      renderMulticamFrames();
+      toast(S.multicamLiveCut ? "Gravação de cortes multicâmera ATIVADA!" : "Gravação de cortes DESATIVADA.");
+    };
+  }
+
   // Inputs de arquivo de fallback
   const fMed = document.getElementById("fMediaFallback");
   if (fMed) {
@@ -8404,7 +9654,16 @@ async function boot() {
     if (!combo) return;
     const match = (actId) => String(KEYMAP[actId] || "").toLowerCase() === combo.toLowerCase();
 
-    if (match("splitClip")) { e.preventDefault(); splitClipAtPlayhead(); }
+    // Multicâmera 4-Up Live Switcher (Teclas numéricas 1, 2, 3, 4)
+    if (["1", "2", "3", "4"].includes(e.key) && !e.ctrlKey && !e.altKey && !e.metaKey) {
+      const camNum = parseInt(e.key, 10);
+      switchMulticamCam(camNum);
+    }
+    else if (match("congelarQuadro") || (e.shiftKey && (e.key === "F" || e.key === "f"))) {
+      e.preventDefault();
+      createFreezeFrameAtPlayhead();
+    }
+    else if (match("splitClip")) { e.preventDefault(); splitClipAtPlayhead(); }
     else if (match("duplicateClip")) { e.preventDefault(); duplicateSelectedClip(); }
     else if (match("copyClip")) { e.preventDefault(); copySelectedClip(); }
     else if (match("pasteClip")) { e.preventDefault(); pasteClipAtPlayhead(); }

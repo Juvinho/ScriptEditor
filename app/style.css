@@ -2224,4 +2224,199 @@ body[data-tool="ripple"] .tl-clip {
   justify-content: space-between;
 }
 
+/* ==========================================================================
+   ESTAÇÃO BROADCAST 1.0.4: MULTICÂMERA, DINÂMICA DSP, 3-WAY COLOR & FILA
+   ========================================================================== */
+
+/* Monitor Multicâmera 4-Up (Live Switcher) */
+.multicam-quad-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 3px;
+  background: #000;
+  padding: 3px;
+  flex: 1;
+  min-height: 240px;
+}
+
+.mc-quad {
+  position: relative;
+  background: #0a0c10;
+  border: 2px solid #20242a;
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mc-quad:hover {
+  border-color: #507090;
+}
+
+.mc-quad.active {
+  border-color: #FF2020;
+  box-shadow: inset 0 0 8px rgba(255, 32, 32, 0.6), 0 0 6px rgba(255, 32, 32, 0.4);
+}
+
+.mc-tally {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  display: flex;
+  gap: 3px;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.mc-badge {
+  background: rgba(0, 0, 0, 0.85);
+  color: #FFE040;
+  font: 700 10px monospace;
+  padding: 1px 4px;
+  border: 1px solid #404040;
+}
+
+.mc-tally-light {
+  background: #252830;
+  color: #606870;
+  font: 700 9px monospace;
+  padding: 1px 4px;
+  border: 1px solid #303540;
+}
+
+.mc-quad.active .mc-tally-light {
+  background: #FF0000;
+  color: #FFFFFF;
+  border-color: #FFA0A0;
+  text-shadow: 0 0 3px #FFF;
+}
+
+.mc-canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Corretor de Cor 3-Way Broadcast (Lift, Gamma, Gain) */
+.color-wheels-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  background: #101216;
+  padding: 8px;
+  border: 1px solid #000;
+  box-shadow: inset 1px 1px #000, 1px 1px 0 var(--hi);
+}
+
+.color-wheel-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: #B0C4DE;
+  font-size: 11px;
+}
+
+.color-wheel-canvas {
+  border-radius: 50%;
+  border: 2px solid #2a3442;
+  cursor: crosshair;
+  background: #000;
+  box-shadow: 0 0 4px rgba(0,0,0,0.8);
+}
+
+.color-lum-slider {
+  width: 90px;
+  height: 14px;
+}
+
+/* Rack Dinâmico de Áudio Analógico (Compressor, Limiter & Gate) */
+.dynamics-rack-wrap {
+  background: #14171a;
+  border: 2px solid #303640;
+  padding: 8px;
+  box-shadow: inset 1px 1px #000, inset -1px -1px #404855;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gr-meter-wrap {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  background: #080a0c;
+  padding: 3px 6px;
+  border: 1px solid #20242c;
+}
+
+.gr-led {
+  width: 7px;
+  height: 14px;
+  background: #201a10;
+  border-radius: 1px;
+  border: 1px solid #100d08;
+}
+
+.gr-led.on {
+  background: #FFB000;
+  border-color: #FFE060;
+  box-shadow: 0 0 4px #FFA000;
+}
+
+.gr-led.red {
+  background: #250a0a;
+  border-color: #150505;
+}
+
+.gr-led.red.on {
+  background: #FF2020;
+  border-color: #FFA0A0;
+  box-shadow: 0 0 5px #FF0000;
+}
+
+/* Marcadores Coloridos na Linha do Tempo e Aba de Marcadores */
+.tl-marker.mk-red { background: #FF2828 !important; border-color: #800000 !important; color: #fff !important; }
+.tl-marker.mk-green { background: #00D048 !important; border-color: #006020 !important; color: #000 !important; }
+.tl-marker.mk-blue { background: #2880FF !important; border-color: #003080 !important; color: #fff !important; }
+.tl-marker.mk-yellow { background: #FFE020 !important; border-color: #807000 !important; color: #000 !important; }
+
+.mk-badge {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  margin-right: 4px;
+  vertical-align: middle;
+  border: 1px solid rgba(0,0,0,0.4);
+}
+.mk-badge.red { background: #FF2828; }
+.mk-badge.green { background: #00D048; }
+.mk-badge.blue { background: #2880FF; }
+.mk-badge.yellow { background: #FFE020; }
+
+/* Fila de Renderização em Lote (Batch Render Queue) */
+.queue-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+.queue-table th {
+  background: var(--face);
+  text-align: left;
+  padding: 3px 6px;
+  box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--hi);
+}
+.queue-table td {
+  padding: 4px 6px;
+  border-bottom: 1px dotted var(--lo);
+}
+.queue-status-waiting { color: #FFE040; font-weight: 700; }
+.queue-status-busy { color: #00FF66; font-weight: 700; }
+.queue-status-done { color: #70B8FF; font-weight: 700; }
+
+
 

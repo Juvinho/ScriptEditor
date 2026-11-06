@@ -39,12 +39,17 @@
     <button class="tbtn" type="button" data-cmd="cortarAgulha" data-icon="cut" title="Cortar Clipe na Agulha (Ctrl+K)"></button>
     <button class="tbtn" type="button" data-cmd="geradorGC" data-icon="tv" title="Criar Cartela de Texto / Letreiro Animado (Title Designer)"></button>
     <button class="tbtn" type="button" data-cmd="gerarSinal" data-icon="film" title="Gerar Barras SMPTE / Contagem Regressiva / Fundo Colorido"></button>
+    <button class="tbtn" type="button" data-cmd="congelarQuadro" data-icon="slate" title="Congelar Fotograma sob a Agulha (Freeze Frame - Shift+F)"></button>
+    <button class="tbtn" type="button" data-cmd="corretor3Way" data-icon="sparkle" title="Corretor de Cor 3-Way Broadcast (Lift, Gamma, Gain)"></button>
     <button class="tbtn" type="button" data-cmd="mesaSom" data-icon="foley" title="Mesa de Som Analógica 16-Bit / Audio Track Mixer (Ctrl+Alt+M)"></button>
+    <button class="tbtn" type="button" data-cmd="rackDinamica" data-icon="speaker" title="Rack de Dinâmica DSP (Compressor, Limiter & Gate)"></button>
     <button class="tbtn" type="button" data-cmd="gravadorADR" data-icon="mic" title="Gravar Narração / Voz pelo Microfone"></button>
+    <button class="tbtn" type="button" data-cmd="filaRender" data-icon="film" title="Fila de Renderização em Lote (Batch Render Queue)"></button>
     <span class="tsep"></span>
     <label class="tlbl" for="layoutSel">Monitores:</label>
     <select id="layoutSel" title="Disposição dos monitores de vídeo">
       <option value="dual">Duplo (Origem + Programa)</option>
+      <option value="multicam">Multicâmera 4-Up (Live Switcher)</option>
       <option value="single">Monitor Master Grande</option>
       <option value="script">Monitor + Roteiro Lado a Lado</option>
     </select>
@@ -79,6 +84,7 @@
           <button type="button" data-stab="bin" aria-pressed="true">Projeto (Bin)</button>
           <button type="button" data-stab="fx" aria-pressed="false">Efeitos (FX)</button>
           <button type="button" data-stab="trans" aria-pressed="false">Transições</button>
+          <button type="button" data-stab="marcadores" aria-pressed="false">Marcadores</button>
           <button type="button" data-stab="atalhos" aria-pressed="false">Atalhos</button>
         </div>
         <div class="ptabs" id="sideTabsRow2">
@@ -123,6 +129,39 @@
                 <button type="button" class="vtr-btn ins" id="btnInsertTimeline" title="Inserir na Linha do Tempo na posição da agulha (Tecla ,)">[ , Inserir na Timeline ]</button>
                 <button type="button" class="vtr-btn" id="btnOverlayTimeline" title="Colocar na Faixa V2 (Superposição / PiP)">[ + Faixa V2 ]</button>
               </div>
+            </div>
+          </div>
+
+          <!-- MONITOR MULTICÂMERA 4-UP (LIVE SWITCHER BROADCAST 1995) -->
+          <div class="mon-window" id="multicamBox" style="display:none">
+            <div class="mon-title src-hdr">
+              <span id="mcTitle">MULTICÂMERA 4-UP (LIVE SWITCHER)</span>
+              <div class="row" style="gap:4px">
+                <span class="tc-led amber" id="mcActiveCamLbl">CAM 1 [NO AR]</span>
+                <button type="button" class="mon-dock-btn" data-detach="multicamBox" title="Desacoplar Multicâmera (MDI)">⧉</button>
+              </div>
+            </div>
+            <div class="multicam-quad-grid" id="mcGrid">
+              <div class="mc-quad active" data-mccam="1" title="Câmera 1 (Faixa V1) · Tecla 1 para Comutar">
+                <div class="mc-tally"><span class="mc-badge">CAM 1 [1]</span><span class="mc-tally-light">NO AR</span></div>
+                <canvas id="mcCanvas1" class="mc-canvas" width="320" height="240"></canvas>
+              </div>
+              <div class="mc-quad" data-mccam="2" title="Câmera 2 (Faixa V2) · Tecla 2 para Comutar">
+                <div class="mc-tally"><span class="mc-badge">CAM 2 [2]</span><span class="mc-tally-light">PRONTO</span></div>
+                <canvas id="mcCanvas2" class="mc-canvas" width="320" height="240"></canvas>
+              </div>
+              <div class="mc-quad" data-mccam="3" title="Câmera 3 (Faixa V3) · Tecla 3 para Comutar">
+                <div class="mc-tally"><span class="mc-badge">CAM 3 [3]</span><span class="mc-tally-light">PRONTO</span></div>
+                <canvas id="mcCanvas3" class="mc-canvas" width="320" height="240"></canvas>
+              </div>
+              <div class="mc-quad" data-mccam="4" title="Câmera 4 (Faixa V4) · Tecla 4 para Comutar">
+                <div class="mc-tally"><span class="mc-badge">CAM 4 [4]</span><span class="mc-tally-light">PRONTO</span></div>
+                <canvas id="mcCanvas4" class="mc-canvas" width="320" height="240"></canvas>
+              </div>
+            </div>
+            <div class="vtr-deck" style="justify-content:space-between">
+              <span class="muted" style="font-size:10px;padding:2px 4px">Dê Play e tecle 1, 2, 3 ou 4 para cortar ao vivo!</span>
+              <button type="button" class="vtr-btn" id="btnMcToggleCut" title="Comuta gravação de cortes automáticos na agulha">[ Gravar Cortes: ATIVO ]</button>
             </div>
           </div>
 
