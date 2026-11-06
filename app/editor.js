@@ -5,7 +5,7 @@
    Zero emojis · Ícones SVG 16x16 pixel-art · Edição Comercial, Doméstica e Roteirizada
    ============================================================================ */
 
-let APP_VERSAO = "1.0.2"; // Substituída em boot() pela versão real do package.json
+let APP_VERSAO = "1.0.3"; // Substituída em boot() pela versão real do package.json
 const FPS = 29.97;
 
 const ICON = {
@@ -85,6 +85,10 @@ const DEFAULT_KEYMAP = {
   toolTrack: "A",
   toolRazor: "C",
   toolTrim: "T",
+  toolRipple: "B",
+  toolRolling: "N",
+  toolSlip: "Y",
+  toolSlide: "U",
   toolHand: "H",
   markIn: "I",
   markOut: "O",
@@ -118,6 +122,10 @@ const KEYMAP_LABELS = [
   ["toolTrack", "Ferramenta Selecionar Faixa Adiante"],
   ["toolRazor", "Ferramenta Navalha (Corte)"],
   ["toolTrim", "Ferramenta Ajuste de Borda (Trim)"],
+  ["toolRipple", "Ferramenta Ripple Edit (Ajuste com Fechamento)"],
+  ["toolRolling", "Ferramenta Rolling Edit (Ajuste Contíguo)"],
+  ["toolSlip", "Ferramenta Slip (Deslizar Conteúdo Interno)"],
+  ["toolSlide", "Ferramenta Slide (Deslizar Posição)"],
   ["toolHand", "Ferramenta Mão (Arrastar Timeline)"],
   ["splitClip", "Dividir Clipe na Agulha (Split)"],
   ["duplicateClip", "Duplicar Clipe Selecionado"],
@@ -249,10 +257,16 @@ const S = {
   mediaBin: [],
   binFilter: "all",      // all | video | audio | image | synth
   binSearch: "",
-  binView: "list",       // list | grid
+  binView: "list",       // list | grid | storyboard
+  binFolders: ["Todas", "Vídeos", "Áudios", "Cartelas"],
+  binCurFolder: "Todas",
   adrTakes: [],
   undoStack: [],
   redoStack: [],
+
+  // Processamento DSP de Áudio Analógico 1995 (Equalizador Gráfico 10 Bandas & Auto-Ducking)
+  graphicEQ: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  autoDucking: false,
 
   // Elementos HTML5 de vídeo, imagem e áudio para reprodução em tempo real + envelopes reais de áudio (Web Audio API)
   videoEls: new Map(),
@@ -1374,14 +1388,84 @@ function drawSingleClipToContext(tCtx, W, H, clip, globalSec) {
 
   if (!drewReal) {
     if (clip.text && isVideoTrack(clip.track)) {
-      // Títulos e Letreiros Animados (Chyron: Estático, Letreiro Rotativo/Crawl, Créditos Rolantes/Roll, Piscante)
+      // Títulos e Letreiros Animados (Chyron 95: Estático, Terço Inferior/Lower Third, Crawl, Roll, Blink)
       const chy = clip.chyronType || "static";
       const fontFace = clip.fontFace || "'Courier New', monospace";
       const fontSize = Math.max(12, Number(clip.fontSize) || 22);
-      const fontColor = clip.fontColor || "#FFFFFF";
       const boxColor = clip.boxColor || "rgba(0, 0, 0, 0.78)";
 
-      if (chy === "crawl") {
+      // Função auxiliar para aplicar textura de gradiente e sombra
+      const applyTextStyle = (curY) => {
+        if (clip.shadow !== false) {
+          tCtx.shadowColor = "rgba(0, 0, 0, 0.88)";
+          tCtx.shadowOffsetX = 2.5;
+          tCtx.shadowOffsetY = 2.5;
+          tCtx.shadowBlur = 3;
+        }
+        if (clip.gradient === "gold") {
+          const g = tCtx.createLinearGradient(0, curY - fontSize, 0, curY + 4);
+          g.addColorStop(0, "#FFFEE0"); g.addColorStop(0.45, "#FFD700"); g.addColorStop(1, "#8A6000");
+          tCtx.fillStyle = g;
+        } else if (clip.gradient === "silver") {
+          const g = tCtx.createLinearGradient(0, curY - fontSize, 0, curY + 4);
+          g.addColorStop(0, "#FFFFFF"); g.addColorStop(0.5, "#D0D0E0"); g.addColorStop(1, "#606070");
+          tCtx.fillStyle = g;
+        } else if (clip.gradient === "crt_blue") {
+          const g = tCtx.createLinearGradient(0, curY - fontSize, 0, curY + 4);
+          g.addColorStop(0, "#C0E8FF"); g.addColorStop(0.5, "#3080FF"); g.addColorStop(1, "#082060");
+          tCtx.fillStyle = g;
+        } else {
+          tCtx.fillStyle = clip.fontColor || "#FFFFFF";
+        }
+      };
+
+      if (chy === "lower_third") {
+        // Terço Inferior de Telejornal 1995 (Lower Third)
+        const barH = 68;
+        const barY = H - barH - 28;
+        const barW = W - 72;
+        const barX = 36;
+
+        tCtx.save();
+        tCtx.fillStyle = "rgba(0, 0, 0, 0.45)";
+        tCtx.fillRect(barX + 4, barY + 4, barW, barH);
+
+        const bGrad = tCtx.createLinearGradient(barX, barY, barX, barY + barH);
+        bGrad.addColorStop(0, "#0E2442");
+        bGrad.addColorStop(0.5, "#081628");
+        bGrad.addColorStop(1, "#020712");
+        tCtx.fillStyle = bGrad;
+        tCtx.fillRect(barX, barY, barW, barH);
+
+        tCtx.strokeStyle = "#FFE040";
+        tCtx.lineWidth = 2;
+        tCtx.strokeRect(barX, barY, barW, barH);
+        tCtx.strokeStyle = "#806010";
+        tCtx.lineWidth = 1;
+        tCtx.strokeRect(barX + 2, barY + 2, barW - 4, barH - 4);
+
+        tCtx.textAlign = "left";
+        tCtx.font = `bold ${fontSize}px ${fontFace}`;
+        applyTextStyle(barY + 28);
+        if (clip.strokeWidth) {
+          tCtx.strokeStyle = "#000000";
+          tCtx.lineWidth = clip.strokeWidth;
+          tCtx.strokeText(clip.text, barX + 18, barY + 28);
+        }
+        tCtx.fillText(clip.text, barX + 18, barY + 28);
+
+        if (clip.textSub) {
+          tCtx.font = "bold 13px 'Courier New', monospace";
+          tCtx.fillStyle = "#FFE860";
+          if (clip.strokeWidth) {
+            tCtx.strokeStyle = "#000000";
+            tCtx.lineWidth = Math.min(2, clip.strokeWidth);
+            tCtx.strokeText(clip.textSub.toUpperCase(), barX + 18, barY + 52);
+          }
+          tCtx.fillText(clip.textSub.toUpperCase(), barX + 18, barY + 52);
+        }
+        tCtx.restore();
+      } else if (chy === "crawl") {
         const barH = Math.max(38, fontSize + 16);
         const barY = H - barH - 24;
         tCtx.fillStyle = boxColor;
@@ -1403,14 +1487,18 @@ function drawSingleClipToContext(tCtx, W, H, clip, globalSec) {
         const prog = dur > 0 ? (globalSec - clip.start) / dur : 0;
         const crawlX = W - prog * (W + txtW + 60);
 
-        tCtx.fillStyle = fontColor;
+        applyTextStyle(barY + barH / 2 + fontSize * 0.35);
         tCtx.textAlign = "left";
+        if (clip.strokeWidth) {
+          tCtx.strokeStyle = "#000000";
+          tCtx.lineWidth = clip.strokeWidth;
+          tCtx.strokeText(clip.text, crawlX, barY + barH / 2 + fontSize * 0.35);
+        }
         tCtx.fillText(clip.text, crawlX, barY + barH / 2 + fontSize * 0.35);
         tCtx.restore();
       } else if (chy === "roll") {
         tCtx.save();
         tCtx.font = `bold ${fontSize}px ${fontFace}`;
-        tCtx.fillStyle = fontColor;
         tCtx.textAlign = "center";
         const lines = clip.text.split("\n");
         const lineH = fontSize * 1.35;
@@ -1422,6 +1510,12 @@ function drawSingleClipToContext(tCtx, W, H, clip, globalSec) {
         lines.forEach((line, li) => {
           const ly = curY + li * lineH;
           if (ly >= -30 && ly <= H + 30) {
+            applyTextStyle(ly);
+            if (clip.strokeWidth) {
+              tCtx.strokeStyle = "#000000";
+              tCtx.lineWidth = clip.strokeWidth;
+              tCtx.strokeText(line, W / 2, ly);
+            }
             tCtx.fillText(line, W / 2, ly);
           }
         });
@@ -1434,9 +1528,9 @@ function drawSingleClipToContext(tCtx, W, H, clip, globalSec) {
           tCtx.strokeStyle = "#FFE040";
           tCtx.lineWidth = 2;
           tCtx.strokeRect(52, H / 2 - 40, W - 104, 80);
-          tCtx.fillStyle = fontColor;
           tCtx.font = `bold ${fontSize}px ${fontFace}`;
           tCtx.textAlign = "center";
+          applyTextStyle(H / 2 - 6);
           wrapCanvasText(tCtx, clip.text, W / 2, H / 2 - 6, W - 120, 26);
         }
       } else {
@@ -1445,9 +1539,9 @@ function drawSingleClipToContext(tCtx, W, H, clip, globalSec) {
         tCtx.strokeStyle = "#FFE040";
         tCtx.lineWidth = 2;
         tCtx.strokeRect(52, H / 2 - 40, W - 104, 80);
-        tCtx.fillStyle = fontColor;
         tCtx.font = `bold ${fontSize}px ${fontFace}`;
         tCtx.textAlign = "center";
+        applyTextStyle(H / 2 - 6);
         wrapCanvasText(tCtx, clip.text, W / 2, H / 2 - 6, W - 120, 26);
       }
     } else {
@@ -1912,6 +2006,179 @@ function renderMonitorFrame() {
     S._exportFrameHook(cv);
   }
   syncDetachedWindows();
+  renderBroadcastScopes(cv);
+}
+
+/* ---------- Monitores Técnicos Broadcast: Vectorscope UV & Waveform IRE (Tektronix 1995) ---------- */
+function renderBroadcastScopes(cv) {
+  const scopeCv = document.getElementById("scopeCanvas");
+  if (!scopeCv || !cv) return;
+  const mode = prefs.scopeMode || "video";
+
+  if (mode === "video") {
+    scopeCv.style.display = "none";
+    cv.style.display = "block";
+    return;
+  }
+
+  scopeCv.style.display = "block";
+  const sCtx = scopeCv.getContext("2d");
+  const W = scopeCv.width = cv.width || 640;
+  const H = scopeCv.height = cv.height || 480;
+
+  if (mode === "split") {
+    // Modo Dividido: Vídeo Master à esquerda + Waveform IRE à direita
+    cv.style.display = "none";
+    sCtx.fillStyle = "#040b06";
+    sCtx.fillRect(0, 0, W, H);
+    sCtx.drawImage(cv, 0, 0, W / 2, H);
+    sCtx.strokeStyle = "#408040";
+    sCtx.lineWidth = 1;
+    sCtx.beginPath();
+    sCtx.moveTo(W / 2, 0);
+    sCtx.lineTo(W / 2, H);
+    sCtx.stroke();
+    drawWaveformToContext(sCtx, cv, W / 2, 0, W / 2, H);
+  } else if (mode === "waveform") {
+    cv.style.display = "none";
+    sCtx.fillStyle = "#040c06";
+    sCtx.fillRect(0, 0, W, H);
+    drawWaveformToContext(sCtx, cv, 0, 0, W, H);
+  } else if (mode === "vectorscope") {
+    cv.style.display = "none";
+    sCtx.fillStyle = "#030a05";
+    sCtx.fillRect(0, 0, W, H);
+    drawVectorscopeToContext(sCtx, cv, 0, 0, W, H);
+  }
+}
+
+function drawWaveformToContext(ctx, srcCv, ox, oy, w, h) {
+  const lineY = (ire) => oy + h * 0.90 - (ire / 120) * (h * 0.78);
+
+  // Grade de fósforo verde
+  ctx.strokeStyle = "rgba(0, 255, 100, 0.22)";
+  ctx.lineWidth = 1;
+  const ires = [100, 80, 50, 20, 7.5, 0];
+  ires.forEach(ire => {
+    const y = lineY(ire);
+    ctx.beginPath();
+    ctx.setLineDash(ire === 7.5 ? [4, 4] : (ire === 100 || ire === 0 ? [] : [2, 4]));
+    ctx.strokeStyle = ire === 7.5 ? "rgba(255, 170, 0, 0.55)" : "rgba(0, 255, 100, 0.25)";
+    ctx.moveTo(ox, y);
+    ctx.lineTo(ox + w, y);
+    ctx.stroke();
+  });
+  ctx.setLineDash([]);
+
+  // Rótulos IRE
+  ctx.fillStyle = "#00FF66";
+  ctx.font = "10px 'VT323', monospace";
+  ctx.fillText("100 IRE", ox + 8, lineY(100) - 3);
+  ctx.fillText("50", ox + 8, lineY(50) - 3);
+  ctx.fillStyle = "#FFAA00";
+  ctx.fillText("7.5 PED", ox + 8, lineY(7.5) - 3);
+  ctx.fillStyle = "#00FF66";
+  ctx.fillText("0 IRE", ox + 8, lineY(0) + 9);
+
+  // Amostragem de luminância rápida em tempo real (1 a cada 3 pixels)
+  try {
+    const imgData = srcCv.getContext("2d").getImageData(0, 0, srcCv.width, srcCv.height);
+    const data = imgData.data;
+    const sw = srcCv.width, sh = srcCv.height;
+    ctx.fillStyle = "rgba(0, 255, 120, 0.18)";
+    for (let x = 0; x < sw; x += 3) {
+      const targetX = ox + Math.round((x / sw) * w);
+      for (let y = 0; y < sh; y += 4) {
+        const idx = (y * sw + x) * 4;
+        const r = data[idx], g = data[idx + 1], b = data[idx + 2];
+        const luma = 0.299 * r + 0.587 * g + 0.114 * b;
+        const ire = (luma / 255) * 100;
+        const targetY = lineY(ire);
+        ctx.fillRect(targetX, targetY, 1.4, 1.4);
+      }
+    }
+  } catch (_e) {}
+
+  // Título e borda CRT
+  ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
+  ctx.fillRect(ox + w - 195, oy + 8, 187, 18);
+  ctx.fillStyle = "#00FF66";
+  ctx.font = "11px 'Courier New', monospace";
+  ctx.fillText("WAVEFORM IRE · TEK 1740", ox + w - 190, oy + 21);
+}
+
+function drawVectorscopeToContext(ctx, srcCv, ox, oy, w, h) {
+  const cx = ox + w / 2;
+  const cy = oy + h / 2;
+  const R = Math.min(w, h) * 0.40;
+
+  // Grade polar
+  ctx.strokeStyle = "rgba(0, 255, 100, 0.28)";
+  ctx.lineWidth = 1;
+
+  // Círculos de 100% e 75% de saturação
+  ctx.beginPath();
+  ctx.arc(cx, cy, R, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.setLineDash([2, 3]);
+  ctx.arc(cx, cy, R * 0.75, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Eixos U e V (Crosshair central)
+  ctx.beginPath();
+  ctx.moveTo(cx - R - 10, cy); ctx.lineTo(cx + R + 10, cy);
+  ctx.moveTo(cx, cy - R - 10); ctx.lineTo(cx, cy + R + 10);
+  ctx.stroke();
+
+  // Caixas de alvos SMPTE NTSC a 75% de saturação
+  const targets = [
+    { label: "R", ang: 104 },
+    { label: "Mg", ang: 61 },
+    { label: "B", ang: 347 },
+    { label: "Cy", ang: 284 },
+    { label: "G", ang: 241 },
+    { label: "Yl", ang: 167 }
+  ];
+
+  ctx.strokeStyle = "#FFE040";
+  ctx.fillStyle = "#FFE040";
+  ctx.font = "10px monospace";
+  targets.forEach(t => {
+    const rad = (t.ang * Math.PI) / 180;
+    const tx = cx + Math.cos(rad) * (R * 0.75);
+    const ty = cy - Math.sin(rad) * (R * 0.75);
+    ctx.strokeRect(tx - 5, ty - 5, 10, 10);
+    ctx.fillText(t.label, tx + 7, ty + 3);
+  });
+
+  // Amostragem de crominância polar UV em tempo real
+  try {
+    const imgData = srcCv.getContext("2d").getImageData(0, 0, srcCv.width, srcCv.height);
+    const data = imgData.data;
+    const sw = srcCv.width, sh = srcCv.height;
+    ctx.fillStyle = "rgba(40, 255, 100, 0.22)";
+    for (let y = 0; y < sh; y += 4) {
+      for (let x = 0; x < sw; x += 4) {
+        const idx = (y * sw + x) * 4;
+        const r = data[idx], g = data[idx + 1], b = data[idx + 2];
+        const u = -0.14713 * r - 0.28886 * g + 0.436 * b;
+        const v = 0.615 * r - 0.51499 * g - 0.10001 * b;
+        const px = cx + (u / 112) * (R * 0.75);
+        const py = cy - (v / 157) * (R * 0.75);
+        ctx.fillRect(px, py, 1.5, 1.5);
+      }
+    }
+  } catch (_e) {}
+
+  // Título e borda CRT
+  ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
+  ctx.fillRect(ox + w - 215, oy + 8, 207, 18);
+  ctx.fillStyle = "#00FF66";
+  ctx.font = "11px 'Courier New', monospace";
+  ctx.fillText("VECTORSCOPE UV · 75% NTSC", ox + w - 210, oy + 21);
 }
 
 function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight) {
@@ -2220,9 +2487,14 @@ function computeAudioLevelsAt(sec, useSourceMonitor = false) {
     sumL += l;
     sumR += r;
   }
+  const hasVoiceA1 = S.autoDucking && active.audioList.some(c => c && c.track === "a1" && !S.tracksMuted[c.track]);
   for (const c of active.audioList) {
     if (!c) continue;
-    const { l, r } = getClipAudioSampleAt(c, sec);
+    let { l, r } = getClipAudioSampleAt(c, sec);
+    if (hasVoiceA1 && (c.track === "a2" || c.track === "a3")) {
+      l *= 0.25;
+      r *= 0.25;
+    }
     sumL += l;
     sumR += r;
   }
@@ -2354,6 +2626,46 @@ function paintVUMeters(refSec = S.playhead, useSrc = false) {
     sctx.fillStyle = "rgba(255, 40, 40, 0.75)";
     sctx.fillRect(Math.floor(W / 2), 0, 1, H);
   }
+
+  // Goniômetro Estéreo / Phase Scope (Lissajous X/Y) (#gonioScope)
+  const gonio = document.getElementById("gonioScope");
+  if (gonio) {
+    const gctx = gonio.getContext("2d");
+    const GW = gonio.width, GH = gonio.height;
+    gctx.fillStyle = "#030c04";
+    gctx.fillRect(0, 0, GW, GH);
+
+    // Retículo circular e eixos 45°
+    gctx.strokeStyle = "#103518";
+    gctx.lineWidth = 1;
+    gctx.beginPath();
+    gctx.arc(GW / 2, GH / 2, Math.min(GW, GH) * 0.42, 0, Math.PI * 2);
+    gctx.moveTo(GW / 2, 2); gctx.lineTo(GW / 2, GH - 2);
+    gctx.moveTo(2, GH / 2); gctx.lineTo(GW - 2, GH / 2);
+    gctx.stroke();
+
+    // Traça curva de correlação estéreo de Lissajous em fósforo verde
+    const ampL = vuLevelL;
+    const ampR = vuLevelR;
+    if (ampL > 0.005 || ampR > 0.005) {
+      gctx.strokeStyle = "rgba(40, 255, 120, 0.85)";
+      gctx.lineWidth = 1.2;
+      gctx.beginPath();
+      const points = 16;
+      for (let p = 0; p <= points; p++) {
+        const t = (p / points) * Math.PI * 2;
+        const xVal = Math.sin(t) * ampL;
+        const yVal = Math.cos(t * 1.05 + 0.2) * ampR;
+        const rotX = (xVal - yVal) * 0.707;
+        const rotY = (xVal + yVal) * 0.707;
+        const px = GW / 2 + rotX * (GW * 0.44);
+        const py = GH / 2 - rotY * (GH * 0.44);
+        if (p === 0) gctx.moveTo(px, py);
+        else gctx.lineTo(px, py);
+      }
+      gctx.stroke();
+    }
+  }
 }
 
 let lastTriggeredSfxId = null;
@@ -2409,7 +2721,14 @@ function syncHtmlMediaPlayback() {
       if (fIn > 0 && elapsed >= 0 && elapsed < fIn) cFade *= Math.sin(Math.min(1, elapsed / fIn) * Math.PI / 2);
       if (fOut > 0 && remain >= 0 && remain < fOut) cFade *= Math.sin(Math.min(1, remain / fOut) * Math.PI / 2);
 
-      el.volume = Math.max(0, Math.min(1, dynVol * cFade * tkVol * mastVol));
+      // Auto-Ducking: se ativo e houver fala/voz em A1, reduz volume musical das faixas A2/A3 em -12 dB (0.25x)
+      let duckFactor = 1;
+      if (S.autoDucking && (activeClip.track === "a2" || activeClip.track === "a3")) {
+        const hasVoiceA1 = active.audioList.some(c => c && c.track === "a1" && !S.tracksMuted[c.track]);
+        if (hasVoiceA1) duckFactor = 0.25;
+      }
+
+      el.volume = Math.max(0, Math.min(1, dynVol * cFade * tkVol * mastVol * duckFactor));
       el.playbackRate = Math.max(0.25, Math.min(4, (activeClip.speed || 1) * S.shuttleSpeed));
       if (el.paused) el.play().catch(() => {});
     } else {
@@ -2754,6 +3073,10 @@ function setTimelineTool(toolName) {
     track: `Selecionar Faixa Adiante (${prettyKeyName(KEYMAP.toolTrack)})`,
     razor: `Navalha de Corte (${prettyKeyName(KEYMAP.toolRazor)})`,
     trim: `Ajuste de Borda / Trim (${prettyKeyName(KEYMAP.toolTrim)})`,
+    ripple: `Ripple Edit — Fechamento (${prettyKeyName(KEYMAP.toolRipple || "B")})`,
+    rolling: `Rolling Edit — Corte Mútuo (${prettyKeyName(KEYMAP.toolRolling || "N")})`,
+    slip: `Slip Tool — Conteúdo Interno (${prettyKeyName(KEYMAP.toolSlip || "Y")})`,
+    slide: `Slide Tool — Mover Deslizando (${prettyKeyName(KEYMAP.toolSlide || "U")})`,
     hand: `Mão / Arrastar Linha do Tempo (${prettyKeyName(KEYMAP.toolHand)})`
   };
   const sb = document.getElementById("sbTool");
@@ -3162,6 +3485,7 @@ function renderTimeline() {
       const tk = b.dataset.lock;
       S.tracksLocked[tk] = !S.tracksLocked[tk];
       b.classList.toggle("locked", S.tracksLocked[tk]);
+      renderTimeline();
       toast(S.tracksLocked[tk] ? `Faixa ${tk.toUpperCase()} trancada.` : `Faixa ${tk.toUpperCase()} destrancada.`);
     };
   });
@@ -3171,7 +3495,9 @@ function renderTimeline() {
     if (!trackEl) return;
     const list = S.clips[tk] || [];
     const isVid = isVideoTrack(tk);
+    const isLocked = !!S.tracksLocked[tk];
     const tkTypeCls = isVid ? (tk === "v1" ? "v1" : "v2 v-overlay") : (tk === "a1" ? "a1" : "a2 a-track");
+    trackEl.className = `tl-track ${tk}${tk === "v1" ? " v1-divider" : ""}${isLocked ? " locked" : ""}`;
     trackEl.innerHTML = list.map(c => {
       const left = Math.round(c.start * pxPerSec);
       const width = Math.max(16, Math.round(c.dur * pxPerSec) - 1);
@@ -3182,11 +3508,32 @@ function renderTimeline() {
       const fxBadge = (c.trans && c.trans !== "Corte Seco") ? `<span class="fx-badge">FX</span>` : "";
       const spdTag = (c.speed && c.speed !== 1) ? ` [${c.speed}x]` : "";
       const sub = `${mmss(c.start)}–${mmss(c.start + c.dur)} (${c.dur.toFixed(1)}s)${spdTag}`;
-      return `<div class="tl-clip ${tkTypeCls}${hasMedia ? " has-media" : ""}${hasWave ? " has-wave" : ""}${isSel ? " sel" : ""}${c.disabled ? " disabled" : ""}" data-clip="${c.id}" data-tk="${tk}" style="left:${left}px;width:${width}px" title="[${tk.toUpperCase()}] ${escH(c.title)} · Arraste para mover (ou mudar de faixa), Alt+Arraste para duplicar, Botão direito para mais opções">
+
+      // Fotogramas de película de cinema nos clipes de vídeo da timeline
+      let filmstripHtml = "";
+      if (prefs.filmstrip !== false && isVid && width >= 44) {
+        const m = S.mediaBin.find(x => x.url === c.mediaUrl);
+        const thumb = (m && m.thumb) || c.thumb;
+        if (thumb) {
+          const numThumbs = Math.max(1, Math.min(10, Math.floor(width / 44)));
+          const thumbs = [];
+          for (let ti = 0; ti < numThumbs; ti++) {
+            thumbs.push(`<img class="filmstrip-thumb" src="${thumb}" alt="">`);
+          }
+          filmstripHtml = `<div class="filmstrip-strip">${thumbs.join("")}</div><div class="filmstrip-perfs"></div>`;
+        } else {
+          filmstripHtml = `<div class="filmstrip-strip" style="background:#151210;opacity:0.25"></div><div class="filmstrip-perfs"></div>`;
+        }
+      }
+
+      return `<div class="tl-clip ${tkTypeCls}${hasMedia ? " has-media" : ""}${hasWave ? " has-wave" : ""}${filmstripHtml ? " has-filmstrip" : ""}${isSel ? " sel" : ""}${c.disabled ? " disabled" : ""}" data-clip="${c.id}" data-tk="${tk}" style="left:${left}px;width:${width}px" title="[${tk.toUpperCase()}] ${escH(c.title)} · Arraste para mover (ou mudar de faixa), Alt+Arraste para duplicar, Botão direito para mais opções">
+        ${filmstripHtml}
         ${waveSvg}
         <span class="trim-l" data-trim="l"></span>
-        <span>${fxBadge}${escH(c.title)}</span>
-        <small>${escH(sub)}</small>
+        <div class="clip-text-box">
+          <span>${fxBadge}${escH(c.title)}</span>
+          <small>${escH(sub)}</small>
+        </div>
         <span class="trim-r" data-trim="r"></span>
       </div>`;
     }).join("");
@@ -3282,8 +3629,14 @@ function renderTimeline() {
 
       // Salva posições originais de todos os clipes para empurrar sem sobrepor de forma reversível durante o arrasto
       const baseStarts = new Map();
+      const baseDurs = new Map();
+      const baseIns = new Map();
       getAllTrackIds().forEach(k => {
-        (S.clips[k] || []).forEach(c => baseStarts.set(c.id, c.start));
+        (S.clips[k] || []).forEach(c => {
+          baseStarts.set(c.id, c.start);
+          baseDurs.set(c.id, c.dur);
+          baseIns.set(c.id, c.inPoint || 0);
+        });
       });
 
       // Para a ferramenta Selecionar Faixa Adiante (A): captura todos os clipes a partir de origStart
@@ -3314,6 +3667,8 @@ function renderTimeline() {
             });
             S.clips[tk].push(dup);
             baseStarts.set(clip.id, clip.start);
+            baseDurs.set(clip.id, clip.dur);
+            baseIns.set(clip.id, clip.inPoint || 0);
             clip = dup;
             S.selectedClipId = dup.id;
             el.dataset.clip = dup.id;
@@ -3337,11 +3692,86 @@ function renderTimeline() {
           (S.clips[k] || []).forEach(c => {
             if (c.id !== clip.id && baseStarts.has(c.id)) {
               c.start = baseStarts.get(c.id);
+              c.dur = baseDurs.get(c.id);
+              c.inPoint = baseIns.get(c.id);
             }
           });
         });
 
-        if (trimSide === "l") {
+        // --- SUITE DE AJUSTE DE CORTE (TRIM TOOLS 1995) ---
+        if (S.tool === "slip") {
+          // Slip Tool (Y): desliza o ponto de entrada interno sem alterar a posição ou duração na linha do tempo
+          const newIn = Math.max(0, origIn - dt);
+          clip.inPoint = Number(newIn.toFixed(2));
+          setPlayhead(clip.start, false);
+          renderMonitorFrame();
+        } else if (S.tool === "slide") {
+          // Slide Tool (U): move o clipe ajustando simultaneamente a cauda do clipe anterior e a cabeça do seguinte
+          const prevClip = (S.clips[tk] || []).find(c => c.id !== clip.id && Math.abs((c.start + c.dur) - origStart) < 0.15);
+          const nextClip = (S.clips[tk] || []).find(c => c.id !== clip.id && Math.abs(c.start - (origStart + origDur)) < 0.15);
+          let minDt = -origStart;
+          let maxDt = 999;
+          if (prevClip) minDt = Math.max(minDt, -(baseDurs.get(prevClip.id) - 0.2));
+          if (nextClip) maxDt = Math.min(maxDt, baseDurs.get(nextClip.id) - 0.2);
+          const clampedDt = Math.max(minDt, Math.min(maxDt, dt));
+          clip.start = Number((origStart + clampedDt).toFixed(2));
+          if (prevClip) prevClip.dur = Number((baseDurs.get(prevClip.id) + clampedDt).toFixed(2));
+          if (nextClip) {
+            nextClip.start = Number((baseStarts.get(nextClip.id) + clampedDt).toFixed(2));
+            nextClip.dur = Number((baseDurs.get(nextClip.id) - clampedDt).toFixed(2));
+            nextClip.inPoint = Number((baseIns.get(nextClip.id) + clampedDt).toFixed(2));
+          }
+        } else if (S.tool === "rolling") {
+          // Rolling Edit (N): altera a emenda entre dois cortes contíguos sem alterar a duração total de ambos
+          const isRightSide = trimSide === "r" || (ev.clientX - el.getBoundingClientRect().left > el.getBoundingClientRect().width / 2);
+          if (isRightSide) {
+            const nextClip = (S.clips[tk] || []).find(c => c.id !== clip.id && Math.abs(c.start - (origStart + origDur)) < 0.2);
+            if (nextClip) {
+              const clampedDt = Math.max(-(origDur - 0.2), Math.min(baseDurs.get(nextClip.id) - 0.2, dt));
+              clip.dur = Number((origDur + clampedDt).toFixed(2));
+              nextClip.start = Number((origStart + clip.dur).toFixed(2));
+              nextClip.dur = Number((baseDurs.get(nextClip.id) - clampedDt).toFixed(2));
+              nextClip.inPoint = Number((baseIns.get(nextClip.id) + clampedDt).toFixed(2));
+            } else {
+              clip.dur = Number(Math.max(0.2, origDur + dt).toFixed(2));
+            }
+          } else {
+            const prevClip = (S.clips[tk] || []).find(c => c.id !== clip.id && Math.abs((c.start + c.dur) - origStart) < 0.2);
+            if (prevClip) {
+              const clampedDt = Math.max(-(baseDurs.get(prevClip.id) - 0.2), Math.min(origDur - 0.2, dt));
+              prevClip.dur = Number((baseDurs.get(prevClip.id) + clampedDt).toFixed(2));
+              clip.start = Number((origStart + clampedDt).toFixed(2));
+              clip.dur = Number((origDur - clampedDt).toFixed(2));
+              clip.inPoint = Number((origIn + clampedDt).toFixed(2));
+            } else {
+              clip.start = Number(Math.max(0, origStart + dt).toFixed(2));
+              clip.dur = Number(Math.max(0.2, origDur - dt).toFixed(2));
+            }
+          }
+        } else if (S.tool === "ripple") {
+          // Ripple Edit (B): redimensiona a borda do clipe e fecha/empurra todos os clipes subsequentes da faixa
+          if (trimSide === "l") {
+            const newStart = Math.min(origStart + origDur - 0.2, Math.max(0, origStart + dt));
+            const delta = newStart - origStart;
+            clip.start = Number(newStart.toFixed(2));
+            clip.dur = Number(Math.max(0.2, origDur - delta).toFixed(2));
+            clip.inPoint = Number(Math.max(0, origIn + delta).toFixed(2));
+            (S.clips[tk] || []).forEach(c => {
+              if (c.id !== clip.id && c.start >= origStart + origDur - 0.05) {
+                c.start = Number(Math.max(0, baseStarts.get(c.id) - delta).toFixed(2));
+              }
+            });
+          } else {
+            const newDur = Math.max(0.2, origDur + dt);
+            const delta = newDur - origDur;
+            clip.dur = Number(newDur.toFixed(2));
+            (S.clips[tk] || []).forEach(c => {
+              if (c.id !== clip.id && c.start >= origStart + origDur - 0.05) {
+                c.start = Number(Math.max(0, baseStarts.get(c.id) + delta).toFixed(2));
+              }
+            });
+          }
+        } else if (trimSide === "l") {
           // Impede que a borda esquerda invada o clipe anterior na mesma faixa
           let prevEnd = 0;
           (S.clips[tk] || []).forEach(c => {
@@ -3512,12 +3942,16 @@ function renderSide() {
     const vTarget = (S.targetVideoTrack || "v1").toUpperCase();
     const aTarget = (S.targetAudioTrack || "a1").toUpperCase();
 
-    // Filtra itens do cesto por pesquisa e por categoria
+    // Filtra itens do cesto por pesquisa, categoria e pasta
     const filteredBin = S.mediaBin.filter(m => {
       if (S.binFilter === "video" && m.kind !== "video") return false;
       if (S.binFilter === "audio" && m.kind !== "audio") return false;
       if (S.binFilter === "image" && m.kind !== "image") return false;
       if (S.binFilter === "synth" && m.kind !== "synth") return false;
+      if (S.binCurFolder && S.binCurFolder !== "Todas") {
+        const fld = m.folder || "Geral";
+        if (fld !== S.binCurFolder) return false;
+      }
       if (S.binSearch) {
         const q = S.binSearch.toLowerCase();
         return String(m.name || "").toLowerCase().includes(q) || String(m.res || "").toLowerCase().includes(q);
@@ -3536,10 +3970,14 @@ function renderSide() {
           </div>
         </div>
 
-        <!-- Barra de Busca e Alternância de Visualização (Miniaturas / Lista) -->
-        <div class="bin-toolbar">
-          <input type="text" id="binSearchInput" class="bin-search" placeholder="Procurar mídia no cesto…" value="${escH(S.binSearch)}">
-          <button type="button" class="btn sm" id="btnToggleBinView" title="Alternar entre Miniaturas e Lista">${S.binView === "grid" ? "Lista" : "Miniaturas"}</button>
+        <!-- Barra de Busca, Pastas e Alternância de Visualização (Lista / Grade / Storyboard) -->
+        <div class="bin-toolbar" style="display:flex;gap:3px;align-items:center;flex-wrap:wrap">
+          <input type="text" id="binSearchInput" class="bin-search" style="flex:1;min-width:90px" placeholder="Procurar mídia…" value="${escH(S.binSearch)}">
+          <select id="binFolderSel" style="font-size:10px;height:21px" title="Filtrar por Pasta do Projeto">
+            ${S.binFolders.map(f => `<option value="${f}"${f === S.binCurFolder ? " selected" : ""}>📁 ${escH(f)}</option>`).join("")}
+          </select>
+          <button type="button" class="btn sm" id="btnNewBinFolder" title="Criar Nova Pasta no Bin">+📁</button>
+          <button type="button" class="btn sm" id="btnToggleBinView" title="Alternar entre Lista, Grade e Modo Storyboard">${S.binView === "list" ? "Lista" : (S.binView === "grid" ? "Grade" : "Storyboard")}</button>
         </div>
 
         <!-- Abas de Filtro por Categoria -->
@@ -3566,8 +4004,38 @@ function renderSide() {
           <button type="button" class="btn sm" data-cmd="addAudioTrack" title="Criar nova faixa de áudio">+A</button>
         </div>
 
-        <!-- Conteúdo do Cesto: Modo Grade de Miniaturas OU Lista Detalhada -->
-        ${S.binView === "grid" ? `
+        <!-- Conteúdo do Cesto: Storyboard OU Grade OU Lista Detalhada -->
+        ${S.binView === "storyboard" ? `
+          <div class="col" style="flex:1;overflow:hidden;gap:4px">
+            <div class="row" style="justify-content:space-between;align-items:center;padding:2px 4px;background:#181410;color:#FFE040;font-size:10.5px">
+              <span><b>PRANCHA STORYBOARD</b> (Ordene e Monte)</span>
+              <button type="button" class="btn sm def" id="btnAssembleStoryboard" title="Insere todos os itens da prancha em sequência na Timeline">[ Montar Ordem na Timeline ]</button>
+            </div>
+            <div class="storyboard-grid" style="flex:1">
+              ${filteredBin.map((m, sbIdx) => {
+                const realIdx = S.mediaBin.indexOf(m);
+                const isSel = S.srcItem && S.srcItem.id === m.id;
+                const thumbHtml = m.thumb ? `<img class="storyboard-thumb" src="${m.thumb}" alt="thumb">` : `<div class="storyboard-thumb" style="display:flex;align-items:center;justify-content:center;background:#000;color:#FFE040;font-weight:bold;font-size:12px">${m.kind.toUpperCase()}</div>`;
+                return `
+                  <div class="storyboard-card${isSel ? " sel" : ""}" data-binidx="${realIdx}">
+                    <span class="storyboard-order">${sbIdx + 1}</span>
+                    ${thumbHtml}
+                    <div class="storyboard-card-body">
+                      <div class="storyboard-card-title">${escH(m.name)}</div>
+                      <div class="row" style="justify-content:space-between;align-items:center">
+                        <span class="muted" style="font-size:9.5px">${mmss(m.dur || 10)}</span>
+                        <div class="row" style="gap:2px">
+                          <button type="button" class="btn sm" data-sbmove="left" data-idx="${realIdx}" title="Mover para trás">◄</button>
+                          <button type="button" class="btn sm" data-sbmove="right" data-idx="${realIdx}" title="Mover para frente">►</button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          </div>
+        ` : (S.binView === "grid" ? `
           <div class="bin-thumb-grid" style="flex:1">
             ${filteredBin.map((m) => {
               const realIdx = S.mediaBin.indexOf(m);
@@ -3604,7 +4072,7 @@ function renderSide() {
               </div>`;
             }).join("")}
           </div>
-        `}
+        `)}
       </div>`;
 
     // Eventos de Busca e Filtro de Categoria
@@ -3624,10 +4092,92 @@ function renderSide() {
     const btnToggleView = box.querySelector("#btnToggleBinView");
     if (btnToggleView) {
       btnToggleView.onclick = () => {
-        S.binView = S.binView === "grid" ? "list" : "grid";
+        if (S.binView === "list") S.binView = "grid";
+        else if (S.binView === "grid") S.binView = "storyboard";
+        else S.binView = "list";
         renderSide();
       };
     }
+
+    const selFolder = box.querySelector("#binFolderSel");
+    if (selFolder) {
+      selFolder.onchange = (e) => {
+        S.binCurFolder = e.target.value;
+        renderSide();
+      };
+    }
+
+    const btnNewFolder = box.querySelector("#btnNewBinFolder");
+    if (btnNewFolder) {
+      btnNewFolder.onclick = () => {
+        const name = prompt("Nome da nova Pasta de Projeto:");
+        if (name && name.trim()) {
+          const clean = name.trim();
+          if (!S.binFolders.includes(clean)) S.binFolders.push(clean);
+          S.binCurFolder = clean;
+          renderSide();
+          toast(`Pasta "${clean}" criada no Projeto!`);
+        }
+      };
+    }
+
+    const btnAssemble = box.querySelector("#btnAssembleStoryboard");
+    if (btnAssemble) {
+      btnAssemble.onclick = () => {
+        if (!filteredBin.length) { toast("Nenhuma mídia na prancha para montar."); return; }
+        saveUndoSnapshot();
+        const vTk = S.targetVideoTrack || "v1";
+        const aTk = S.targetAudioTrack || "a1";
+        let curVTime = 0;
+        let curATime = 0;
+        // Posição no final da sequência atual
+        (S.clips[vTk] || []).forEach(c => { if (c.start + c.dur > curVTime) curVTime = c.start + c.dur; });
+        (S.clips[aTk] || []).forEach(c => { if (c.start + c.dur > curATime) curATime = c.start + c.dur; });
+
+        filteredBin.forEach(m => {
+          const isAud = m.kind === "audio";
+          const tk = isAud ? aTk : vTk;
+          const st = isAud ? curATime : curVTime;
+          const dur = Math.max(0.5, Number(m.dur) || 5);
+          const clip = {
+            id: uid(tk + "_"),
+            track: tk,
+            title: m.name,
+            mediaUrl: m.url,
+            mediaPath: m.path,
+            start: Number(st.toFixed(2)),
+            inPoint: 0,
+            dur: Number(dur.toFixed(2)),
+            speed: 1,
+            opacity: 100,
+            volume: 100
+          };
+          ensureTrackExists(tk);
+          S.clips[tk].push(clip);
+          if (isAud) curATime += dur;
+          else curVTime += dur;
+        });
+
+        recalcSequenceDuration();
+        renderAll();
+        toast(`${filteredBin.length} mídias montadas em ordem cronológica na Linha do Tempo!`);
+      };
+    }
+
+    box.querySelectorAll("[data-sbmove]").forEach(b => {
+      b.onclick = (e) => {
+        e.stopPropagation();
+        const idx = +b.dataset.idx;
+        const dir = b.dataset.sbmove;
+        const targetIdx = dir === "left" ? idx - 1 : idx + 1;
+        if (targetIdx >= 0 && targetIdx < S.mediaBin.length) {
+          const temp = S.mediaBin[idx];
+          S.mediaBin[idx] = S.mediaBin[targetIdx];
+          S.mediaBin[targetIdx] = temp;
+          renderSide();
+        }
+      };
+    });
 
     box.querySelectorAll("[data-bf]").forEach(btn => {
       btn.onclick = () => {
@@ -4850,19 +5400,61 @@ function dialog(o) {
 function openChyronDialog() {
   dialog({
     id: "gcWin",
-    title: "Title Designer (Chyron 95) — Criar Cartela / Letreiro",
-    width: 460,
+    title: "Title Designer 95 (Chyron Avançado) — Criar Cartela / Terço Inferior",
+    width: 500,
     body: `
-      <label class="fld"><span>Texto do Letreiro / Cartela (sobrepõe em camada de Vídeo):</span>
-        <textarea id="gc-txt" rows="3" placeholder="Ex.: OFERTA ESPECIAL · VÁLIDA ATÉ SEXTA-FEIRA"></textarea>
-      </label>
-      <div class="grid2">
-        <label class="fld"><span>Posição de Entrada (s):</span>
-          <input type="number" id="gc-start" value="${Number(S.playhead.toFixed(1))}" step="0.5" min="0">
+      <div class="col" style="gap:6px">
+        <label class="fld"><span>Modelo de Título / Animação:</span>
+          <select id="gc-type">
+            <option value="static" selected>Cartela Estática 95 (Central / Subtítulo)</option>
+            <option value="lower_third">Terço Inferior de Telejornal (Lower Third / Tarja)</option>
+            <option value="crawl">Letreiro Rotativo (Crawl Horizontal Anos 90)</option>
+            <option value="roll">Créditos Rolantes Verticais (Roll)</option>
+            <option value="blink">Piscante de Alerta 1995 (Blink)</option>
+          </select>
         </label>
-        <label class="fld"><span>Duração (s):</span>
-          <input type="number" id="gc-dur" value="6" step="0.5" min="1">
+
+        <label class="fld"><span>Texto Principal (Nome do Entrevistado / Manchete):</span>
+          <textarea id="gc-txt" rows="2" placeholder="Ex.: DR. ROBERTO MARINHO ou OFERTA ESPECIAL"></textarea>
         </label>
+
+        <label class="fld" id="gc-sub-box"><span>Subtítulo / Cargo / Localidade (para Terço Inferior):</span>
+          <input type="text" id="gc-sub" placeholder="Ex.: DIRETOR GERAL · RIO DE JANEIRO">
+        </label>
+
+        <div class="grid2">
+          <label class="fld"><span>Gradiente / Textura de Cor:</span>
+            <select id="gc-grad">
+              <option value="none" selected>Branco Puro Sólido</option>
+              <option value="gold">Dourado Broadcast (Gold 95)</option>
+              <option value="silver">Prata Metálico (Chrome 95)</option>
+              <option value="crt_blue">Azul CRT Telejornal</option>
+            </select>
+          </label>
+          <label class="fld"><span>Contorno de Borda (Stroke):</span>
+            <select id="gc-stroke">
+              <option value="0">Sem Contorno</option>
+              <option value="2" selected>Fino (2px Preto)</option>
+              <option value="4">Médio (4px Preto)</option>
+              <option value="6">Grosso (6px Preto)</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="grid2">
+          <label class="row" style="gap:4px;font-size:11px;cursor:pointer">
+            <input type="checkbox" id="gc-shadow" checked>
+            <span>Sombra Projetada (Drop Shadow 3D)</span>
+          </label>
+          <div class="row" style="gap:4px">
+            <label class="fld" style="flex:1"><span>Entrada (s):</span>
+              <input type="number" id="gc-start" value="${Number(S.playhead.toFixed(1))}" step="0.5" min="0">
+            </label>
+            <label class="fld" style="flex:1"><span>Duração (s):</span>
+              <input type="number" id="gc-dur" value="6" step="0.5" min="1">
+            </label>
+          </div>
+        </div>
       </div>
     `,
     buttons: [
@@ -4873,13 +5465,34 @@ function openChyronDialog() {
           const txt = w.querySelector("#gc-txt").value.trim();
           if (!txt) { toast("Digite o texto da cartela."); return false; }
           saveUndoSnapshot();
+          const chyType = w.querySelector("#gc-type").value;
+          const subTxt = w.querySelector("#gc-sub").value.trim();
+          const grad = w.querySelector("#gc-grad").value;
+          const stroke = parseInt(w.querySelector("#gc-stroke").value, 10) || 0;
+          const shadow = w.querySelector("#gc-shadow").checked;
           const st = Math.max(0, +w.querySelector("#gc-start").value || 0);
           const dur = Math.max(1, +w.querySelector("#gc-dur").value || 6);
           const tk = findOrCreateFreeOverlayTrack("video", st, dur);
+
           const newClip = {
-            id: uid(tk + "_"), track: tk, title: `LETREIRO: ${txt.slice(0, 28)}`, text: txt,
-            start: st, inPoint: 0, dur, opacity: 100, scale: 100, posX: 0, posY: 130
+            id: uid(tk + "_"),
+            track: tk,
+            title: `LETREIRO: ${txt.slice(0, 24)}`,
+            text: txt,
+            textSub: subTxt,
+            chyronType: chyType,
+            gradient: grad,
+            strokeWidth: stroke,
+            shadow: shadow,
+            start: st,
+            inPoint: 0,
+            dur,
+            opacity: 100,
+            scale: 100,
+            posX: 0,
+            posY: chyType === "lower_third" ? 0 : 130
           };
+
           ensureTrackExists(tk);
           S.clips[tk].push(newClip);
           resolveTrackOverlaps(tk, newClip.id);
@@ -5456,7 +6069,10 @@ function openAudioMixerDialog() {
       <div class="col" style="gap:8px">
         <div class="row" style="justify-content:space-between;align-items:center;background:var(--field);padding:4px 8px;box-shadow:inset 1px 1px var(--lo);font-size:11px">
           <span><b>Console Estéreo 16-bit</b> · Faders lineares, Panorâmico (Pan) e Níveis em Decibéis (dB)</span>
-          <button type="button" class="btn sm" id="btnNormMixer" title="Ajusta o ganho geral da sequência para -0.1 dBFS">Normalizar Picos (-0.1 dB)</button>
+          <div class="row" style="gap:4px">
+            <button type="button" class="btn sm" id="btnOpenEQInMixer" title="Abre o Equalizador Gráfico de 10 Bandas (DSP)">Equalizador DSP 10-Bandas…</button>
+            <button type="button" class="btn sm" id="btnNormMixer" title="Ajusta o ganho geral da sequência para -0.1 dBFS">Normalizar Picos (-0.1 dB)</button>
+          </div>
         </div>
         <div class="mixer-board">
           ${allAudio.map(tk => {
@@ -5571,6 +6187,12 @@ function openAudioMixerDialog() {
     };
   });
 
+  // Botão Equalizador DSP 10-Bandas
+  const bEQ = winEl.querySelector("#btnOpenEQInMixer");
+  if (bEQ) {
+    bEQ.onclick = () => openGraphicEQDialog();
+  }
+
   // Botão Normalizar Picos (-0.1 dB)
   const bNorm = winEl.querySelector("#btnNormMixer");
   if (bNorm) {
@@ -5638,6 +6260,249 @@ function normalizeProjectAudioPeaks() {
   syncHtmlMediaPlayback();
   updateVUMeterFromTimeline();
   toast(`Picos normalizados para -0.1 dB! Ganho aplicado: ${gainDb >= 0 ? "+" : ""}${gainDb.toFixed(1)} dB (Master: ${newMaster}%)`);
+}
+
+/* ---------- Equalizador Gráfico DSP 10-Bandas & Auto-Ducking (Estúdio 1995) ---------- */
+const EQ_FREQS = [31, 62, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
+const EQ_PRESETS = {
+  flat: { name: "Plano (Flat 0 dB)", gains: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+  am_radio: { name: "Voz Rádio AM / Locutor", gains: [-6, -4, -2, 2, 5, 6, 4, 1, -3, -8] },
+  vhs_de_hiss: { name: "Redutor Chiado Fita VHS", gains: [0, 0, 0, 0, 0, -2, -4, -7, -10, -12] },
+  telephone: { name: "Filtro Telefone Analógico", gains: [-12, -12, -10, 0, 4, 3, -4, -10, -12, -12] },
+  bass_boost: { name: "Graves Encorpados (Bass Boost)", gains: [9, 8, 6, 3, 1, 0, 0, 0, 0, 0] },
+  bright_acoustic: { name: "Cristalino / Acústico", gains: [2, 3, 1, -1, -2, 0, 3, 5, 6, 4] }
+};
+
+function openGraphicEQDialog() {
+  dialog({
+    id: "eqWin",
+    title: "Equalizador Gráfico DSP 10-Bandas (Mesa Analógica 1995)",
+    width: 630,
+    body: `
+      <div class="col" style="gap:8px">
+        <div class="row" style="justify-content:space-between;align-items:center;background:var(--field);padding:4px 8px;box-shadow:inset 1px 1px var(--lo);font-size:11px">
+          <span><b>Console Estéreo ISO 1/1 Oitava</b> · Filtros Peaking ±12 dB em tempo real</span>
+          <label class="row" style="gap:4px">
+            <b>Predefinição:</b>
+            <select id="eqPresetSel" style="font-size:11px;height:22px">
+              <option value="custom">Personalizado</option>
+              ${Object.entries(EQ_PRESETS).map(([k, v]) => `<option value="${k}">${v.name}</option>`).join("")}
+            </select>
+          </label>
+        </div>
+
+        <div class="eq-rack">
+          ${EQ_FREQS.map((freq, idx) => {
+            const curGain = S.graphicEQ[idx] || 0;
+            const freqLbl = freq >= 1000 ? `${freq / 1000}k` : `${freq}`;
+            return `
+              <div class="eq-col">
+                <span class="eq-val" id="eqVal-${idx}">${curGain > 0 ? "+" + curGain : curGain}dB</span>
+                <input type="range" class="eq-slider" id="eqBand-${idx}" min="-12" max="12" step="0.5" value="${curGain}">
+                <span class="eq-freq">${freqLbl}Hz</span>
+              </div>
+            `;
+          }).join("")}
+        </div>
+
+        <div class="row" style="justify-content:space-between;align-items:center;background:var(--field);padding:6px;box-shadow:inset 1px 1px var(--lo);font-size:11px">
+          <label class="row" style="gap:4px;cursor:pointer" title="Abaixa automaticamente as faixas musicais A2/A3 em -12 dB quando houver fala/voz na faixa A1">
+            <input type="checkbox" id="chkAutoDuck" ${S.autoDucking ? "checked" : ""}>
+            <b>Ducking Automático de Trilha Sonora (-12 dB na música sob locução em A1)</b>
+          </label>
+          <button type="button" class="btn sm" id="btnFlatEQ">Zerar Bandas (Flat)</button>
+        </div>
+      </div>
+    `,
+    buttons: [
+      {
+        label: "Aplicar e Fechar",
+        def: 1,
+        run: (w) => {
+          EQ_FREQS.forEach((_, idx) => {
+            const sl = w.querySelector("#eqBand-" + idx);
+            if (sl) S.graphicEQ[idx] = parseFloat(sl.value) || 0;
+          });
+          const chkDuck = w.querySelector("#chkAutoDuck");
+          if (chkDuck) S.autoDucking = chkDuck.checked;
+          toast("Equalizador DSP 10-Bandas atualizado!");
+        }
+      },
+      { label: "Cancelar" }
+    ]
+  });
+
+  const winEl = document.getElementById("eqWin");
+  if (!winEl) return;
+
+  // Sliders em tempo real
+  EQ_FREQS.forEach((_, idx) => {
+    const sl = winEl.querySelector("#eqBand-" + idx);
+    const valLbl = winEl.querySelector("#eqVal-" + idx);
+    if (sl && valLbl) {
+      sl.oninput = (e) => {
+        const val = parseFloat(e.target.value) || 0;
+        S.graphicEQ[idx] = val;
+        valLbl.textContent = `${val > 0 ? "+" + val : val}dB`;
+        const preSel = winEl.querySelector("#eqPresetSel");
+        if (preSel) preSel.value = "custom";
+      };
+    }
+  });
+
+  // Presets analógicos
+  const preSel = winEl.querySelector("#eqPresetSel");
+  if (preSel) {
+    preSel.onchange = (e) => {
+      const pr = EQ_PRESETS[e.target.value];
+      if (pr) {
+        pr.gains.forEach((g, idx) => {
+          S.graphicEQ[idx] = g;
+          const sl = winEl.querySelector("#eqBand-" + idx);
+          const valLbl = winEl.querySelector("#eqVal-" + idx);
+          if (sl) sl.value = g;
+          if (valLbl) valLbl.textContent = `${g > 0 ? "+" + g : g}dB`;
+        });
+      }
+    };
+  }
+
+  // Zerar bandas
+  const btnFlat = winEl.querySelector("#btnFlatEQ");
+  if (btnFlat) {
+    btnFlat.onclick = () => {
+      EQ_FREQS.forEach((_, idx) => {
+        S.graphicEQ[idx] = 0;
+        const sl = winEl.querySelector("#eqBand-" + idx);
+        const valLbl = winEl.querySelector("#eqVal-" + idx);
+        if (sl) sl.value = 0;
+        if (valLbl) valLbl.textContent = "0dB";
+      });
+      if (preSel) preSel.value = "flat";
+    };
+  }
+}
+
+/* ---------- Interoperabilidade Profissional: CMX3600 EDL (Importação & Exportação) ---------- */
+function parseSmpteToSec(smpte) {
+  const parts = String(smpte || "").split(/[:;]/);
+  if (parts.length < 4) return 0;
+  const h = parseInt(parts[0], 10) || 0;
+  const m = parseInt(parts[1], 10) || 0;
+  const s = parseInt(parts[2], 10) || 0;
+  const f = parseInt(parts[3], 10) || 0;
+  return h * 3600 + m * 60 + s + (f / FPS);
+}
+
+function exportCMX3600EDL() {
+  const vClips = [...(S.clips.v1 || [])].sort((a, b) => a.start - b.start);
+  if (!vClips.length) {
+    toast("Não há clipes na faixa V1 para gerar o EDL CMX3600.");
+    return;
+  }
+
+  const projNameClean = String(S.projectName || "PROJETO").replace(/\.ppj$/i, "").replace(/[^a-zA-Z0-9_-]/g, "_");
+  let edl = `TITLE: ${projNameClean}\n`;
+  edl += `FCM: NON-DROP FRAME\n\n`;
+
+  vClips.forEach((c, i) => {
+    const eventNum = String(i + 1).padStart(3, "0");
+    const reel = "AX      ";
+    const track = "V     ";
+    const trans = "C        "; // Corte seco (Cut)
+    const srcIn = fmtSMPTE(c.inPoint || 0);
+    const srcOut = fmtSMPTE((c.inPoint || 0) + c.dur);
+    const dstIn = fmtSMPTE(c.start);
+    const dstOut = fmtSMPTE(c.start + c.dur);
+
+    edl += `${eventNum}  ${reel} ${track} ${trans} ${srcIn} ${srcOut} ${dstIn} ${dstOut}\n`;
+    edl += `* FROM CLIP NAME: ${c.title || "CLIP"}\n\n`;
+  });
+
+  const fileName = `${projNameClean}.edl`;
+  if (window.editorNative && typeof window.editorNative.saveAs === "function") {
+    window.editorNative.saveAs(fileName, edl, [
+      { name: "Lista de Decisão CMX 3600 (*.edl)", extensions: ["edl"] },
+      { name: "Texto Puro (*.txt)", extensions: ["txt"] }
+    ]).then(saved => {
+      if (saved) toast("Arquivo EDL CMX3600 gravado com sucesso!");
+    });
+  } else {
+    const blob = new Blob([edl], { type: "text/plain;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = fileName;
+    a.click();
+    toast("Arquivo EDL CMX3600 baixado com sucesso!");
+  }
+}
+
+async function importCMX3600EDL() {
+  let content = null;
+  if (window.editorNative && typeof window.editorNative.pickEdlFile === "function") {
+    const res = await window.editorNative.pickEdlFile();
+    if (!res) return;
+    content = res.content;
+  } else {
+    content = prompt("Cole o conteúdo do arquivo EDL CMX 3600 aqui:");
+    if (!content) return;
+  }
+
+  saveUndoSnapshot();
+  const lines = content.split(/\r?\n/);
+  const edlRegex = /^\s*(\d{3,4})\s+(\S+)\s+(V|A|AA|NONE)\s+(\S+)\s+(\d{2}:\d{2}:\d{2}[:;]\d{2})\s+(\d{2}:\d{2}:\d{2}[:;]\d{2})\s+(\d{2}:\d{2}:\d{2}[:;]\d{2})\s+(\d{2}:\d{2}:\d{2}[:;]\d{2})/;
+
+  let importedCount = 0;
+  let currentClipName = "";
+
+  lines.forEach(line => {
+    const nameMatch = line.match(/^\*\s*FROM CLIP NAME:\s*(.*)/i);
+    if (nameMatch) {
+      currentClipName = nameMatch[1].trim();
+      return;
+    }
+
+    const m = line.match(edlRegex);
+    if (m) {
+      const isVideo = m[3].includes("V");
+      const tk = isVideo ? "v1" : "a1";
+      const srcIn = parseSmpteToSec(m[5]);
+      const srcOut = parseSmpteToSec(m[6]);
+      const dstIn = parseSmpteToSec(m[7]);
+      const dstOut = parseSmpteToSec(m[8]);
+      const dur = Math.max(0.2, dstOut - dstIn);
+
+      const title = currentClipName || `Corte EDL ${m[1]}`;
+      currentClipName = "";
+
+      const newClip = {
+        id: uid(tk + "_"),
+        track: tk,
+        title,
+        start: dstIn,
+        inPoint: srcIn,
+        dur: dur,
+        speed: 1,
+        opacity: 100,
+        volume: 100,
+        synthType: "scene"
+      };
+
+      ensureTrackExists(tk);
+      S.clips[tk].push(newClip);
+      importedCount++;
+    }
+  });
+
+  if (importedCount > 0) {
+    resolveTrackOverlaps("v1");
+    resolveTrackOverlaps("a1");
+    recalcSequenceDuration();
+    renderAll();
+    toast(`${importedCount} eventos importados da lista EDL CMX3600!`);
+  } else {
+    toast("Nenhum corte CMX3600 válido encontrado no arquivo.");
+  }
 }
 
 /* ---------- Importação e Exportação de Legendas Padrão (.SRT) ---------- */
@@ -6287,7 +7152,20 @@ function aboutDialog() {
       <b style="margin-top:4px">Recursos da Edição 95 (Moldes Adobe Premiere 4.2)</b>
       <div class="listview vers" style="max-height:175px">
         <div class="ver-block">
-          <b>1.0.2 · Linha do Tempo Limpa, Assistente 95, Janelas MDI/Externas &amp; Efeitos/Transições</b><span class="chip95">você está nesta</span>
+          <b>1.0.3 · Trim Suite 95, Áudio DSP, Scopes Broadcast &amp; Storyboard</b><span class="chip95">você está nesta</span>
+          <ul>
+            <li>Trim Suite Completa: Ferramentas Slip (Y), Slide (U), Rolling Edit (N) e Ripple Edit (B)</li>
+            <li>Miniaturas de Película (Filmstrip) nos clipes e Trava de Faixas com Cadeado (L)</li>
+            <li>Monitores Técnicos Broadcast: Vectorscope UV Polar (NTSC) e Waveform Monitor IRE (0–100 IRE)</li>
+            <li>Áudio DSP Analógico: Equalizador Gráfico 10 Bandas (31Hz a 16kHz) e Goniômetro Estéreo Lissajous</li>
+            <li>Ducking Automático de Trilha Sonora (-12 dB na música sob locução em A1)</li>
+            <li>Title Designer 95 Avançado: Terço Inferior (Lower Third), Sombras Projetadas 3D, Bordas e Gradientes</li>
+            <li>Pastas Aninhadas no Bin e Modo Prancha / Storyboard com montagem automática na Timeline</li>
+            <li>Interoperabilidade Profissional: Importação e Exportação de Listas de Decisão CMX 3600 (.EDL)</li>
+          </ul>
+        </div>
+        <div class="ver-block">
+          <b>1.0.2 · Linha do Tempo Limpa, Assistente 95, Janelas MDI/Externas &amp; Efeitos/Transições</b>
           <ul>
             <li>Inicialização com Linha do Tempo 100% vazia (sem clipes de demonstração) e Assistente de Boas-Vindas 95</li>
             <li>Divisores de tela redimensionáveis (Splitters) com arraste suave e salvamento de dimensões</li>
@@ -6396,7 +7274,21 @@ function openWhatsNewDialog() {
       </div>
       <div class="listview vers" style="max-height:220px;overflow:auto">
         <div class="ver-block">
-          <b>1.0.2 · Linha do Tempo Limpa, Assistente 95, Janelas MDI/Externas &amp; Efeitos/Transições</b><span class="chip95">versão instalada</span>
+          <b>1.0.3 · Trim Suite 95, Áudio DSP, Scopes Broadcast &amp; Storyboard</b><span class="chip95">versão instalada</span>
+          <ul>
+            <li><b>Trim Suite 1995:</b> Ferramentas profissionais Slip (Y), Slide (U), Rolling Edit (N) e Ripple Edit (B) para montagem fina idêntica ao Adobe Premiere 4.2 e Media 100.</li>
+            <li><b>Filmstrip na Timeline:</b> Exibição de fotogramas de película de cinema nos blocos dos clipes com opção de alternar no rodapé.</li>
+            <li><b>Trava de Faixas (Cadeados L):</b> Bloqueio de proteção contra edições e cortes acidentais com visual clássico de ranhuras.</li>
+            <li><b>Monitores Técnicos Broadcast:</b> Vectorscope UV polar (com alvos NTSC de 75%) e Waveform Monitor IRE (0–100 IRE) integrados ao Monitor de Programa.</li>
+            <li><b>Estúdio DSP Analógico:</b> Equalizador Gráfico de 10 Bandas (31Hz a 16kHz) com predefinições analógicas de estúdio e Goniômetro Estéreo Lissajous.</li>
+            <li><b>Auto-Ducking de Trilha:</b> Atenuação automática suave de -12 dB nas músicas (A2/A3) sempre que houver locução ou fala na faixa A1.</li>
+            <li><b>Title Designer 95 Avançado:</b> Terço Inferior de Telejornal (Lower Third), Sombras 3D, Contorno Stroke e Gradientes Anos 90.</li>
+            <li><b>Pastas e Storyboard no Bin:</b> Criação de diretórios no projeto e montagem sequencial automática com 1 clique.</li>
+            <li><b>Intercâmbio CMX 3600 (.EDL):</b> Importe e exporte listas de decisão padrão da indústria de cinema e broadcast.</li>
+          </ul>
+        </div>
+        <div class="ver-block">
+          <b>1.0.2 · Linha do Tempo Limpa, Assistente 95, Janelas MDI/Externas &amp; Efeitos/Transições</b>
           <ul>
             <li><b>Linha do Tempo Limpa:</b> Inicialização 100% vazia sem nenhum clipe ou áudio demo sintético.</li>
             <li><b>Assistente de Boas-Vindas 95:</b> Tela inicial clássica para Criar Novo Projeto, Abrir Projeto (.PPJ), Importar Mídias ou Carregar Roteiros, além de atalho rápido para Projetos Recentes.</li>
@@ -6766,7 +7658,15 @@ const CMD = {
   toolTrack: { label: "Ferramenta Selecionar Faixa Adiante", key: "Tecla A", run: () => setTimelineTool("track") },
   toolRazor: { label: "Ferramenta Navalha (Corte)", key: "Tecla C", run: () => setTimelineTool("razor") },
   toolTrim: { label: "Ferramenta Trim (Ajuste de Borda)", key: "Tecla T", run: () => setTimelineTool("trim") },
+  toolRipple: { label: "Ferramenta Ripple Edit (Ajuste com Fechamento)", key: "Tecla B", run: () => setTimelineTool("ripple") },
+  toolRolling: { label: "Ferramenta Rolling Edit (Ajuste Mútuo)", key: "Tecla N", run: () => setTimelineTool("rolling") },
+  toolSlip: { label: "Ferramenta Slip (Deslizar Conteúdo Interno)", key: "Tecla Y", run: () => setTimelineTool("slip") },
+  toolSlide: { label: "Ferramenta Slide (Deslizar Posição)", key: "Tecla U", run: () => setTimelineTool("slide") },
   toolHand: { label: "Ferramenta Mão (Arrastar Timeline)", key: "Tecla H", run: () => setTimelineTool("hand") },
+  equalizadorDSP: { label: "Equalizador Gráfico 10 Bandas (DSP)…", icon: "foley", run: () => openGraphicEQDialog() },
+  importarEDL: { label: "Importar Lista de Decisão (CMX 3600 EDL)…", icon: "script", run: () => importCMX3600EDL() },
+  exportarEDL: { label: "Exportar Lista de Decisão (CMX 3600 EDL)…", icon: "save", run: () => exportCMX3600EDL() },
+  storyboardMode: { label: "Modo Prancha / Storyboard no Bin", run: () => { S.binView = "storyboard"; S.sideTab = "bin"; prefs.painel = true; renderSide(); } },
   configTeclas: { label: "Trocar e Personalizar Atalhos de Teclado…", icon: "gear", run: () => { S.sideTab = "atalhos"; prefs.painel = true; document.body.dataset.painel = "on"; renderSide(); toast("Clique em [Trocar] ao lado de qualquer atalho na aba esquerda!"); } },
   layDual: { label: "Monitores Duplos (Origem + Programa)", run: () => setMonitorLayout("dual") },
   laySingle: { label: "Monitor Master Grande", run: () => setMonitorLayout("single") },
@@ -6792,13 +7692,13 @@ const CMD = {
 };
 
 const MENUS = [
-  ["Arquivo", "A", ["telaInicial", "-", "novoProjetoLivre", "abrirProjeto", "salvarProjeto", "salvarProjetoComo", "-", "importarMidia", "importarSRT", "exportarSRT", "-", "gerarSinal", "geradorGC", "-", "importarSR", "salvarNoSR", "-", "exportarMaster", "-", "abrirScriptRoom", "-", "desligar"]],
+  ["Arquivo", "A", ["telaInicial", "-", "novoProjetoLivre", "abrirProjeto", "salvarProjeto", "salvarProjetoComo", "-", "importarMidia", "importarEDL", "exportarEDL", "-", "importarSRT", "exportarSRT", "-", "gerarSinal", "geradorGC", "-", "importarSR", "salvarNoSR", "-", "exportarMaster", "-", "abrirScriptRoom", "-", "desligar"]],
   ["Editar", "E", ["desfazer", "refazer", "-", "copiarClipe", "colarClipe", "duplicarClipe", "-", "cortarAgulha", "excluirClipe", "excluirRipple", "-", "configTeclas"]],
-  ["Projeto", "P", ["importarMidia", "abrirProjeto", "salvarProjeto", "-", "gerarSinal", "geradorGC", "adicionarMarcador", "-", "addVideoTrack", "addAudioTrack", "-", "mesaSom", "-", "importarSRT", "exportarSRT", "-", "importarSR"]],
-  ["Clipe", "C", ["velocidadeClipe", "cortarAgulha", "duplicarClipe", "excluirClipe", "excluirRipple", "-", "addVideoTrack", "addAudioTrack", "-", "toolSelect", "toolTrack", "toolRazor", "toolTrim", "toolHand"]],
+  ["Projeto", "P", ["importarMidia", "abrirProjeto", "salvarProjeto", "-", "gerarSinal", "geradorGC", "adicionarMarcador", "-", "addVideoTrack", "addAudioTrack", "-", "mesaSom", "equalizadorDSP", "-", "importarSRT", "exportarSRT", "-", "importarSR"]],
+  ["Clipe", "C", ["velocidadeClipe", "cortarAgulha", "duplicarClipe", "excluirClipe", "excluirRipple", "-", "addVideoTrack", "addAudioTrack", "-", "toolSelect", "toolTrack", "toolRazor", "toolTrim", "toolRipple", "toolRolling", "toolSlip", "toolSlide", "toolHand"]],
   ["Janela", "J", ["layDual", "laySingle", "layScript", "-", "verPainel", "-", "desacoplarProgram", "desacoplarSource", "desacoplarSide", "desacoplarTimeline", "-", "reacoplarTodos", "resetLayout", "-", "esquema"]],
-  ["Áudio/Vídeo", "V", ["mesaSom", "addVideoTrack", "addAudioTrack", "-", "mesaFoley", "gravadorADR", "claqueteCam", "-", "exportarMaster"]],
-  ["Ajuda", "u", ["atalhosAjuda", "dicaDoDia", "procurarAtualizacoes", "-", "telaInicial", "oQueHaDeNovo", "telaAbertura", "sobre"]]
+  ["Áudio/Vídeo", "V", ["mesaSom", "equalizadorDSP", "-", "addVideoTrack", "addAudioTrack", "-", "mesaFoley", "gravadorADR", "claqueteCam", "-", "exportarMaster"]],
+  ["Ajuda", "u", ["atalhosAjuda", "dicaDoDia", "procurarAtualizacoes", "-", "oQueHaDeNovo", "telaAbertura", "sobre"]]
 ];
 
 let menuStack = [], menuOwner = null;
@@ -7445,6 +8345,16 @@ async function boot() {
   document.getElementById("filterSel").onchange = e => { prefs.filter = e.target.value; renderMonitorFrame(); };
   document.getElementById("chkSafe").onchange = e => { prefs.safeArea = e.target.checked; renderMonitorFrame(); };
   document.getElementById("chkCC").onchange = e => { prefs.cc = e.target.checked; renderMonitorFrame(); };
+  const chkFilm = document.getElementById("chkFilmstrip");
+  if (chkFilm) {
+    chkFilm.checked = prefs.filmstrip !== false;
+    chkFilm.onchange = e => { prefs.filmstrip = e.target.checked; savePrefs(); renderTimeline(); };
+  }
+  const scopeModeEl = document.getElementById("scopeModeSel");
+  if (scopeModeEl) {
+    scopeModeEl.value = prefs.scopeMode || "video";
+    scopeModeEl.onchange = e => { prefs.scopeMode = e.target.value; savePrefs(); renderMonitorFrame(); };
+  }
   const tlZoomEl = document.getElementById("tlZoom");
   if (tlZoomEl) {
     tlZoomEl.value = String(Number(prefs.tlZoom) || 10);
@@ -7519,6 +8429,10 @@ async function boot() {
     else if (match("toolTrack")) { e.preventDefault(); setTimelineTool("track"); }
     else if (match("toolRazor")) { e.preventDefault(); setTimelineTool("razor"); }
     else if (match("toolTrim")) { e.preventDefault(); setTimelineTool("trim"); }
+    else if (match("toolRipple")) { e.preventDefault(); setTimelineTool("ripple"); }
+    else if (match("toolRolling")) { e.preventDefault(); setTimelineTool("rolling"); }
+    else if (match("toolSlip")) { e.preventDefault(); setTimelineTool("slip"); }
+    else if (match("toolSlide")) { e.preventDefault(); setTimelineTool("slide"); }
     else if (match("toolHand")) { e.preventDefault(); setTimelineTool("hand"); }
     else if (match("markIn")) { e.preventDefault(); document.getElementById("btnSrcIn").click(); toast(`Entrada IN marcada em ${mmss(S.srcIn)}`); }
     else if (match("markOut")) { e.preventDefault(); document.getElementById("btnSrcOut").click(); toast(`Saída OUT marcada em ${mmss(S.srcOut)}`); }

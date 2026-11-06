@@ -22,6 +22,7 @@ contextBridge.exposeInMainWorld("editorNative", {
   pickProjectSavePath: (nome) => ipcRenderer.invoke("project:pickSavePath", nome),
   readTextFile: (filePath) => ipcRenderer.invoke("file:readText", filePath),
   pickSrtFile: () => ipcRenderer.invoke("srt:pickFile"),
+  pickEdlFile: () => ipcRenderer.invoke("edl:pickFile"),
   saveAs: (nome, bytes, filtros) => ipcRenderer.invoke("file:saveAs", nome, bytes, filtros),
   getDefaultExportDir: () => ipcRenderer.invoke("file:getDefaultExportDir"),
   pickSavePath: (nome, filtros, caminhoAtual) => ipcRenderer.invoke("file:pickSavePath", nome, filtros, caminhoAtual),

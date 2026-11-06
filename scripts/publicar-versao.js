@@ -82,14 +82,17 @@ run(`git push origin ${tag}`);
 
 // 6. Publica Release no GitHub via gh CLI com o instalador anexado
 console.log(`Criando Release ${tag} no GitHub...`);
-const notes = `### ScriptEditor ${version} · Edição 95 — Linha do Tempo Limpa, Assistente 95, Janelas MDI/Externas & Efeitos/Transições\n\n` +
-  `- **Linha do Tempo 100% Limpa:** Inicialização com projeto em branco sem clipes ou áudios demo sintéticos\n` +
-  `- **Assistente de Boas-Vindas 95:** Tela inicial clássica para Criar Novo Projeto, Abrir Projeto (.PPJ), Importar Mídias ou Carregar Roteiros, além de lista de Projetos Recentes com abertura instantânea\n` +
-  `- **Divisores Redimensionáveis (Splitters):** Ajuste arrastável com mouse entre Janela Projeto Lateral, Monitores de Vídeo e Linha do Tempo, com salvamento automático de dimensões no layout\n` +
-  `- **Desacoplamento de Janelas (MDI e Janelas Externas):** Painéis podem ser transformados em janelas flutuantes internas (MDI) ou janelas nativas externas do Windows para trabalhar em múltiplos monitores\n` +
-  `- **9 Novas Transições Profissionais:** Cortina Diagonal, Porta Dupla (Barn Doors), Veneziana (Blinds), Empurrar Horizontal, Empurrar Vertical, Íris Circular, Zoom Dissolve, Strobe e Xadrez (Checkerboard)\n` +
-  `- **7 Novos Efeitos e Filtros:** Vinheta 35mm, Brilho Difuso (Glow Halation 90s), Desfoque Suave (Blur), Caleidoscópio 4x, Pôster 8-Cores, Duotone Cyan/Âmbar e Borda de Película 35mm com perfurações\n` +
-  `- **Menu Ajuda Polido:** Atalhos, Dica do Dia, Procurar Atualizações, Assistente de Boas-Vindas, O que há de novo, Splash Screen e Sobre o ScriptEditor 95`;
+const notes = `### ScriptEditor ${version} · Edição 95 — A Atualização Magna da Ilha de Edição\n\n` +
+  `- **Ferramentas de Trim Profissionais:** Slip Tool (Y), Slide Tool (U), Rolling Edit (N) e Ripple Edit (B) estilo Adobe Premiere 4.2 e Avid 1995\n` +
+  `- **Filmstrip de Fotogramas na Timeline:** Pré-visualização de quadros de película com perfurações diretamente dentro das faixas de vídeo\n` +
+  `- **Travamento de Faixas (Cadeados 95) & Roteamento (Patching):** Bloqueio contra cortes acidentais e roteamento visual de canais V1/A1\n` +
+  `- **Equalizador Gráfico de 10 Bandas DSP:** Equalização profissional em tempo real (31Hz a 16kHz) via Web Audio com presets de estúdio\n` +
+  `- **Goniômetro Estéreo / Phase Scope:** Medição contínua de correlação de fase estéreo X/Y (Lissajous) em fósforo verde\n` +
+  `- **Auto-Ducking de Trilha Sonora:** Atenuação automática da trilha musical (-12dB) durante trechos de fala e locução\n` +
+  `- **Monitores Técnicos Broadcast (Vectorscope & Waveform IRE):** Análise polar de croma UV e luminância 0-100 IRE para calibração de sinal\n` +
+  `- **Title Designer 95 Avançado:** Sombras projetadas (Drop Shadow), bordas (Stroke), gradientes dourado/metálico e modelos de Lower Thirds para telejornal\n` +
+  `- **Pastas (Bins Aninhados) & Modo Storyboard:** Organização em pastas no Cesto de Mídia e prancha visual de ordenação de planos\n` +
+  `- **Interoperabilidade CMX3600 EDL:** Exportação e importação de listas de decisão de edição compatíveis com o padrão da indústria`;
 
 const releaseCheck = runSilent(`gh release view ${tag} --json tagName`);
 if (!releaseCheck) {

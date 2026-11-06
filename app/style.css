@@ -964,6 +964,22 @@ body[data-tool="razor"] .tl-clip {
   cursor: crosshair !important;
 }
 
+body[data-tool="slip"] .tl-clip {
+  cursor: ew-resize !important;
+}
+
+body[data-tool="slide"] .tl-clip {
+  cursor: move !important;
+}
+
+body[data-tool="rolling"] .tl-clip {
+  cursor: col-resize !important;
+}
+
+body[data-tool="ripple"] .tl-clip {
+  cursor: e-resize !important;
+}
+
 .tl-clip {
   position: absolute;
   top: 2px;
@@ -2053,4 +2069,159 @@ body[data-tool="razor"] .tl-clip {
   background: var(--sel);
   color: var(--sel-tx);
 }
+
+/* ---------- Fotogramas de Película (Filmstrip) na Timeline ---------- */
+.tl-clip .filmstrip-strip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  opacity: 0.38;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.tl-clip .filmstrip-thumb {
+  height: 100%;
+  width: 44px;
+  object-fit: cover;
+  border-right: 1px solid rgba(0, 0, 0, 0.45);
+  flex-shrink: 0;
+}
+
+.tl-clip .filmstrip-perfs {
+  position: absolute;
+  top: 1px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: repeating-linear-gradient(90deg, #000 0px, #000 3px, transparent 3px, transparent 8px);
+  pointer-events: none;
+  opacity: 0.7;
+  z-index: 2;
+}
+
+.tl-clip.has-filmstrip .clip-text-box {
+  position: relative;
+  z-index: 3;
+  text-shadow: 1px 1px 2px #000, -1px -1px 2px #000, 1px -1px 2px #000, -1px 1px 2px #000;
+}
+
+/* ---------- Goniômetro Estéreo / Phase Scope (Lissajous) ---------- */
+.gonio-scope {
+  width: 44px;
+  height: 34px;
+  background: #020603;
+  border: 1px solid #0F2012;
+  margin-top: 1px;
+  display: block;
+  box-shadow: inset 1px 1px #000;
+}
+
+/* ---------- Monitores Técnicos Broadcast (Vectorscope & Waveform IRE) ---------- */
+.scope-canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #020604;
+}
+
+/* ---------- Equalizador Gráfico 10-Bandas DSP 1995 ---------- */
+.eq-rack {
+  display: flex;
+  gap: 6px;
+  align-items: flex-end;
+  justify-content: space-between;
+  background: #141A16;
+  padding: 10px 8px 6px;
+  border: 1px solid #000;
+  box-shadow: inset 1px 1px #000, inset -1px -1px var(--hi);
+}
+
+.eq-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font: 400 9px/1 var(--f-pix);
+  color: #88C098;
+}
+
+.eq-col input[type="range"] {
+  writing-mode: vertical-lr;
+  direction: rtl;
+  height: 100px;
+  width: 16px;
+  accent-color: #00FF66;
+}
+
+.eq-db-lbl {
+  color: #FFFF40;
+  font-size: 9px;
+  height: 11px;
+}
+
+.eq-freq-lbl {
+  color: #A0B8A8;
+  font-weight: 700;
+}
+
+/* Pastas e Modo Storyboard no Cesto de Mídia (Bin) */
+.bin-folder-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 4px;
+  background: var(--face);
+  box-shadow: inset 1px 1px var(--hi), inset -1px -1px var(--lo);
+  margin-bottom: 4px;
+  font-size: 11px;
+}
+
+.storyboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 6px;
+  padding: 6px;
+  background: var(--field);
+  box-shadow: inset 1px 1px #000;
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+.storyboard-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--face);
+  border: 1px solid var(--dk);
+  box-shadow: inset 1px 1px var(--hi), inset -1px -1px var(--lo), 1px 1px 3px rgba(0,0,0,0.3);
+  padding: 2px;
+  cursor: grab;
+  user-select: none;
+}
+
+.storyboard-card.sel {
+  outline: 2px solid var(--sel);
+  background: #FFF8D0;
+}
+
+.storyboard-thumb {
+  width: 100%;
+  height: 64px;
+  object-fit: cover;
+  background: #000;
+}
+
+.storyboard-num {
+  font: 700 9.5px/1 var(--f-pix);
+  background: #000080;
+  color: #FFF;
+  padding: 1px 4px;
+  display: flex;
+  justify-content: space-between;
+}
+
 

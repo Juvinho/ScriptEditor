@@ -291,6 +291,26 @@ ipcMain.handle("srt:pickFile", async (e) => {
   };
 });
 
+ipcMain.handle("edl:pickFile", async (e) => {
+  const dono = BrowserWindow.fromWebContents(e.sender) || win;
+  const r = await dialog.showOpenDialog(dono, {
+    title: "Importar Lista de Decisão CMX 3600 (.EDL)",
+    properties: ["openFile"],
+    filters: [
+      { name: "Lista de Decisão CMX 3600 (*.edl)", extensions: ["edl"] },
+      { name: "Arquivos de Texto (*.txt)", extensions: ["txt"] },
+      { name: "Todos os Arquivos (*.*)", extensions: ["*"] }
+    ]
+  });
+  if (r.canceled || !r.filePaths.length) return null;
+  const fp = r.filePaths[0];
+  return {
+    name: path.basename(fp),
+    path: fp,
+    content: fs.readFileSync(fp, "utf8")
+  };
+});
+
 ipcMain.handle("file:saveAs", async (e, nomePadrao, bytes, filtros) => {
   const dono = BrowserWindow.fromWebContents(e.sender) || win;
   const safeName = String(nomePadrao || "EXPORTACAO_MASTER").replace(/[\\/:*?"<>|]/g, "_");

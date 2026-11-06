@@ -132,8 +132,14 @@
           <!-- MONITOR DE PROGRAMA (MASTER SEQUENCE MONITOR — Em Primeiro Plano) -->
           <div class="mon-window" id="programBox">
             <div class="mon-title">
-              <span id="progTitle">MONITOR DE PROGRAMA (SEQUÊNCIA MASTER · CLIQUE/ARRASTE PARA REDIMENSIONAR)</span>
+              <span id="progTitle">MONITOR DE PROGRAMA (SEQUÊNCIA MASTER)</span>
               <div class="row" style="gap:4px">
+                <select id="scopeModeSel" style="height:19px;font-size:10px;padding:0 2px" title="Modo de Visualização: Vídeo Master, Vectorscope UV ou Waveform IRE">
+                  <option value="video" selected>Vídeo Master</option>
+                  <option value="waveform">Waveform IRE</option>
+                  <option value="vectorscope">Vectorscope UV</option>
+                  <option value="split">Vídeo + Waveform</option>
+                </select>
                 <span class="tc-led" id="tcDisplay">00:00:00:00</span>
                 <button type="button" class="mon-dock-btn" data-detach="programBox" title="Desacoplar Monitor de Programa (MDI)">⧉</button>
                 <button type="button" class="mon-dock-btn" data-extwin="programBox" title="Mover para Janela Externa do Windows (Monitor Secundário)">↗</button>
@@ -142,9 +148,11 @@
             <div class="prog-with-vu">
               <div class="crt-bezel" id="progDropZone" title="Arraste as alças azuis/amarelas para redimensionar/mover a imagem ou vídeo selecionado · Duplo clique para Tocar/Pausar">
                 <canvas id="vCanvas" class="video-canvas" width="640" height="480"></canvas>
+                <canvas id="scopeCanvas" class="video-canvas scope-canvas" width="640" height="480" style="display:none"></canvas>
               </div>
-              <div class="vu-box" title="Medidor de Áudio Master Estéreo L/R (dB) e Osciloscópio em Tempo Real">
-                <canvas id="vuScope" class="vu-scope" width="44" height="28" title="Forma de onda do áudio na agulha"></canvas>
+              <div class="vu-box" title="Medidor de Áudio Master Estéreo L/R (dB), Osciloscópio e Goniômetro Lissajous">
+                <canvas id="vuScope" class="vu-scope" width="44" height="24" title="Forma de onda do áudio na agulha"></canvas>
+                <canvas id="gonioScope" class="gonio-scope" width="44" height="34" title="Goniômetro de Fase Estéreo (Lissajous X/Y)"></canvas>
                 <div class="vu-bars-wrap">
                   <div class="vu-scale">
                     <span>0</span>
@@ -212,7 +220,11 @@
           <button type="button" class="tool-btn" data-toolbtn="select" aria-pressed="true" title="Ferramenta Seleção e Movimento (Tecla V)">[ Seta (V) ]</button>
           <button type="button" class="tool-btn" data-toolbtn="track" aria-pressed="false" title="Selecionar Faixa Adiante — move o clipe e todos os seguintes (Tecla A)">[ Adiante &gt;&gt; (A) ]</button>
           <button type="button" class="tool-btn" data-toolbtn="razor" aria-pressed="false" title="Ferramenta Navalha — clique num clipe para dividi-lo (Tecla C)">[ Navalha (C) ]</button>
-          <button type="button" class="tool-btn" data-toolbtn="trim" aria-pressed="false" title="Ferramenta Ajuste de Borda / Duração (Tecla T)">[ Trim &lt;-&gt; (T) ]</button>
+          <button type="button" class="tool-btn" data-toolbtn="trim" aria-pressed="false" title="Ferramenta Ajuste de Borda / Trim (Tecla T)">[ Trim &lt;-&gt; (T) ]</button>
+          <button type="button" class="tool-btn" data-toolbtn="ripple" aria-pressed="false" title="Ferramenta Ripple Edit — ajusta borda fechando/abrindo espaço automaticamente (Tecla B)">[ Ripple (B) ]</button>
+          <button type="button" class="tool-btn" data-toolbtn="rolling" aria-pressed="false" title="Ferramenta Rolling Edit — ajusta o ponto de corte entre dois clipes (Tecla N)">[ Rolling (N) ]</button>
+          <button type="button" class="tool-btn" data-toolbtn="slip" aria-pressed="false" title="Ferramenta Slip — desliza o conteúdo interno do clipe sem mudar duração (Tecla Y)">[ Slip (Y) ]</button>
+          <button type="button" class="tool-btn" data-toolbtn="slide" aria-pressed="false" title="Ferramenta Slide — move o clipe ajustando os cortes vizinhos (Tecla U)">[ Slide (U) ]</button>
           <button type="button" class="tool-btn" data-toolbtn="hand" aria-pressed="false" title="Ferramenta Mão — arrasta a visualização da linha do tempo (Tecla H)">[ Mão (H) ]</button>
           <span class="tsep"></span>
           <button type="button" class="btn sm" data-cmd="cortarAgulha" title="Dividir clipe selecionado na agulha (Ctrl+K)">Cortar (Ctrl+K)</button>
@@ -258,6 +270,7 @@
           </label>
           <label class="row" style="gap:3px"><input type="checkbox" id="chkSafe"> Grade TV</label>
           <label class="row" style="gap:3px"><input type="checkbox" id="chkCC" checked> Legendas</label>
+          <label class="row" style="gap:3px" title="Exibir fotogramas de película de cinema nas faixas de vídeo da timeline"><input type="checkbox" id="chkFilmstrip" checked> Película</label>
           <span>Zoom:</span>
           <input type="range" id="tlZoom" min="0.5" max="60" step="0.5" value="10" style="width:82px" title="Zoom da Linha do Tempo focado na Agulha (ou use Ctrl + Roda do Mouse / teclas + e -)">
           <button type="button" class="btn sm" data-cmd="configTeclas" title="Trocar e personalizar atalhos de teclado">Teclas…</button>
