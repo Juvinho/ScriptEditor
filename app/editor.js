@@ -5,7 +5,7 @@
    Zero emojis · Ícones SVG 16x16 pixel-art · Edição Comercial, Doméstica e Roteirizada
    ============================================================================ */
 
-let APP_VERSAO = "1.1.3"; // Substituída em boot() pela versão real do package.json
+let APP_VERSAO = "1.1.4"; // Substituída em boot() pela versão real do package.json
 const FPS = 29.97;
 
 const ICON = {
@@ -250,6 +250,7 @@ function savePrefs() {
 }
 
 const S = {
+  hasActiveProject: true,
   projectName: "PROJETO_LIVRE_01.PPJ",
   projectFilePath: null,
   isDirty: false,
@@ -3945,15 +3946,30 @@ function drawSingleClipToContext(tCtx, W, H, clip, globalSec) {
         tCtx.moveTo(0, barY + barH); tCtx.lineTo(W, barY + barH);
         tCtx.stroke();
 
+        // Se tiver Badge (ex.: PLANTÃO / URGENTE / REDE BRASIL)
+        let badgeW = 0;
+        if (clip.crawlBadge) {
+          tCtx.font = "900 13px 'Courier New', monospace";
+          badgeW = tCtx.measureText(clip.crawlBadge).width + 26;
+          tCtx.fillStyle = clip.crawlBadgeCol || "#D00000";
+          tCtx.fillRect(0, barY, badgeW, barH);
+          tCtx.strokeStyle = "#FFFF55";
+          tCtx.lineWidth = 1.5;
+          tCtx.strokeRect(0, barY, badgeW, barH);
+          tCtx.fillStyle = "#FFFFFF";
+          tCtx.textAlign = "center";
+          tCtx.fillText(clip.crawlBadge, badgeW / 2, barY + barH / 2 + 5);
+        }
+
         tCtx.save();
         tCtx.beginPath();
-        tCtx.rect(0, barY, W, barH);
+        tCtx.rect(badgeW, barY, W - badgeW, barH);
         tCtx.clip();
 
         tCtx.font = `bold ${fontSize}px ${fontFace}`;
         const txtW = tCtx.measureText(clip.text).width;
         const prog = dur > 0 ? (globalSec - clip.start) / dur : 0;
-        const crawlX = W - prog * (W + txtW + 60);
+        const crawlX = W - prog * (W - badgeW + txtW + 80);
 
         applyTextStyle(barY + barH / 2 + fontSize * 0.35);
         tCtx.textAlign = "left";
@@ -3966,25 +3982,78 @@ function drawSingleClipToContext(tCtx, W, H, clip, globalSec) {
         tCtx.restore();
       } else if (chy === "roll") {
         tCtx.save();
-        tCtx.font = `bold ${fontSize}px ${fontFace}`;
-        tCtx.textAlign = "center";
-        const lines = clip.text.split("\n");
-        const lineH = fontSize * 1.35;
-        const totalH = lines.length * lineH;
+        const lines = clip.text ? clip.text.split("\n") : [];
+        const is2Col = clip.rollAlign === "2col";
+        const lineH = fontSize * 1.5;
+        const headerH = clip.rollTitle ? 65 : 0;
+        const totalH = headerH + lines.length * lineH;
         const prog = dur > 0 ? (globalSec - clip.start) / dur : 0;
-        const startY = H + 20;
-        const curY = startY - prog * (H + totalH + 40);
+        const startY = H + 25;
+        const curY = startY - prog * (H + totalH + 50);
 
-        lines.forEach((line, li) => {
-          const ly = curY + li * lineH;
-          if (ly >= -30 && ly <= H + 30) {
-            applyTextStyle(ly);
+        if (clip.rollTitle) {
+          const titleY = curY;
+          if (titleY >= -40 && titleY <= H + 40) {
+            tCtx.font = `900 ${fontSize + 4}px ${fontFace}`;
+            tCtx.textAlign = "center";
+            applyTextStyle(titleY);
             if (clip.strokeWidth) {
               tCtx.strokeStyle = "#000000";
-              tCtx.lineWidth = clip.strokeWidth;
-              tCtx.strokeText(line, W / 2, ly);
+              tCtx.lineWidth = clip.strokeWidth + 1;
+              tCtx.strokeText(clip.rollTitle.toUpperCase(), W / 2, titleY);
             }
-            tCtx.fillText(line, W / 2, ly);
+            tCtx.fillText(clip.rollTitle.toUpperCase(), W / 2, titleY);
+
+            // Linha decorativa dourada abaixo do título
+            tCtx.strokeStyle = "#FFE040";
+            tCtx.lineWidth = 1.5;
+            tCtx.beginPath();
+            tCtx.moveTo(W / 2 - 120, titleY + 10);
+            tCtx.lineTo(W / 2 + 120, titleY + 10);
+            tCtx.stroke();
+          }
+        }
+
+        lines.forEach((line, li) => {
+          const ly = curY + headerH + li * lineH;
+          if (ly >= -30 && ly <= H + 30) {
+            if (is2Col && line.includes("|")) {
+              const parts = line.split("|");
+              const role = parts[0].trim().toUpperCase();
+              const name = (parts[1] || "").trim().toUpperCase();
+
+              // Coluna Esquerda (Cargo) alinhada à direita do centro
+              tCtx.font = `bold ${Math.max(12, fontSize - 2)}px ${fontFace}`;
+              tCtx.textAlign = "right";
+              tCtx.fillStyle = "#CCCCCC";
+              if (clip.strokeWidth) {
+                tCtx.strokeStyle = "#000000";
+                tCtx.lineWidth = clip.strokeWidth;
+                tCtx.strokeText(role, W / 2 - 18, ly);
+              }
+              tCtx.fillText(role, W / 2 - 18, ly);
+
+              // Coluna Direita (Nome) alinhada à esquerda do centro
+              tCtx.font = `900 ${fontSize}px ${fontFace}`;
+              tCtx.textAlign = "left";
+              applyTextStyle(ly);
+              if (clip.strokeWidth) {
+                tCtx.strokeStyle = "#000000";
+                tCtx.lineWidth = clip.strokeWidth;
+                tCtx.strokeText(name, W / 2 + 18, ly);
+              }
+              tCtx.fillText(name, W / 2 + 18, ly);
+            } else {
+              tCtx.font = `bold ${fontSize}px ${fontFace}`;
+              tCtx.textAlign = "center";
+              applyTextStyle(ly);
+              if (clip.strokeWidth) {
+                tCtx.strokeStyle = "#000000";
+                tCtx.lineWidth = clip.strokeWidth;
+                tCtx.strokeText(line, W / 2, ly);
+              }
+              tCtx.fillText(line, W / 2, ly);
+            }
           }
         });
         tCtx.restore();
@@ -4412,7 +4481,19 @@ function applyAnalogTapeEffects(ctx, W, H) {
   const vhs = (typeof S !== "undefined" && S.vhsSettings) ? S.vhsSettings : null;
   if (!vhs || !vhs.enabled) return;
 
-  // 1. Desvio de Tracking / Jitter Horizontal
+  const now = Date.now();
+
+  // 1. Curvatura e Distorção de Sincronismo Horizontal (Flag Waving / H-Sync Tear no topo da imagem)
+  if (vhs.hSyncTear > 0) {
+    const tearLines = Math.min(50, Math.floor(vhs.hSyncTear * 4.8));
+    for (let y = 0; y < tearLines; y++) {
+      const depth = 1 - (y / tearLines);
+      const waveShift = Math.sin((y * 0.28) + (now * 0.016)) * vhs.hSyncTear * 3.6 * (depth * depth);
+      ctx.drawImage(ctx.canvas, 0, y, W, 1, waveShift, y, W, 1);
+    }
+  }
+
+  // 2. Desvio de Tracking / Jitter Horizontal
   if (vhs.trackingJitter > 0) {
     const jitterMag = vhs.trackingJitter * 0.8;
     const numBands = Math.floor(vhs.trackingJitter);
@@ -4426,7 +4507,51 @@ function applyAnalogTapeEffects(ctx, W, H) {
     }
   }
 
-  // 2. Desalinhamento e Sangramento de Croma (Chroma Bleed / Sub-amostragem VHS)
+  // 3. Barra Móvel de Desajuste de Tracking VHS (Tracking Error Bar)
+  if (vhs.trackingError > 0) {
+    const barHeight = Math.max(14, Math.floor(vhs.trackingError * 6.5));
+    const cyclePeriod = H + barHeight * 2;
+    const barY = Math.floor((now * 0.045) % cyclePeriod) - barHeight;
+
+    if (barY + barHeight > 0 && barY < H) {
+      const clampedY = Math.max(0, barY);
+      const clampedH = Math.min(H - clampedY, barHeight - (clampedY - barY));
+      if (clampedH > 0) {
+        for (let y = clampedY; y < clampedY + clampedH; y++) {
+          const shift = (Math.random() - 0.5) * vhs.trackingError * 5.5;
+          ctx.drawImage(ctx.canvas, 0, y, W, 1, shift, y, W, 1);
+          if (Math.random() < 0.65) {
+            ctx.fillStyle = Math.random() < 0.5 ? "rgba(255,255,255,0.75)" : "rgba(10,10,10,0.85)";
+            const sw = Math.random() * W * 0.5;
+            const sx = Math.random() * (W - sw);
+            ctx.fillRect(sx, y, sw, 1);
+          }
+        }
+      }
+    }
+  }
+
+  // 4. Interferência de Rádio-Frequência RF / VHF / UHF (Linhas Diagonais Herringbone e Chuvisco)
+  if (vhs.rfNoise > 0) {
+    ctx.save();
+    const rfAlpha = Math.min(0.35, vhs.rfNoise * 0.035);
+    ctx.fillStyle = `rgba(255, 255, 255, ${rfAlpha})`;
+    const phase = (now * 0.04) % 20;
+    for (let y = 0; y < H; y += 3) {
+      const xOffset = ((y * 1.6) + phase) % 18;
+      if (Math.random() < 0.5) {
+        ctx.fillRect(xOffset, y, W, 1);
+      }
+    }
+    const rfDots = Math.floor(vhs.rfNoise * 30);
+    ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+    for (let i = 0; i < rfDots; i++) {
+      ctx.fillRect(Math.random() * W, Math.random() * H, 2, 1);
+    }
+    ctx.restore();
+  }
+
+  // 5. Desalinhamento e Sangramento de Croma (Chroma Bleed / Sub-amostragem VHS)
   if (vhs.chromaBleed > 0) {
     const shiftX = Math.round(vhs.chromaBleed * 0.9);
     ctx.save();
@@ -4436,7 +4561,7 @@ function applyAnalogTapeEffects(ctx, W, H) {
     ctx.restore();
   }
 
-  // 3. Dropouts de Óxido de Fita Magnética (White streaks / flecks)
+  // 6. Dropouts de Óxido de Fita Magnética (White streaks / flecks)
   if (vhs.dropouts > 0) {
     const numDrops = Math.floor(vhs.dropouts * 1.5);
     ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
@@ -4450,11 +4575,10 @@ function applyAnalogTapeEffects(ctx, W, H) {
     }
   }
 
-  // 4. Ruído de Cabeçote Inferior (Head Switching Noise na borda inferior do CRT)
+  // 7. Ruído de Cabeçote Inferior (Head Switching Noise na borda inferior do CRT)
   if (vhs.headSwitching > 0) {
     const headLines = Math.max(4, Math.min(22, Math.round(vhs.headSwitching * 1.2)));
     const startY = H - headLines;
-    const now = Date.now();
     for (let y = startY; y < H; y++) {
       const lineProg = (y - startY) / headLines;
       const wave = Math.sin(y * 4.2 + now * 0.03) * 14 * lineProg;
@@ -4469,7 +4593,7 @@ function applyAnalogTapeEffects(ctx, W, H) {
     }
   }
 
-  // 5. Linhas de Varredura CRT (Scanlines 15kHz)
+  // 8. Linhas de Varredura CRT (Scanlines 15kHz)
   if (vhs.scanlines) {
     ctx.save();
     ctx.fillStyle = "rgba(0, 0, 0, 0.16)";
@@ -4479,7 +4603,7 @@ function applyAnalogTapeEffects(ctx, W, H) {
     ctx.restore();
   }
 
-  // 6. Granulação e Hiss Magnético de Fita
+  // 9. Granulação e Hiss Magnético de Fita
   if (vhs.tapeHiss > 0) {
     ctx.save();
     ctx.fillStyle = `rgba(255, 255, 255, ${0.02 * vhs.tapeHiss})`;
@@ -4650,6 +4774,53 @@ function renderMonitorFrame() {
             const curScale = Math.min(1, progOffset);
             if (curScale > 0) {
               ctx.rect(c * cw + (cw * (1 - curScale)) / 2, r * ch + (ch * (1 - curScale)) / 2, cw * curScale, ch * curScale);
+            }
+          }
+        }
+        ctx.clip();
+        drawSingleClipToContext(ctx, W, H, v1, S.playhead);
+        ctx.restore();
+      } else if (trans.startsWith("Cubo 3D") || trans.startsWith("Cube Spin")) {
+        // Giro espacial de Cubo 3D 1995 (Face A gira de 0° a -90°, Face B gira de +90° a 0°)
+        ctx.fillStyle = "#040810";
+        ctx.fillRect(0, 0, W, H);
+        if (p < 0.5) {
+          if (prevClip) {
+            const ang = p * Math.PI;
+            ctx.save();
+            ctx.translate(W / 2, H / 2);
+            const scaleX = Math.cos(ang);
+            ctx.scale(Math.max(0.02, scaleX), 1 - p * 0.25);
+            ctx.translate(-W / 2, -H / 2);
+            drawSingleClipToContext(ctx, W, H, prevClip, prevClip.start + prevClip.dur - 0.05);
+            ctx.fillStyle = `rgba(0, 0, 0, ${p * 1.6})`;
+            ctx.fillRect(0, 0, W, H);
+            ctx.restore();
+          }
+        } else {
+          const inAng = (1 - p) * Math.PI;
+          ctx.save();
+          ctx.translate(W / 2, H / 2);
+          const scaleX = Math.cos(inAng);
+          ctx.scale(Math.max(0.02, scaleX), 0.75 + (p - 0.5) * 0.5);
+          ctx.translate(-W / 2, -H / 2);
+          drawSingleClipToContext(ctx, W, H, v1, S.playhead);
+          ctx.fillStyle = `rgba(0, 0, 0, ${(1 - p) * 1.6})`;
+          ctx.fillRect(0, 0, W, H);
+          ctx.restore();
+        }
+      } else if (trans.startsWith("Mosaico Explosivo") || trans.startsWith("Block Dissolve")) {
+        // Desintegração de Bloco DVE 1995 (Hardware 16x16 Pixel Blocks)
+        if (prevClip) drawSingleClipToContext(ctx, W, H, prevClip, prevClip.start + prevClip.dur - 0.05);
+        ctx.save();
+        const bCols = 20, bRows = 15;
+        const bw = W / bCols, bh = H / bRows;
+        ctx.beginPath();
+        for (let r = 0; r < bRows; r++) {
+          for (let c = 0; c < bCols; c++) {
+            const hash = (((c * 73 + r * 97) % 100) + ((c * 17) ^ (r * 23))) % 100 / 100;
+            if (hash <= p) {
+              ctx.rect(c * bw, r * bh, bw, bh);
             }
           }
         }
@@ -7737,6 +7908,7 @@ function renderSide() {
             <button type="button" class="btn sm def" data-cmd="importarMidia">+ Importar (Ctrl+I)</button>
             <button type="button" class="btn sm" id="btnAddAllBin" title="Colocar itens em sequência na faixa alvo">+ Colocar Todos</button>
             <button type="button" class="btn sm" data-cmd="gerarSinal">+ Sinal</button>
+            <button type="button" class="btn sm" data-cmd="rollCrawlDesigner" title="Roll & Crawl Designer 95 (Créditos / Letreiros)">+ Roll/Crawl</button>
           </div>
         </div>
 
@@ -8636,6 +8808,8 @@ function renderSide() {
       ["Íris Circular", "Abre um círculo expansivo a partir do centro."],
       ["Íris Diamante (Iris Diamond)", "Abertura expansiva em formato de diamante / losango a partir do centro."],
       ["Virada de Página 3D (Page Peel)", "Efeito clássico de folhear a página enrolando a ponta do vídeo com verso metálico."],
+      ["Cubo 3D Giratório (Cube Spin 3D)", "Giro espacial tridimensional de 90° entre duas faces adjacentes de um cubo."],
+      ["Mosaico Explosivo (Block Dissolve 95)", "Desintegração digital do plano em mosaico de 16x16 blocos com queda pseudo-aleatória."],
       ["Varredura de Relógio 360° (Clock Wipe)", "Varredura radial no sentido horário como os ponteiros de um relógio."],
       ["Persianas Verticais (Vertical Blinds)", "Fatias verticais que giram revelando o novo plano."],
       ["Zoom Dissolve", "Aproximação com dissolução óptica gradual."],
@@ -9707,6 +9881,476 @@ function openChyronDialog() {
   }, 40);
 }
 
+/* ---------- Roll & Crawl Designer 95 (Gerador de Créditos e Letreiros Rolantes) ---------- */
+function openRollCrawlDesigner(clipToEdit = null) {
+  let rcType = (clipToEdit && clipToEdit.chyronType === "crawl") ? "crawl" : "roll";
+  let rcAlign = (clipToEdit && clipToEdit.rollAlign) || "2col"; // "2col" | "center"
+  let fontFace = (clipToEdit && clipToEdit.fontFace) || "'Courier New', monospace";
+  let fontSize = (clipToEdit && clipToEdit.fontSize) || 18;
+  let fontCol = (clipToEdit && clipToEdit.fontColor) || "#FFFFFF";
+  let grad = (clipToEdit && clipToEdit.gradient) || "gold";
+  let stroke = (clipToEdit && clipToEdit.strokeWidth) != null ? clipToEdit.strokeWidth : 2;
+  let shadow = clipToEdit ? clipToEdit.shadow !== false : true;
+  let rollSpeed = (clipToEdit && clipToEdit.rollSpeed) || 55; // px por segundo
+  let rollTitle = (clipToEdit && clipToEdit.rollTitle) || "REDE BRASIL 1995 · PRODUÇÃO";
+  let crawlBadge = (clipToEdit && clipToEdit.crawlBadge) || "PLANTÃO";
+  let crawlBadgeCol = (clipToEdit && clipToEdit.crawlBadgeCol) || "#D00000";
+  let crawlSpeed = (clipToEdit && clipToEdit.crawlSpeed) || 90;
+
+  let defaultRollLines = [
+    "DIREÇÃO GERAL | ROBERTO SILVA",
+    "PRODUÇÃO EXECUTIVA | MARIA HELENA",
+    "ROTEIRO ORIGINAL | CARLOS ALBERTO",
+    "DIREÇÃO DE FOTOGRAFIA | PAULO HENRIQUE",
+    "MONTAGEM & EDIÇÃO | JORGE MEDEIROS",
+    "TRILHA SONORA | MAESTRO EDUARDO",
+    "OPERAÇÃO DE CÂMERA | MARCOS VINICIUS",
+    "SONOPLASTIA & ÁUDIO | LUCAS FERREIRA",
+    "AGRADECIMENTOS ESPECIAIS | ESTÚDIOS NACIONAIS"
+  ].join("\n");
+
+  let defaultCrawlText = "URGENTE: CONGRESSO NACIONAL APROVA PACOTE ECONÔMICO NESTA TARDE EM BRASÍLIA · ACOMPANHE A COBERTURA AO VIVO DA REDE BRASIL · MAIS INFORMAÇÕES NO JORNAL DA NOITE";
+
+  let rollText = (clipToEdit && clipToEdit.text && clipToEdit.chyronType === "roll") ? clipToEdit.text : defaultRollLines;
+  let crawlText = (clipToEdit && clipToEdit.text && clipToEdit.chyronType === "crawl") ? clipToEdit.text : defaultCrawlText;
+
+  let animTimer = null;
+  let animTime = 0;
+
+  dialog({
+    id: "rollCrawlWin",
+    title: "Title Designer 95 — Gerador de Créditos Rolantes (Roll) & Letreiros (Crawl)",
+    width: 740,
+    body: `
+      <div class="rc-layout">
+        <div class="rc-preview-pane">
+          <div class="rc-canvas-box">
+            <canvas id="rcPreviewCanvas" width="320" height="240"></canvas>
+          </div>
+          <div class="row" style="justify-content:space-between;align-items:center;background:var(--field);padding:4px 6px;box-shadow:inset 1px 1px var(--lo);font-size:11px">
+            <span><b>Pré-visualização 1995</b></span>
+            <button type="button" class="btn sm" id="rcBtnResetAnim">Reiniciar</button>
+          </div>
+          <div class="fld" style="background:var(--face);padding:6px;border:1px solid var(--dk);box-shadow:inset 1px 1px var(--hi), inset -1px -1px var(--lo);font-size:11px">
+            <div id="rcDurationInfo" style="font-family:monospace;font-weight:700;color:#004080">Duração calculada: 12.0s</div>
+            <div class="muted" style="font-size:10px;margin-top:2px">Sincronizado automaticamente com a velocidade da rolagem.</div>
+          </div>
+        </div>
+
+        <div class="rc-controls-pane">
+          <div class="row" style="gap:10px;background:var(--field);padding:4px 8px;box-shadow:inset 1px 1px var(--lo)">
+            <label class="row" style="gap:4px;font-weight:700;font-size:11.5px;cursor:pointer">
+              <input type="radio" name="rcMode" id="rcModeRoll" value="roll" ${rcType === "roll" ? "checked" : ""}>
+              Créditos Rolantes Verticais (Roll)
+            </label>
+            <label class="row" style="gap:4px;font-weight:700;font-size:11.5px;cursor:pointer">
+              <input type="radio" name="rcMode" id="rcModeCrawl" value="crawl" ${rcType === "crawl" ? "checked" : ""}>
+              Letreiro Contínuo de Notícias (Crawl)
+            </label>
+          </div>
+
+          <div class="row" style="gap:4px;align-items:center">
+            <span style="font-size:11px;font-weight:700">Predefinições:</span>
+            <select id="rcPresetSel" style="flex:1;font-size:11px;height:22px">
+              <option value="">Selecione um modelo pronto…</option>
+              <option value="telejornal">Telejornal 1995 (Elenco Técnico)</option>
+              <option value="cinema">Cinema / Longa-Metragem (2 Colunas)</option>
+              <option value="plantao">Plantão Extra / Urgente (Crawl Vermelho)</option>
+              <option value="cambio">Boletim Econômico / Cotações (Crawl Azul)</option>
+            </select>
+          </div>
+
+          <!-- Painel Específico do ROLL -->
+          <div id="rcRollPanel" class="col" style="gap:6px;${rcType === "roll" ? "" : "display:none"}">
+            <label class="fld"><span>Título de Cabeçalho dos Créditos:</span>
+              <input type="text" id="rcRollTitle" value="${escH(rollTitle)}" placeholder="Ex.: UMA PRODUÇÃO REDE BRASIL">
+            </label>
+            <div class="grid2">
+              <label class="fld"><span>Alinhamento dos Créditos:</span>
+                <select id="rcRollAlign">
+                  <option value="2col" ${rcAlign === "2col" ? "selected" : ""}>Duas Colunas (Cargo à Esquerda, Nome à Direita)</option>
+                  <option value="center" ${rcAlign === "center" ? "selected" : ""}>Centralizado Tradicional</option>
+                </select>
+              </label>
+              <label class="fld"><span>Velocidade de Subida:</span>
+                <select id="rcRollSpeed">
+                  <option value="40" ${rollSpeed === 40 ? "selected" : ""}>Lenta (40 px/s - Leitura Confortável)</option>
+                  <option value="55" ${rollSpeed === 55 ? "selected" : ""}>Normal (55 px/s - Padrão TV)</option>
+                  <option value="80" ${rollSpeed === 80 ? "selected" : ""}>Rápida (80 px/s - Encerramento)</option>
+                  <option value="110" ${rollSpeed === 110 ? "selected" : ""}>Ultra Rápida (110 px/s)</option>
+                </select>
+              </label>
+            </div>
+            <label class="fld"><span>Linhas de Créditos (Formato: CARGO | NOME):</span>
+              <textarea id="rcRollText" rows="6" style="font-family:monospace;font-size:11px;resize:vertical">${escH(rollText)}</textarea>
+            </label>
+          </div>
+
+          <!-- Painel Específico do CRAWL -->
+          <div id="rcCrawlPanel" class="col" style="gap:6px;${rcType === "crawl" ? "" : "display:none"}">
+            <div class="grid2">
+              <label class="fld"><span>Etiqueta / Badge do Plantão:</span>
+                <input type="text" id="rcCrawlBadge" value="${escH(crawlBadge)}" placeholder="Ex.: PLANTÃO ou URGENTE">
+              </label>
+              <label class="fld"><span>Cor de Fundo da Etiqueta:</span>
+                <select id="rcCrawlBadgeCol">
+                  <option value="#D00000" ${crawlBadgeCol === "#D00000" ? "selected" : ""}>Vermelho Plantão Urgente</option>
+                  <option value="#0E2442" ${crawlBadgeCol === "#0E2442" ? "selected" : ""}>Azul Marinho Telejornal</option>
+                  <option value="#D4A000" ${crawlBadgeCol === "#D4A000" ? "selected" : ""}>Amarelo Atenção</option>
+                  <option value="#111111" ${crawlBadgeCol === "#111111" ? "selected" : ""}>Preto Sóbrio</option>
+                </select>
+              </label>
+            </div>
+            <label class="fld"><span>Texto do Letreiro Contínuo (Notícia / Manchete):</span>
+              <textarea id="rcCrawlText" rows="4" style="font-family:monospace;font-size:11px;resize:vertical">${escH(crawlText)}</textarea>
+            </label>
+            <div class="slider-row" style="grid-template-columns:130px 1fr 50px">
+              <span>Velocidade do Crawl:</span>
+              <input type="range" id="rcCrawlSpeedRange" min="50" max="180" value="${crawlSpeed}">
+              <span id="rcCrawlSpeedVal" style="font-family:monospace">${crawlSpeed} px/s</span>
+            </div>
+          </div>
+
+          <!-- Opções Estéticas Compartilhadas -->
+          <div class="grid2">
+            <label class="fld"><span>Gradiente / Textura:</span>
+              <select id="rcGradSel">
+                <option value="gold" ${grad === "gold" ? "selected" : ""}>Dourado Broadcast (Gold 95)</option>
+                <option value="silver" ${grad === "silver" ? "selected" : ""}>Prata Metálico (Chrome 95)</option>
+                <option value="3d_chisel" ${grad === "3d_chisel" ? "selected" : ""}>Extrusão 3D Chanfrada</option>
+                <option value="none" ${grad === "none" ? "selected" : ""}>Branco Puro Sólido</option>
+              </select>
+            </label>
+            <label class="fld"><span>Tamanho da Fonte:</span>
+              <select id="rcFontSize">
+                <option value="16" ${fontSize === 16 ? "selected" : ""}>16 px (Discreto)</option>
+                <option value="18" ${fontSize === 18 ? "selected" : ""}>18 px (Padrão Broadcast)</option>
+                <option value="22" ${fontSize === 22 ? "selected" : ""}>22 px (Grande Destaque)</option>
+              </select>
+            </label>
+          </div>
+        </div>
+      </div>
+    `,
+    buttons: [
+      {
+        label: "Inserir na Linha do Tempo (Faixa V3)",
+        def: 1,
+        run: (w) => {
+          saveUndoSnapshot();
+          const mode = w.querySelector('input[name="rcMode"]:checked').value;
+          const tk = "v3";
+          ensureTrackExists(tk);
+
+          const rText = w.querySelector("#rcRollText").value.trim();
+          const cText = w.querySelector("#rcCrawlText").value.trim();
+          const title = w.querySelector("#rcRollTitle").value.trim();
+          const align = w.querySelector("#rcRollAlign").value;
+          const rSpd = +w.querySelector("#rcRollSpeed").value || 55;
+          const cSpd = +w.querySelector("#rcCrawlSpeedRange").value || 90;
+          const badge = w.querySelector("#rcCrawlBadge").value.trim();
+          const badgeCol = w.querySelector("#rcCrawlBadgeCol").value;
+          const g = w.querySelector("#rcGradSel").value;
+          const fSize = +w.querySelector("#rcFontSize").value || 18;
+
+          let calcDur = 10;
+          if (mode === "roll") {
+            const numLines = rText.split("\n").filter(l => l.trim()).length;
+            const totalH = (title ? 65 : 0) + numLines * (fSize * 1.5);
+            calcDur = Math.max(5, Math.round(((480 + totalH + 60) / rSpd) * 10) / 10);
+          } else {
+            calcDur = Math.max(6, Math.round(((640 + cText.length * (fSize * 0.6) + 120) / cSpd) * 10) / 10);
+          }
+
+          const st = S.playhead;
+          const newClip = {
+            id: uid("rc_"),
+            track: tk,
+            title: mode === "roll" ? `CRÉDITOS: ${title || "ROLL 95"}` : `PLANTÃO: ${badge || "CRAWL 95"}`,
+            text: mode === "roll" ? rText : cText,
+            chyronType: mode,
+            rollTitle: title,
+            rollAlign: align,
+            rollSpeed: rSpd,
+            crawlBadge: badge,
+            crawlBadgeCol: badgeCol,
+            crawlSpeed: cSpd,
+            gradient: g,
+            fontSize: fSize,
+            fontColor: "#FFFFFF",
+            boxColor: "rgba(8, 16, 32, 0.88)",
+            strokeWidth: 2,
+            shadow: true,
+            start: st,
+            inPoint: 0,
+            dur: calcDur,
+            opacity: 100,
+            scale: 100,
+            posX: 0,
+            posY: 0
+          };
+
+          S.clips[tk].push(newClip);
+          resolveTrackOverlaps(tk, newClip.id);
+          S.selectedClipId = newClip.id;
+          S.selectedClipTrack = tk;
+          S.selectedClipIds = [newClip.id];
+          recalcSequenceDuration();
+          renderAll();
+          toast(`${mode === "roll" ? "Créditos rolantes" : "Letreiro de notícias"} inserido na faixa ${tk.toUpperCase()} (${calcDur}s)!`);
+        }
+      },
+      { label: "Fechar" }
+    ],
+    onClose: () => {
+      if (animTimer) cancelAnimationFrame(animTimer);
+    }
+  });
+
+  const win = document.getElementById("rollCrawlWin");
+  if (!win) return;
+
+  const cvs = win.querySelector("#rcPreviewCanvas");
+  const ctx = cvs?.getContext("2d");
+  const durInfo = win.querySelector("#rcDurationInfo");
+
+  const calcAndUpdateDur = () => {
+    const mode = win.querySelector('input[name="rcMode"]:checked')?.value || "roll";
+    const fSize = +win.querySelector("#rcFontSize")?.value || 18;
+    if (mode === "roll") {
+      const rText = win.querySelector("#rcRollText")?.value || "";
+      const numLines = rText.split("\n").filter(l => l.trim()).length;
+      const rSpd = +win.querySelector("#rcRollSpeed")?.value || 55;
+      const title = win.querySelector("#rcRollTitle")?.value || "";
+      const totalH = (title ? 65 : 0) + numLines * (fSize * 1.5);
+      const d = Math.max(5, Math.round(((240 + totalH + 40) / rSpd) * 10) / 10);
+      if (durInfo) durInfo.textContent = `Duração calculada do Roll: ${d.toFixed(1)}s (${Math.round(d * 29.97)} quadros NTSC)`;
+      return d;
+    } else {
+      const cText = win.querySelector("#rcCrawlText")?.value || "";
+      const cSpd = +win.querySelector("#rcCrawlSpeedRange")?.value || 90;
+      const d = Math.max(5, Math.round(((320 + cText.length * 9 + 80) / cSpd) * 10) / 10);
+      if (durInfo) durInfo.textContent = `Duração calculada do Crawl: ${d.toFixed(1)}s (${Math.round(d * 29.97)} quadros NTSC)`;
+      return d;
+    }
+  };
+
+  calcAndUpdateDur();
+
+  // Alternância de abas Roll / Crawl
+  win.querySelectorAll('input[name="rcMode"]').forEach(r => {
+    r.onchange = () => {
+      const mode = r.value;
+      const rPan = win.querySelector("#rcRollPanel");
+      const cPan = win.querySelector("#rcCrawlPanel");
+      if (rPan) rPan.style.display = mode === "roll" ? "flex" : "none";
+      if (cPan) cPan.style.display = mode === "crawl" ? "flex" : "none";
+      animTime = 0;
+      calcAndUpdateDur();
+    };
+  });
+
+  win.querySelector("#rcBtnResetAnim")?.addEventListener("click", () => { animTime = 0; });
+  win.querySelector("#rcRollText")?.addEventListener("input", calcAndUpdateDur);
+  win.querySelector("#rcRollSpeed")?.addEventListener("change", calcAndUpdateDur);
+  win.querySelector("#rcCrawlText")?.addEventListener("input", calcAndUpdateDur);
+
+  const spRange = win.querySelector("#rcCrawlSpeedRange");
+  const spVal = win.querySelector("#rcCrawlSpeedVal");
+  if (spRange && spVal) {
+    spRange.oninput = () => {
+      spVal.textContent = spRange.value + " px/s";
+      calcAndUpdateDur();
+    };
+  }
+
+  // Predefinições
+  win.querySelector("#rcPresetSel")?.addEventListener("change", (e) => {
+    const v = e.target.value;
+    if (v === "telejornal") {
+      win.querySelector("#rcModeRoll").checked = true;
+      win.querySelector("#rcRollPanel").style.display = "flex";
+      win.querySelector("#rcCrawlPanel").style.display = "none";
+      win.querySelector("#rcRollTitle").value = "REDE BRASIL 1995 · TELEJORNALISMO";
+      win.querySelector("#rcRollAlign").value = "2col";
+      win.querySelector("#rcGradSel").value = "gold";
+      win.querySelector("#rcRollSpeed").value = "55";
+      win.querySelector("#rcRollText").value = [
+        "EDIÇÃO-CHEFE | ROBERTO SILVA",
+        "APRESENTAÇÃO | MARIANA GOMES",
+        "REPORTAGEM ESPECIAL | CARLOS ALBERTO",
+        "PRODUÇÃO EM BRASÍLIA | PAULO HENRIQUE",
+        "EDIÇÃO DE VÍDEO | JORGE MEDEIROS",
+        "OPERAÇÃO DE VT | MARCOS VINICIUS",
+        "COORDENAÇÃO DE REDE | LUCAS FERREIRA"
+      ].join("\n");
+    } else if (v === "cinema") {
+      win.querySelector("#rcModeRoll").checked = true;
+      win.querySelector("#rcRollPanel").style.display = "flex";
+      win.querySelector("#rcCrawlPanel").style.display = "none";
+      win.querySelector("#rcRollTitle").value = "UM FILME DE CÁSSIO VARGUELIA";
+      win.querySelector("#rcRollAlign").value = "2col";
+      win.querySelector("#rcGradSel").value = "silver";
+      win.querySelector("#rcRollSpeed").value = "40";
+      win.querySelector("#rcRollText").value = [
+        "DIREÇÃO | CÁSSIO VARGUELIA",
+        "PRODUÇÃO | FUNDAÇÃO VARGUELIA",
+        "FOTOGRAFIA | EDUARDO SANTOS",
+        "MONTAGEM | JORGE MEDEIROS",
+        "SOM DIRETO | RICARDO LIMA",
+        "TRILHA ORIGINAL | MAESTRO ANTÔNIO",
+        "LABORATÓRIO DE PELÍCULA | CINELAB 1995"
+      ].join("\n");
+    } else if (v === "plantao") {
+      win.querySelector("#rcModeCrawl").checked = true;
+      win.querySelector("#rcRollPanel").style.display = "none";
+      win.querySelector("#rcCrawlPanel").style.display = "flex";
+      win.querySelector("#rcCrawlBadge").value = "PLANTÃO";
+      win.querySelector("#rcCrawlBadgeCol").value = "#D00000";
+      win.querySelector("#rcGradSel").value = "gold";
+      win.querySelector("#rcCrawlText").value = "PLANTÃO DA REDE BRASIL: IMAGENS EXCLUSIVAS DIRETO DE BRASÍLIA · ACOMPANHE O DESENROLAR DA SESSÃO EXTRAORDINÁRIA";
+    } else if (v === "cambio") {
+      win.querySelector("#rcModeCrawl").checked = true;
+      win.querySelector("#rcRollPanel").style.display = "none";
+      win.querySelector("#rcCrawlPanel").style.display = "flex";
+      win.querySelector("#rcCrawlBadge").value = "ECONOMIA";
+      win.querySelector("#rcCrawlBadgeCol").value = "#0E2442";
+      win.querySelector("#rcGradSel").value = "silver";
+      win.querySelector("#rcCrawlText").value = "BOLETIM ECONÔMICO 1995: DÓLAR COMERCIAL R$ 0,98 · BOLSA DE VALORES +2,4% · TAXA SELIC ESTÁVEL";
+    }
+    animTime = 0;
+    calcAndUpdateDur();
+  });
+
+  // Loop de Animação da Prévia no Canvas do Diálogo
+  let lastFrame = performance.now();
+  const renderPreview = (now) => {
+    if (!document.getElementById("rollCrawlWin")) return;
+    const dt = (now - lastFrame) / 1000;
+    lastFrame = now;
+    animTime += dt;
+
+    if (ctx && cvs) {
+      const W = cvs.width, H = cvs.height;
+      const mode = win.querySelector('input[name="rcMode"]:checked')?.value || "roll";
+      const totalDur = calcAndUpdateDur();
+      const pTime = animTime % totalDur;
+
+      // Fundo simulado de TV CRT
+      ctx.fillStyle = "#060E18";
+      ctx.fillRect(0, 0, W, H);
+
+      // Linha do horizonte de estúdio
+      ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
+      ctx.fillRect(0, H / 2, W, H / 2);
+
+      // Guia de Action / Title Safe
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.18)";
+      ctx.strokeRect(W * 0.05, H * 0.05, W * 0.9, H * 0.9);
+
+      const fSize = 14;
+      const gradType = win.querySelector("#rcGradSel")?.value || "gold";
+
+      const applyGrad = (curY) => {
+        if (gradType === "gold") {
+          const g = ctx.createLinearGradient(0, curY - fSize, 0, curY + 2);
+          g.addColorStop(0, "#FFFEE0"); g.addColorStop(0.5, "#FFD700"); g.addColorStop(1, "#8A6000");
+          ctx.fillStyle = g;
+        } else if (gradType === "silver") {
+          const g = ctx.createLinearGradient(0, curY - fSize, 0, curY + 2);
+          g.addColorStop(0, "#FFFFFF"); g.addColorStop(0.5, "#D0D0E0"); g.addColorStop(1, "#606070");
+          ctx.fillStyle = g;
+        } else {
+          ctx.fillStyle = "#FFFFFF";
+        }
+      };
+
+      if (mode === "roll") {
+        const title = win.querySelector("#rcRollTitle")?.value || "";
+        const rText = win.querySelector("#rcRollText")?.value || "";
+        const align = win.querySelector("#rcRollAlign")?.value || "2col";
+        const lines = rText.split("\n").filter(l => l.trim());
+        const headerH = title ? 40 : 0;
+        const lineH = fSize * 1.5;
+        const totalH = headerH + lines.length * lineH;
+        const prog = pTime / totalDur;
+        const curY = H + 20 - prog * (H + totalH + 40);
+
+        ctx.save();
+        if (title) {
+          const ty = curY;
+          if (ty >= -20 && ty <= H + 20) {
+            ctx.font = `900 ${fSize + 2}px monospace`;
+            ctx.textAlign = "center";
+            applyGrad(ty);
+            ctx.fillText(title.toUpperCase(), W / 2, ty);
+          }
+        }
+
+        lines.forEach((l, i) => {
+          const ly = curY + headerH + i * lineH;
+          if (ly >= -20 && ly <= H + 20) {
+            if (align === "2col" && l.includes("|")) {
+              const parts = l.split("|");
+              ctx.font = `bold ${fSize - 2}px monospace`;
+              ctx.textAlign = "right";
+              ctx.fillStyle = "#A0B0C0";
+              ctx.fillText(parts[0].trim().toUpperCase(), W / 2 - 10, ly);
+
+              ctx.font = `900 ${fSize}px monospace`;
+              ctx.textAlign = "left";
+              applyGrad(ly);
+              ctx.fillText((parts[1] || "").trim().toUpperCase(), W / 2 + 10, ly);
+            } else {
+              ctx.font = `bold ${fSize}px monospace`;
+              ctx.textAlign = "center";
+              applyGrad(ly);
+              ctx.fillText(l.toUpperCase(), W / 2, ly);
+            }
+          }
+        });
+        ctx.restore();
+      } else {
+        const barH = 30;
+        const barY = H - barH - 12;
+        const badge = win.querySelector("#rcCrawlBadge")?.value || "PLANTÃO";
+        const badgeCol = win.querySelector("#rcCrawlBadgeCol")?.value || "#D00000";
+        const cText = win.querySelector("#rcCrawlText")?.value || "";
+
+        ctx.fillStyle = "rgba(6, 16, 32, 0.92)";
+        ctx.fillRect(0, barY, W, barH);
+        ctx.strokeStyle = "#FFE040";
+        ctx.strokeRect(0, barY, W, barH);
+
+        ctx.font = "900 11px monospace";
+        const badgeW = ctx.measureText(badge).width + 16;
+        ctx.fillStyle = badgeCol;
+        ctx.fillRect(0, barY, badgeW, barH);
+        ctx.fillStyle = "#FFFFFF";
+        ctx.textAlign = "center";
+        ctx.fillText(badge, badgeW / 2, barY + barH / 2 + 4);
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(badgeW, barY, W - badgeW, barH);
+        ctx.clip();
+
+        ctx.font = `bold ${fSize}px monospace`;
+        const txtW = ctx.measureText(cText).width;
+        const prog = pTime / totalDur;
+        const crawlX = W - prog * (W - badgeW + txtW + 60);
+
+        applyGrad(barY + barH / 2 + 4);
+        ctx.textAlign = "left";
+        ctx.fillText(cText, crawlX, barY + barH / 2 + 4);
+        ctx.restore();
+      }
+    }
+    animTimer = requestAnimationFrame(renderPreview);
+  };
+  animTimer = requestAnimationFrame(renderPreview);
+}
+
 function openGeneratorDialog() {
   dialog({
     id: "genWin",
@@ -10214,6 +10858,176 @@ function openWindowDubDialog() {
   }
 }
 
+/* ---------- Calculadora Broadcast SMPTE 12M & Bitolas de Cinema ---------- */
+function openSmpteCalculatorDialog() {
+  let mainSec = S.playhead;
+  let memSec = null;
+  let curOp = null; // "+" | "-" | "*"
+
+  dialog({
+    id: "calcSmpteWin",
+    title: "Calculadora Broadcast SMPTE 12M — Sincronismo & Bitolas de Cinema",
+    width: 460,
+    body: `
+      <div class="col" style="gap:8px">
+        <div class="smpte-calc-vfd">
+          <span style="font-size:11px;opacity:0.75" id="calcMemDisp">MEM: VAZIA</span>
+          <span style="font-size:26px;font-weight:900;letter-spacing:2px" id="calcMainDisp">${formatTimecodeSMPTE(mainSec, prefs.dropFrame)}</span>
+        </div>
+
+        <!-- Painel de Conversão Instantânea de Padrões e Bitolas -->
+        <div class="fx-group" style="padding:6px;font-size:10.5px">
+          <div class="grid2" style="gap:4px">
+            <div><b>NTSC 29.97 DF:</b> <span id="tcNtscDf" style="font-family:monospace;color:#008040">00:00:00;00</span></div>
+            <div><b>NTSC NDF (30fps):</b> <span id="tcNtscNdf" style="font-family:monospace">00:00:00:00</span></div>
+            <div><b>PAL / SECAM (25fps):</b> <span id="tcPal" style="font-family:monospace">00:00:00:00</span></div>
+            <div><b>Cinema (24fps):</b> <span id="tcCinema" style="font-family:monospace">00:00:00:00</span></div>
+            <div><b>Película 35mm (16q/pé):</b> <span id="tc35mm" style="font-family:monospace;color:#800040">0' 00"</span></div>
+            <div><b>Película 16mm (40q/pé):</b> <span id="tc16mm" style="font-family:monospace">0' 00"</span></div>
+          </div>
+          <div style="margin-top:4px;border-top:1px dashed #aaa;padding-top:3px;display:flex;justify-content:space-between">
+            <span>Total de Quadros Absolutos:</span>
+            <b id="tcTotalFrames" style="font-family:monospace;font-size:12px">0 frames</b>
+          </div>
+        </div>
+
+        <!-- Teclas de Grade de Comerciais de Televisão -->
+        <div class="row" style="gap:4px;justify-content:space-between">
+          <button type="button" class="btn sm" id="calcAdd15">+15s Spot</button>
+          <button type="button" class="btn sm" id="calcAdd30">+30s Padrão</button>
+          <button type="button" class="btn sm" id="calcAdd60">+60s Comercial</button>
+          <button type="button" class="btn sm" id="calcAdd180">+3min Bloco</button>
+        </div>
+
+        <!-- Teclado Numérico da Calculadora SMPTE -->
+        <div class="smpte-calc-keys">
+          <button type="button" class="btn" data-ck="7">7</button>
+          <button type="button" class="btn" data-ck="8">8</button>
+          <button type="button" class="btn" data-ck="9">9</button>
+          <button type="button" class="btn def" data-ck="+">+</button>
+
+          <button type="button" class="btn" data-ck="4">4</button>
+          <button type="button" class="btn" data-ck="5">5</button>
+          <button type="button" class="btn" data-ck="6">6</button>
+          <button type="button" class="btn def" data-ck="-">-</button>
+
+          <button type="button" class="btn" data-ck="1">1</button>
+          <button type="button" class="btn" data-ck="2">2</button>
+          <button type="button" class="btn" data-ck="3">3</button>
+          <button type="button" class="btn def" data-ck="=">=</button>
+
+          <button type="button" class="btn" data-ck="0">0</button>
+          <button type="button" class="btn" data-ck=":">:</button>
+          <button type="button" class="btn" data-ck="C">C</button>
+          <button type="button" class="btn" id="calcBtnCapture">Capturar</button>
+        </div>
+      </div>
+    `,
+    buttons: [
+      {
+        label: "Mover Agulha para este Timecode",
+        def: 1,
+        run: (w) => {
+          setPlayhead(mainSec, false);
+          toast(`Agulha posicionada em ${formatTimecodeSMPTE(mainSec, prefs.dropFrame)}!`);
+        }
+      },
+      { label: "Fechar" }
+    ]
+  });
+
+  const win = document.getElementById("calcSmpteWin");
+  if (!win) return;
+
+  const updateDisplays = () => {
+    const mainDisp = win.querySelector("#calcMainDisp");
+    const memDisp = win.querySelector("#calcMemDisp");
+    if (mainDisp) mainDisp.textContent = formatTimecodeSMPTE(mainSec, prefs.dropFrame);
+    if (memDisp) {
+      memDisp.textContent = memSec != null ? `MEM: ${formatTimecodeSMPTE(memSec, prefs.dropFrame)} ${curOp || ""}` : "MEM: VAZIA";
+    }
+
+    // Atualiza conversões
+    const totalFrames2997 = Math.round(mainSec * 29.97);
+    const totalFrames25 = Math.round(mainSec * 25.0);
+    const totalFrames24 = Math.round(mainSec * 24.0);
+
+    const df = win.querySelector("#tcNtscDf");
+    const ndf = win.querySelector("#tcNtscNdf");
+    const pal = win.querySelector("#tcPal");
+    const cine = win.querySelector("#tcCinema");
+    const f35 = win.querySelector("#tc35mm");
+    const f16 = win.querySelector("#tc16mm");
+    const tf = win.querySelector("#tcTotalFrames");
+
+    if (df) df.textContent = formatTimecodeSMPTE(mainSec, true);
+    if (ndf) ndf.textContent = formatTimecodeSMPTE(mainSec, false);
+    if (pal) pal.textContent = formatTimecodeSMPTE(mainSec, false);
+    if (cine) cine.textContent = formatTimecodeSMPTE(mainSec, false);
+
+    // 35mm: 16 frames por pé
+    const feet35 = Math.floor(totalFrames24 / 16);
+    const rem35 = totalFrames24 % 16;
+    if (f35) f35.textContent = `${feet35}' ${String(rem35).padStart(2, "0")}"`;
+
+    // 16mm: 40 frames por pé
+    const feet16 = Math.floor(totalFrames24 / 40);
+    const rem16 = totalFrames24 % 40;
+    if (f16) f16.textContent = `${feet16}' ${String(rem16).padStart(2, "0")}"`;
+
+    if (tf) tf.textContent = `${totalFrames2997} quadros`;
+  };
+
+  updateDisplays();
+
+  // Teclas numéricas e operadores
+  win.querySelectorAll("[data-ck]").forEach(btn => {
+    btn.onclick = () => {
+      const k = btn.dataset.ck;
+      if (k >= "0" && k <= "9") {
+        mainSec = mainSec * 10 + (+k);
+        if (mainSec > 86400) mainSec = 86400;
+        updateDisplays();
+      } else if (k === "C") {
+        mainSec = 0;
+        memSec = null;
+        curOp = null;
+        updateDisplays();
+      } else if (k === "+") {
+        memSec = mainSec;
+        curOp = "+";
+        mainSec = 0;
+        updateDisplays();
+      } else if (k === "-") {
+        memSec = mainSec;
+        curOp = "-";
+        mainSec = 0;
+        updateDisplays();
+      } else if (k === "=") {
+        if (memSec != null && curOp) {
+          if (curOp === "+") mainSec = memSec + mainSec;
+          else if (curOp === "-") mainSec = Math.max(0, memSec - mainSec);
+          memSec = null;
+          curOp = null;
+          updateDisplays();
+        }
+      }
+    };
+  });
+
+  // Comerciais
+  win.querySelector("#calcAdd15")?.addEventListener("click", () => { mainSec += 15; updateDisplays(); });
+  win.querySelector("#calcAdd30")?.addEventListener("click", () => { mainSec += 30; updateDisplays(); });
+  win.querySelector("#calcAdd60")?.addEventListener("click", () => { mainSec += 60; updateDisplays(); });
+  win.querySelector("#calcAdd180")?.addEventListener("click", () => { mainSec += 180; updateDisplays(); });
+
+  win.querySelector("#calcBtnCapture")?.addEventListener("click", () => {
+    mainSec = S.playhead;
+    updateDisplays();
+    toast(`Timecode ${formatTimecodeSMPTE(mainSec, prefs.dropFrame)} capturado da agulha!`);
+  });
+}
+
 /* ---------- Modelo de Projeto Não-Destrutivo (.PPJ), Salvamento, Autosave & Crash Recovery ---------- */
 function buildProjectSnapshot() {
   syncActiveSequenceToState();
@@ -10258,6 +11072,7 @@ function buildProjectSnapshot() {
     clips: S.clips,
     tlIn: S.tlIn,
     tlOut: S.tlOut,
+    vhsSettings: S.vhsSettings ? Object.assign({}, S.vhsSettings) : null,
     mediaBin: S.mediaBin.map(m => ({
       id: m.id,
       name: m.name,
@@ -10386,10 +11201,40 @@ const DICAS_95 = [
 let curDicaIdx = 0;
 let _welcomeTipIdx = 0;
 
+function hideProjectWorkspace() {
+  S.hasActiveProject = false;
+  const bd = document.getElementById("welcomeMdiBackdrop");
+  if (bd) bd.style.display = "flex";
+
+  if (S.programVideoEl) {
+    try { S.programVideoEl.pause(); } catch (_e) {}
+  }
+  if (S.srcVideoEl) {
+    try { S.srcVideoEl.pause(); } catch (_e) {}
+  }
+
+  updateStatusBar();
+}
+
+function revealProjectWorkspace(customToast = null) {
+  S.hasActiveProject = true;
+  const bd = document.getElementById("welcomeMdiBackdrop");
+  if (bd) bd.style.display = "none";
+
+  updateStatusBar();
+  renderAll();
+  renderTimeline();
+  renderMonitorFrame();
+  if (customToast) toast(customToast);
+}
+
 function fecharProjeto() {
+  stop();
+  stopSourcePlayback();
   saveUndoSnapshot();
-  createStarterFreeProject("PROJETO_LIVRE_01.PPJ", false);
+  hideProjectWorkspace();
   openWelcomeDialog();
+  toast("Projeto fechado. Área de trabalho em espera.");
 }
 
 function openIslandSettingsDialog() {
@@ -10650,37 +11495,45 @@ function openWelcomeDialog() {
 
   // Ações dos 6 Cartões
   w.querySelector("#wBtnNew").onclick = () => {
+    revealProjectWorkspace();
     closeDialog(w);
     openNewProjectCustomDialog();
   };
   w.querySelector("#wBtnOpen").onclick = () => {
+    revealProjectWorkspace();
     closeDialog(w);
     openProjectDialog();
   };
   w.querySelector("#wBtnImport").onclick = () => {
+    revealProjectWorkspace();
     closeDialog(w);
     importMediaFiles("all", false);
   };
   w.querySelector("#wBtnSeq").onclick = () => {
+    revealProjectWorkspace();
     closeDialog(w);
     createNewSequence();
   };
   w.querySelector("#wBtnSR").onclick = () => {
+    revealProjectWorkspace();
     closeDialog(w);
     loadFromScriptRoom();
   };
   w.querySelector("#wBtnSettings").onclick = () => {
+    revealProjectWorkspace();
     closeDialog(w);
     openIslandSettingsDialog();
   };
 
   // Botão fechar
   w.querySelector("#wBtnClose").onclick = () => {
+    revealProjectWorkspace("Linha do tempo pronta para edição!");
     closeDialog(w);
   };
 
   // Carregar do Hero
   const runHero = async () => {
+    revealProjectWorkspace();
     closeDialog(w);
     if (heroProj.path && window.editorNative) {
       try {
@@ -10717,6 +11570,7 @@ function openWelcomeDialog() {
         const idx = +tr.dataset.projidx;
         const target = projectList[idx];
         if (!target) return;
+        revealProjectWorkspace();
         closeDialog(w);
         if (target.path && window.editorNative) {
           try {
@@ -10854,6 +11708,10 @@ function loadProjectData(proj, filePath = null) {
       }
     });
   }
+  if (proj.vhsSettings) {
+    S.vhsSettings = Object.assign({}, proj.vhsSettings);
+  }
+  revealProjectWorkspace();
   S.isDirty = false;
   recalcSequenceDuration();
   renderAll();
@@ -11199,6 +12057,297 @@ function openAnalogVUConsole() {
     }
     const levels = computeAudioLevelsAt(S.playhead);
     drawDualAnalogVUMeters(cvs, levels.l, levels.r);
+  }, 33);
+}
+
+/* ---------- Analisador de Áudio RTA 31-Bandas Rack 19" 1995 (Klark Teknik / BSS) ---------- */
+function openRTAConsole() {
+  let rtaTimer = null;
+  let decaySpeed = "med"; // "fast" (35ms) | "med" (250ms) | "slow" (1000ms)
+  let testOsc = "off";    // "off" | "pink" | "sine"
+  let peakHoldCaps = new Array(31).fill(0);
+  let peakHoldTimes = new Array(31).fill(0);
+
+  const freqLabels = [
+    "20", "25", "31", "40", "50", "63", "80", "100", "125", "160",
+    "200", "250", "315", "400", "500", "630", "800", "1k", "1.2k", "1.6k",
+    "2k", "2.5k", "3.1k", "4k", "5k", "6.3k", "8k", "10k", "12k", "16k", "20k"
+  ];
+
+  dialog({
+    id: "rtaConsoleWin",
+    title: "Analisador de Espectro RTA 31-Bandas em Tempo Real 1995 — Klark Teknik / BSS",
+    width: 760,
+    body: `
+      <div class="rta-rack-chassis">
+        <div class="row" style="justify-content:space-between;align-items:center;padding:4px 6px;border-bottom:1px solid #333;margin-bottom:8px">
+          <div class="row" style="gap:8px;align-items:center">
+            <span style="width:8px;height:8px;border-radius:50%;background:#00FF66;box-shadow:0 0 6px #00FF66"></span>
+            <b style="letter-spacing:1.5px;font-size:12px;color:#EEE">KLARK TEKNIK DN60 · 31-BAND 1/3 OCTAVE REAL-TIME AUDIO ANALYZER</b>
+          </div>
+          <span style="font-size:10px;color:#888;font-family:monospace">CALIBRAÇÃO: 0 dB = +4 dBu · BALÍSTICA DINÂMICA 1995</span>
+        </div>
+
+        <div class="rta-display-screen">
+          <canvas id="rtaCanvas" width="716" height="230"></canvas>
+        </div>
+
+        <div class="row" style="justify-content:space-between;align-items:center;margin-top:8px;gap:8px;flex-wrap:wrap">
+          <div class="row" style="gap:6px;align-items:center;font-size:11px">
+            <b>Decaimento:</b>
+            <button type="button" class="btn sm" id="rtaSpdFast">Rápido (35ms)</button>
+            <button type="button" class="btn sm def" id="rtaSpdMed">Médio (250ms)</button>
+            <button type="button" class="btn sm" id="rtaSpdSlow">Lento (1.0s)</button>
+            <button type="button" class="btn sm" id="rtaBtnResetPeaks">Resetar Picos</button>
+          </div>
+          <div class="row" style="gap:6px;align-items:center;font-size:11px">
+            <b>Gerador DSP:</b>
+            <button type="button" class="btn sm def" id="rtaOscOff">Desligado</button>
+            <button type="button" class="btn sm" id="rtaOscPink">Ruído Rosa</button>
+            <button type="button" class="btn sm" id="rtaOscSine">Tom 1 kHz</button>
+          </div>
+        </div>
+      </div>
+    `,
+    buttons: [
+      {
+        label: "Fechar",
+        def: 1,
+        run: () => {
+          if (rtaTimer) clearInterval(rtaTimer);
+        }
+      }
+    ],
+    onClose: () => {
+      if (rtaTimer) clearInterval(rtaTimer);
+    }
+  });
+
+  const win = document.getElementById("rtaConsoleWin");
+  if (!win) return;
+  const cvs = win.querySelector("#rtaCanvas");
+  const ctx = cvs?.getContext("2d");
+
+  win.querySelector("#rtaSpdFast")?.addEventListener("click", (e) => {
+    decaySpeed = "fast";
+    win.querySelectorAll("#rtaSpdFast,#rtaSpdMed,#rtaSpdSlow").forEach(b => b.classList.remove("def"));
+    e.target.classList.add("def");
+  });
+  win.querySelector("#rtaSpdMed")?.addEventListener("click", (e) => {
+    decaySpeed = "med";
+    win.querySelectorAll("#rtaSpdFast,#rtaSpdMed,#rtaSpdSlow").forEach(b => b.classList.remove("def"));
+    e.target.classList.add("def");
+  });
+  win.querySelector("#rtaSpdSlow")?.addEventListener("click", (e) => {
+    decaySpeed = "slow";
+    win.querySelectorAll("#rtaSpdFast,#rtaSpdMed,#rtaSpdSlow").forEach(b => b.classList.remove("def"));
+    e.target.classList.add("def");
+  });
+  win.querySelector("#rtaBtnResetPeaks")?.addEventListener("click", () => {
+    peakHoldCaps.fill(0);
+    peakHoldTimes.fill(0);
+  });
+
+  win.querySelector("#rtaOscOff")?.addEventListener("click", (e) => {
+    testOsc = "off";
+    win.querySelectorAll("#rtaOscOff,#rtaOscPink,#rtaOscSine").forEach(b => b.classList.remove("def"));
+    e.target.classList.add("def");
+  });
+  win.querySelector("#rtaOscPink")?.addEventListener("click", (e) => {
+    testOsc = "pink";
+    win.querySelectorAll("#rtaOscOff,#rtaOscPink,#rtaOscSine").forEach(b => b.classList.remove("def"));
+    e.target.classList.add("def");
+    playFoleySound("estatica", 0.05);
+  });
+  win.querySelector("#rtaOscSine")?.addEventListener("click", (e) => {
+    testOsc = "sine";
+    win.querySelectorAll("#rtaOscOff,#rtaOscPink,#rtaOscSine").forEach(b => b.classList.remove("def"));
+    e.target.classList.add("def");
+    playFoleySound("bip", 0.05);
+  });
+
+  // Loop de Animação do RTA
+  let currentLevels = new Array(31).fill(0.05);
+
+  rtaTimer = setInterval(() => {
+    if (!document.getElementById("rtaConsoleWin") || !ctx) {
+      clearInterval(rtaTimer);
+      return;
+    }
+
+    const W = cvs.width, H = cvs.height;
+    const now = performance.now();
+
+    // Calcula níveis de áudio master na agulha
+    const masterLvl = computeAudioLevelsAt(S.playhead);
+    const avgAmp = (masterLvl.l + masterLvl.r) / 2;
+    const isPlaying = S.playing && avgAmp > 0.001;
+
+    // Simulação espectral física precisa para as 31 bandas (Klark Teknik)
+    for (let i = 0; i < 31; i++) {
+      let targetVal = 0.02;
+
+      if (testOsc === "sine") {
+        // Tom senoidal de 1kHz (banda 17)
+        if (i === 17) targetVal = 0.95;
+        else if (i === 16 || i === 18) targetVal = 0.35;
+        else targetVal = 0.03 + Math.random() * 0.02;
+      } else if (testOsc === "pink") {
+        // Ruído rosa decai 3dB por oitava
+        targetVal = Math.min(0.95, (0.75 - i * 0.012) + (Math.random() - 0.5) * 0.12);
+      } else if (isPlaying) {
+        // Áudio real da timeline: bandas graves, médias e agudas
+        const centerWeight = Math.sin((i / 30) * Math.PI);
+        const flutter = (Math.sin(now * 0.015 + i * 0.8) + 1) * 0.5;
+        targetVal = Math.min(1.0, avgAmp * (0.4 + centerWeight * 0.9) * (0.7 + flutter * 0.6));
+      }
+
+      // Ballistics (Attack & Decay)
+      const decayFactor = decaySpeed === "fast" ? 0.45 : (decaySpeed === "slow" ? 0.08 : 0.22);
+      if (targetVal > currentLevels[i]) {
+        currentLevels[i] = currentLevels[i] * 0.3 + targetVal * 0.7; // Fast attack
+      } else {
+        currentLevels[i] = currentLevels[i] * (1 - decayFactor) + targetVal * decayFactor;
+      }
+
+      // Peak Hold
+      if (currentLevels[i] >= peakHoldCaps[i]) {
+        peakHoldCaps[i] = currentLevels[i];
+        peakHoldTimes[i] = now + 1200;
+      } else if (now > peakHoldTimes[i]) {
+        peakHoldCaps[i] = Math.max(0, peakHoldCaps[i] - 0.015);
+      }
+    }
+
+    // Desenha o painel RTA
+    ctx.fillStyle = "#04090A";
+    ctx.fillRect(0, 0, W, H);
+
+    // Grade de dB no fundo (0 dB, -6, -12, -18, -24, -30, -36 dB)
+    ctx.strokeStyle = "rgba(0, 255, 100, 0.12)";
+    ctx.lineWidth = 1;
+    const dbMarks = [
+      { db: "+3 dB", y: 22, col: "rgba(255, 50, 50, 0.4)" },
+      { db: "0 dB", y: 38, col: "rgba(255, 180, 50, 0.4)" },
+      { db: "-6 dB", y: 68, col: "rgba(0, 255, 100, 0.2)" },
+      { db: "-12 dB", y: 98, col: "rgba(0, 255, 100, 0.2)" },
+      { db: "-20 dB", y: 138, col: "rgba(0, 255, 100, 0.2)" },
+      { db: "-30 dB", y: 178, col: "rgba(0, 255, 100, 0.15)" }
+    ];
+
+    dbMarks.forEach(m => {
+      ctx.strokeStyle = m.col;
+      ctx.beginPath();
+      ctx.moveTo(34, m.y);
+      ctx.lineTo(W - 120, m.y);
+      ctx.stroke();
+
+      ctx.fillStyle = m.col;
+      ctx.font = "9px monospace";
+      ctx.textAlign = "right";
+      ctx.fillText(m.db, 30, m.y + 3);
+    });
+
+    // 31 Colunas de LED
+    const startX = 36;
+    const availW = W - 165;
+    const colW = Math.floor(availW / 31) - 2;
+    const numSegs = 14;
+    const segH = 11;
+    const segGap = 2;
+
+    for (let c = 0; c < 31; c++) {
+      const cx = startX + c * (colW + 2);
+      const val = currentLevels[c];
+      const activeSegs = Math.round(val * numSegs);
+      const peakSeg = Math.min(numSegs - 1, Math.round(peakHoldCaps[c] * numSegs));
+
+      for (let s = 0; s < numSegs; s++) {
+        const sy = 194 - s * (segH + segGap);
+        const isLit = s < activeSegs;
+        const isPeak = s === peakSeg && peakHoldCaps[c] > 0.05;
+
+        let onCol, offCol;
+        if (s >= 12) {
+          onCol = "#FF2222"; offCol = "#2A0606"; // Vermelho (+3 e 0 dB)
+        } else if (s >= 9) {
+          onCol = "#FFAA00"; offCol = "#2A1800"; // Amarelo (-6 a -2 dB)
+        } else {
+          onCol = "#00FF66"; offCol = "#02200A"; // Verde (-40 a -8 dB)
+        }
+
+        ctx.fillStyle = isLit ? onCol : (isPeak ? "#FFFFFF" : offCol);
+        if (isLit) {
+          ctx.shadowColor = onCol;
+          ctx.shadowBlur = 4;
+        } else {
+          ctx.shadowBlur = 0;
+        }
+        ctx.fillRect(cx, sy, colW, segH);
+      }
+      ctx.shadowBlur = 0;
+
+      // Legenda da frequência
+      ctx.fillStyle = "#88A0B0";
+      ctx.font = "8px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(freqLabels[c], cx + colW / 2, 218);
+    }
+
+    // Painel Lateral Direito: Medidor de Correlação de Fase Estéreo (-1.0 a +1.0)
+    const meterX = W - 110;
+    ctx.fillStyle = "#0A141A";
+    ctx.fillRect(meterX, 16, 96, 195);
+    ctx.strokeStyle = "#334455";
+    ctx.strokeRect(meterX, 16, 96, 195);
+
+    ctx.fillStyle = "#80B0D0";
+    ctx.font = "bold 9px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("CORRELAÇÃO", meterX + 48, 30);
+    ctx.fillText("DE FASE", meterX + 48, 42);
+
+    // Escala +1 / 0 / -1
+    const pY0 = 60, pY1 = 150;
+    const phaseL = masterLvl.l, phaseR = masterLvl.r;
+    let corr = 0.85; // Estéreo normal em fase
+    if (isPlaying) {
+      const diff = Math.abs(phaseL - phaseR);
+      corr = Math.max(-1.0, Math.min(1.0, 1.0 - (diff / Math.max(0.1, avgAmp)) * 0.9));
+    }
+
+    const needleY = pY0 + ((1.0 - corr) / 2.0) * (pY1 - pY0);
+
+    ctx.strokeStyle = "#556677";
+    ctx.beginPath();
+    ctx.moveTo(meterX + 16, pY0); ctx.lineTo(meterX + 30, pY0);
+    ctx.moveTo(meterX + 16, (pY0 + pY1) / 2); ctx.lineTo(meterX + 30, (pY0 + pY1) / 2);
+    ctx.moveTo(meterX + 16, pY1); ctx.lineTo(meterX + 30, pY1);
+    ctx.stroke();
+
+    ctx.fillStyle = "#00FF66"; ctx.fillText("+1 MONO", meterX + 64, pY0 + 3);
+    ctx.fillStyle = "#FFE040"; ctx.fillText("0 STEREO", meterX + 64, (pY0 + pY1) / 2 + 3);
+    ctx.fillStyle = "#FF4444"; ctx.fillText("-1 OUT", meterX + 64, pY1 + 3);
+
+    // Agulha do medidor de fase
+    ctx.fillStyle = corr >= 0 ? "#00FF66" : "#FF3333";
+    ctx.shadowColor = ctx.fillStyle;
+    ctx.shadowBlur = 5;
+    ctx.fillRect(meterX + 8, needleY - 2, 28, 4);
+    ctx.shadowBlur = 0;
+
+    // Lâmpada de alerta mono
+    const isOutPhase = corr < 0;
+    ctx.fillStyle = isOutPhase ? "#FF0000" : "#220000";
+    ctx.beginPath();
+    ctx.arc(meterX + 48, 175, 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#661111";
+    ctx.stroke();
+
+    ctx.fillStyle = isOutPhase ? "#FF6666" : "#666666";
+    ctx.font = "8px monospace";
+    ctx.fillText("PHASE INV", meterX + 48, 195);
   }, 33);
 }
 
@@ -12301,7 +13450,10 @@ function openAnalogTapeSuiteDialog() {
       dropouts: 5,
       tapeHiss: 3,
       scanlines: true,
-      phosphorGlow: true
+      phosphorGlow: true,
+      trackingError: 0,
+      rfNoise: 0,
+      hSyncTear: 0
     };
   }
   const vhs = S.vhsSettings;
@@ -12309,10 +13461,10 @@ function openAnalogTapeSuiteDialog() {
   dialog({
     id: "vhsSuiteWin",
     title: "Processador de Vídeo Analógico VHS & Betacam SP (DSP 1995)",
-    width: 530,
+    width: 550,
     body: `
       <div class="col" style="gap:10px">
-        <div class="muted" style="font-size:11px">Emulador ótico e eletromagnético de fita magnética analógica dos anos 90 com ruído de cabeçote, desvio de tracking e dropouts de óxido.</div>
+        <div class="muted" style="font-size:11px">Emulador ótico e eletromagnético de fita magnética analógica dos anos 90 com ruído de cabeçote, desajuste de tracking, interferência RF e dropouts de óxido.</div>
         
         <div class="row" style="gap:6px;background:var(--field);padding:6px;box-shadow:inset 1px 1px var(--lo);align-items:center">
           <label class="row" style="gap:4px;font-weight:700;font-size:11.5px;cursor:pointer">
@@ -12327,34 +13479,50 @@ function openAnalogTapeSuiteDialog() {
             <button type="button" class="btn sm" id="vhsPresetSP">VHS SP (Padrão 1995)</button>
             <button type="button" class="btn sm" id="vhsPresetEP">VHS EP / SLP (Locadora Gasta)</button>
             <button type="button" class="btn sm" id="vhsPresetBeta">Betacam SP Broadcast (Sony)</button>
+            <button type="button" class="btn sm" id="vhsPresetTracking">Desajuste de Tracking</button>
             <button type="button" class="btn sm" id="vhsPresetDemag">Fita Desmagnetizada</button>
             <button type="button" class="btn sm" id="vhsPresetOff">Desativado (Sinal Limpo)</button>
           </div>
         </div>
 
         <div class="fx-group">
-          <div class="fx-title">Parâmetros Eletromecânicos do Cabeçote</div>
-          <div class="slider-row" style="grid-template-columns:180px 1fr 45px">
-            <span>Ruído de Cabeçote Inferior (Head Noise):</span>
+          <div class="fx-title">Parâmetros Eletromecânicos do Cabeçote &amp; Sincronismo</div>
+          <div class="slider-row" style="grid-template-columns:185px 1fr 45px">
+            <span>Barra de Desajuste de Tracking:</span>
+            <input type="range" id="vhsTrackingErr" min="0" max="10" value="${vhs.trackingError || 0}">
+            <span id="vhsTrackingErrVal" style="font-family:var(--f-pix, monospace);text-align:right">${vhs.trackingError || 0}</span>
+          </div>
+          <div class="slider-row" style="grid-template-columns:185px 1fr 45px">
+            <span>Curvatura H-Sync (Flag Waving):</span>
+            <input type="range" id="vhsHSyncTear" min="0" max="10" value="${vhs.hSyncTear || 0}">
+            <span id="vhsHSyncTearVal" style="font-family:var(--f-pix, monospace);text-align:right">${vhs.hSyncTear || 0}</span>
+          </div>
+          <div class="slider-row" style="grid-template-columns:185px 1fr 45px">
+            <span>Interferência RF / VHF / UHF:</span>
+            <input type="range" id="vhsRfNoise" min="0" max="10" value="${vhs.rfNoise || 0}">
+            <span id="vhsRfNoiseVal" style="font-family:var(--f-pix, monospace);text-align:right">${vhs.rfNoise || 0}</span>
+          </div>
+          <div class="slider-row" style="grid-template-columns:185px 1fr 45px">
+            <span>Ruído de Cabeçote (Head Noise):</span>
             <input type="range" id="vhsHead" min="0" max="16" value="${vhs.headSwitching}">
             <span id="vhsHeadVal" style="font-family:var(--f-pix, monospace);text-align:right">${vhs.headSwitching} px</span>
           </div>
-          <div class="slider-row" style="grid-template-columns:180px 1fr 45px">
+          <div class="slider-row" style="grid-template-columns:185px 1fr 45px">
             <span>Desvio de Tracking (Jitter Horizontal):</span>
             <input type="range" id="vhsJitter" min="0" max="10" value="${vhs.trackingJitter}">
             <span id="vhsJitterVal" style="font-family:var(--f-pix, monospace);text-align:right">${vhs.trackingJitter}</span>
           </div>
-          <div class="slider-row" style="grid-template-columns:180px 1fr 45px">
+          <div class="slider-row" style="grid-template-columns:185px 1fr 45px">
             <span>Desalinhamento de Croma (Chroma Bleed):</span>
             <input type="range" id="vhsChroma" min="0" max="8" value="${vhs.chromaBleed}">
             <span id="vhsChromaVal" style="font-family:var(--f-pix, monospace);text-align:right">${vhs.chromaBleed}</span>
           </div>
-          <div class="slider-row" style="grid-template-columns:180px 1fr 45px">
-            <span>Dropouts de Óxido de Fita (Flashes Brancos):</span>
+          <div class="slider-row" style="grid-template-columns:185px 1fr 45px">
+            <span>Dropouts de Óxido de Fita (Flashes):</span>
             <input type="range" id="vhsDrops" min="0" max="10" value="${vhs.dropouts}">
             <span id="vhsDropsVal" style="font-family:var(--f-pix, monospace);text-align:right">${vhs.dropouts}</span>
           </div>
-          <div class="slider-row" style="grid-template-columns:180px 1fr 45px">
+          <div class="slider-row" style="grid-template-columns:185px 1fr 45px">
             <span>Granulação &amp; Hiss Magnético:</span>
             <input type="range" id="vhsHiss" min="0" max="10" value="${vhs.tapeHiss}">
             <span id="vhsHissVal" style="font-family:var(--f-pix, monospace);text-align:right">${vhs.tapeHiss}</span>
@@ -12414,19 +13582,11 @@ function openAnalogTapeSuiteDialog() {
   bindSlider("vhsChroma", "chromaBleed");
   bindSlider("vhsDrops", "dropouts");
   bindSlider("vhsHiss", "tapeHiss");
+  bindSlider("vhsTrackingErr", "trackingError");
+  bindSlider("vhsHSyncTear", "hSyncTear");
+  bindSlider("vhsRfNoise", "rfNoise");
 
-  const setPreset = (p) => {
-    if (p === "sp") {
-      vhs.enabled = true; vhs.headSwitching = 8; vhs.trackingJitter = 3; vhs.chromaBleed = 4; vhs.dropouts = 5; vhs.tapeHiss = 3; vhs.scanlines = true;
-    } else if (p === "ep") {
-      vhs.enabled = true; vhs.headSwitching = 14; vhs.trackingJitter = 7; vhs.chromaBleed = 6; vhs.dropouts = 9; vhs.tapeHiss = 6; vhs.scanlines = true;
-    } else if (p === "beta") {
-      vhs.enabled = true; vhs.headSwitching = 4; vhs.trackingJitter = 1; vhs.chromaBleed = 1; vhs.dropouts = 1; vhs.tapeHiss = 1; vhs.scanlines = true;
-    } else if (p === "demag") {
-      vhs.enabled = true; vhs.headSwitching = 16; vhs.trackingJitter = 9; vhs.chromaBleed = 7; vhs.dropouts = 10; vhs.tapeHiss = 8; vhs.scanlines = true;
-    } else {
-      vhs.enabled = false;
-    }
+  const syncInputsFromState = () => {
     chkActive.checked = vhs.enabled;
     chkScan.checked = vhs.scanlines;
     win.querySelector("#vhsHead").value = vhs.headSwitching;
@@ -12439,12 +13599,36 @@ function openAnalogTapeSuiteDialog() {
     win.querySelector("#vhsDropsVal").textContent = vhs.dropouts;
     win.querySelector("#vhsHiss").value = vhs.tapeHiss;
     win.querySelector("#vhsHissVal").textContent = vhs.tapeHiss;
+    win.querySelector("#vhsTrackingErr").value = vhs.trackingError || 0;
+    win.querySelector("#vhsTrackingErrVal").textContent = vhs.trackingError || 0;
+    win.querySelector("#vhsHSyncTear").value = vhs.hSyncTear || 0;
+    win.querySelector("#vhsHSyncTearVal").textContent = vhs.hSyncTear || 0;
+    win.querySelector("#vhsRfNoise").value = vhs.rfNoise || 0;
+    win.querySelector("#vhsRfNoiseVal").textContent = vhs.rfNoise || 0;
     updatePreview();
+  };
+
+  const setPreset = (p) => {
+    if (p === "sp") {
+      vhs.enabled = true; vhs.headSwitching = 8; vhs.trackingJitter = 3; vhs.chromaBleed = 4; vhs.dropouts = 5; vhs.tapeHiss = 3; vhs.trackingError = 0; vhs.rfNoise = 0; vhs.hSyncTear = 1; vhs.scanlines = true;
+    } else if (p === "ep") {
+      vhs.enabled = true; vhs.headSwitching = 14; vhs.trackingJitter = 7; vhs.chromaBleed = 6; vhs.dropouts = 9; vhs.tapeHiss = 6; vhs.trackingError = 4; vhs.rfNoise = 3; vhs.hSyncTear = 4; vhs.scanlines = true;
+    } else if (p === "beta") {
+      vhs.enabled = true; vhs.headSwitching = 4; vhs.trackingJitter = 1; vhs.chromaBleed = 1; vhs.dropouts = 1; vhs.tapeHiss = 1; vhs.trackingError = 0; vhs.rfNoise = 0; vhs.hSyncTear = 0; vhs.scanlines = true;
+    } else if (p === "tracking") {
+      vhs.enabled = true; vhs.headSwitching = 12; vhs.trackingJitter = 6; vhs.chromaBleed = 5; vhs.dropouts = 7; vhs.tapeHiss = 5; vhs.trackingError = 8; vhs.rfNoise = 4; vhs.hSyncTear = 6; vhs.scanlines = true;
+    } else if (p === "demag") {
+      vhs.enabled = true; vhs.headSwitching = 16; vhs.trackingJitter = 9; vhs.chromaBleed = 7; vhs.dropouts = 10; vhs.tapeHiss = 8; vhs.trackingError = 7; vhs.rfNoise = 7; vhs.hSyncTear = 8; vhs.scanlines = true;
+    } else {
+      vhs.enabled = false;
+    }
+    syncInputsFromState();
   };
 
   win.querySelector("#vhsPresetSP").onclick = () => setPreset("sp");
   win.querySelector("#vhsPresetEP").onclick = () => setPreset("ep");
   win.querySelector("#vhsPresetBeta").onclick = () => setPreset("beta");
+  win.querySelector("#vhsPresetTracking").onclick = () => setPreset("tracking");
   win.querySelector("#vhsPresetDemag").onclick = () => setPreset("demag");
   win.querySelector("#vhsPresetOff").onclick = () => setPreset("off");
 }
@@ -13573,7 +14757,26 @@ function aboutDialog() {
       <b style="margin-top:4px">Recursos da Edição 95 (Moldes Adobe Premiere 4.2)</b>
       <div class="listview vers" style="max-height:175px">
         <div class="ver-block">
-          <b>1.1.1 · Fit to Fill 4-Pontos, VU Galvanométrico, Chroma Key &amp; Ficha Técnica</b><span class="chip95">você está nesta</span>
+          <b>1.1.4 · Tela de Início MDI Limpa, Roll &amp; Crawl Designer, RTA 31-Bandas, SMPTE &amp; VHS Glitch</b><span class="chip95">você está nesta</span>
+          <ul>
+            <li>Área de Trabalho MDI Limpa na Inicialização: Tela de boas-vindas sobreposta a fundo cinza fosco MDI com marca d'água em baixo relevo biselado sem expor a timeline nem monitores até abrir ou criar um projeto</li>
+            <li>Roll &amp; Crawl Designer 95: Gerador de Créditos Rolantes verticais em duas colunas sincronizadas e Letreiro Contínuo de Notícias (Crawl) com badge de identificação lateral</li>
+            <li>Analisador de Espectro RTA 31-Bandas Rack 19" (1995): Chassi profissional montado em rack com 31 barras LED tricolores fluorescentes e medidor goniômetro de fase estéreo</li>
+            <li>Calculadora Broadcast SMPTE 12M &amp; Bitolas de Película: Display digital VFD verde-esmeralda, conversões DF/NDF/PAL/Cinema e metragem em pés de película 35mm e 16mm</li>
+            <li>Simulador de Desajuste de Tracking VHS &amp; Ruído RF: Barra horizontal de desvio de tracking analógico com chuvisco móvel, distorção H-Sync (Flag Waving) e interferência de RF</li>
+            <li>Novas Transições 3D Vintage: Cubo 3D Giratório (Cube Spin 3D) e Mosaico Explosivo em Blocos (Block Dissolve 95)</li>
+          </ul>
+        </div>
+        <div class="ver-block">
+          <b>1.1.3 · Correção de Estabilidade de Efeitos, Áudio Contínuo &amp; Zero Flicker</b>
+          <ul>
+            <li>Eliminação de loops de busca forçada no áudio durante reprodução ativa com efeitos</li>
+            <li>Proteção matemática contra matrizes de escala singulares nos giros 3D de 90° e 270°</li>
+            <li>Aceleração por hardware no efeito anáglifo 3D mantendo 60 FPS estáveis</li>
+          </ul>
+        </div>
+        <div class="ver-block">
+          <b>1.1.1 · Fit to Fill 4-Pontos, VU Galvanométrico, Chroma Key &amp; Ficha Técnica</b>
           <ul>
             <li>Edição por 4 Pontos com Ajuste de Velocidade Automático (Fit to Fill 1995) e diálogo de resolução de conflito</li>
             <li>Medidores VU Analógicos com Agulhas Galvanométricas: Fundo creme marfim, escala serigráfica -20 a +3 dB e física balística</li>
@@ -13752,7 +14955,18 @@ function openWhatsNewDialog() {
       </div>
       <div class="listview vers" style="max-height:220px;overflow:auto">
         <div class="ver-block">
-          <b>1.1.3 · Correção de Estabilidade de Efeitos, Áudio Contínuo &amp; Zero Flicker</b><span class="chip95">versão instalada</span>
+          <b>1.1.4 · Tela de Início MDI Limpa, Roll &amp; Crawl Designer, RTA 31-Bandas, SMPTE &amp; VHS Glitch</b><span class="chip95">versão instalada</span>
+          <ul>
+            <li><b>Área de Trabalho MDI Limpa na Inicialização:</b> O assistente de boas-vindas agora abre sobre um fundo fosco MDI autêntico dos anos 90 com baixo-relevo chiseled, mantendo a timeline, monitores e cesto de mídias ocultos até que um projeto seja aberto ou iniciado.</li>
+            <li><b>Roll &amp; Crawl Designer 95 (Ctrl+Alt+R):</b> Criação de créditos rolantes verticais (Roll) com diagramação precisa em duas colunas sincronizadas (Função e Nome) com canaleta central ajustável, e letreiros contínuos horizontais (Crawl) de notícias com badge informativo lateral.</li>
+            <li><b>Analisador de Áudio RTA 31-Bandas Rack 19" (Ctrl+Alt+A):</b> Chassi profissional estilo Klark Teknik / BSS com 31 bandas de filtros ISO (20 Hz a 20 kHz), barras fluorescentes LED tricolores (-48 dB a +6 dB) com retenção de pico (Peak Hold) e goniômetro de correlação de fase estéreo.</li>
+            <li><b>Calculadora Broadcast SMPTE 12M &amp; Película (Ctrl+Alt+K):</b> Display VFD verde-esmeralda para aritmética de timecode, conversões de bitolas de película 35mm (4 perf) e 16mm (40 q/pé), taxas NTSC (DF/NDF), PAL e Cinema, além de atalhos rápidos de blocos comerciais de TV (+15s, +30s, +60s, +180s).</li>
+            <li><b>Simulador de Desajuste de Tracking VHS &amp; Ruído RF:</b> Barra móvel de erro de alinhamento de cabeçote com chuvisco analógico estático, distorção de fase horizontal, curvatura H-Sync no topo (Flag Waving) e interferência de rádio-frequência VHF/UHF.</li>
+            <li><b>Novas Transições 3D Vintage:</b> Cubo 3D Giratório (Cube Spin 3D) com faces texturizadas e perspectiva, e Mosaico Explosivo em Blocos (Block Dissolve 95).</li>
+          </ul>
+        </div>
+        <div class="ver-block">
+          <b>1.1.3 · Correção de Estabilidade de Efeitos, Áudio Contínuo &amp; Zero Flicker</b>
           <ul>
             <li><b>Áudio Ininterrupto e Sincronismo de Fase:</b> Eliminação de loops de busca forçada (seeking) durante a reprodução ativa com efeitos. Micro-ajuste suave de taxa de reprodução (playbackRate ±4%) para alinhamento contínuo sem silenciar ou cortar o fluxo sonoro.</li>
             <li><b>Eliminação Definitiva da Tela Piscando (Zero Flicker):</b> Proteção matemática contra matrizes de escala singulares (determinante zero) nos giros 3D de 90° e 270°, impedindo que o canvas piscasse em preto durante giros tridimensionais ou presets contínuos.</li>
@@ -14268,6 +15482,19 @@ function switchMulticamCam(camNumber) {
 }
 
 function updateStatusBar() {
+  if (typeof S !== "undefined" && S.hasActiveProject === false) {
+    const winTitle = document.getElementById("winTitle");
+    if (winTitle) winTitle.textContent = `ScriptEditor 95 - [Nenhum Projeto Aberto · Área de Trabalho MDI]`;
+    const taskTitle = document.getElementById("taskTitle");
+    if (taskTitle) taskTitle.textContent = `ScriptEditor 95 — Área de Trabalho em Espera`;
+    try { document.title = `ScriptEditor 95 - [Nenhum Projeto Aberto]`; } catch (_e) {}
+    const sbStatus = document.getElementById("statusTxt");
+    if (sbStatus) sbStatus.textContent = "Área de trabalho em espera · Selecione uma opção na tela inicial ou crie um novo projeto";
+    const sbClip = document.getElementById("sbClip");
+    if (sbClip) sbClip.textContent = "Projeto: Nenhum aberto";
+    return;
+  }
+
   const dirtyMark = S.isDirty ? " *" : "";
   const curSeq = (S.sequences || []).find(s => s.id === S.activeSequenceId);
   const seqName = curSeq ? ` [${curSeq.name}]` : "";
@@ -14416,16 +15643,19 @@ const CMD = {
   sobre: { label: "Sobre o ScriptEditor 95…", icon: "info", run: () => aboutDialog() },
   win95ColorPicker: { label: "Seletor de Cores Oficial Windows 95 (COMMDLG32)…", icon: "sparkle", key: "Ctrl+Shift+C", run: () => openWin95ColorDialog("#008080", null, { title: "Cores — Paleta e Espectro 1995" }) },
   dve3dProcessor: { label: "Console de Efeitos Digitais 3D (DVE 1995)…", icon: "sparkle", key: "Ctrl+Alt+3", run: () => open3DDVEConsole(getSelectedClip()) },
-  captureStillBMP: { label: "Capturar Fotograma Estático (Still Frame BMP 1995)", icon: "slate", key: "Ctrl+Shift+B", run: () => captureStillFrameBMP() }
+  captureStillBMP: { label: "Capturar Fotograma Estático (Still Frame BMP 1995)", icon: "slate", key: "Ctrl+Shift+B", run: () => captureStillFrameBMP() },
+  rollCrawlDesigner: { label: "Roll & Crawl Designer 95 (Créditos & Letreiros)…", icon: "sparkle", key: "Ctrl+Alt+R", run: () => openRollCrawlDesigner() },
+  analisadorRTA: { label: "Analisador de Áudio RTA 31-Bandas Rack 19\"…", icon: "vu", key: "Ctrl+Alt+A", run: () => openRTAConsole() },
+  calculadoraSMPTE: { label: "Calculadora Broadcast SMPTE 12M & Película…", icon: "props", key: "Ctrl+Alt+K", run: () => openSmpteCalculatorDialog() }
 };
 
 const MENUS = [
-  ["Arquivo", "A", ["telaInicial", "fecharProjeto", "-", "novaSequencia", "novoProjetoLivre", "abrirProjeto", "salvarProjeto", "salvarProjetoComo", "pacoteZip", "-", "importarMidia", "relinkMidias", "importarEDL", "exportarEDL", "exportarCueSheet", "fichaTecnica", "-", "importarSRT", "exportarSRT", "-", "gerarSinal", "geradorGC", "colorMatte", "captureStillBMP", "-", "configuracoesIlha", "-", "importarSR", "salvarNoSR", "-", "exportarMaster", "filaRender", "-", "abrirScriptRoom", "-", "desligar"]],
+  ["Arquivo", "A", ["telaInicial", "fecharProjeto", "-", "novaSequencia", "novoProjetoLivre", "abrirProjeto", "salvarProjeto", "salvarProjetoComo", "pacoteZip", "-", "importarMidia", "relinkMidias", "importarEDL", "exportarEDL", "exportarCueSheet", "fichaTecnica", "-", "importarSRT", "exportarSRT", "-", "gerarSinal", "geradorGC", "rollCrawlDesigner", "colorMatte", "captureStillBMP", "-", "configuracoesIlha", "calculadoraSMPTE", "-", "importarSR", "salvarNoSR", "-", "exportarMaster", "filaRender", "-", "abrirScriptRoom", "-", "desligar"]],
   ["Editar", "E", ["desfazer", "refazer", "-", "selecionarTodos", "desmarcarTudo", "-", "copiarClipe", "colarClipe", "colarAtributos", "win95ColorPicker", "duplicarClipe", "congelarQuadro", "-", "agruparClipes", "desagruparClipes", "vincularAV", "-", "cortarAgulha", "excluirClipe", "excluirRipple", "rippleDeleteVazio", "-", "toggleSnap", "-", "configTeclas"]],
-  ["Projeto", "P", ["novaSequencia", "duplicarSequencia", "-", "importarMidia", "relinkMidias", "abrirProjeto", "salvarProjeto", "pacoteZip", "-", "gerarSinal", "geradorGC", "colorMatte", "win95ColorPicker", "adicionarMarcador", "abaMarcadores", "-", "addVideoTrack", "addAudioTrack", "-", "configuracoesIlha", "vhsSuite", "toggleAbRoll", "-", "mesaSom", "consoleVU", "rackDinamica", "equalizadorDSP", "corretor3Way", "-", "importarSRT", "exportarSRT", "-", "importarSR"]],
+  ["Projeto", "P", ["novaSequencia", "duplicarSequencia", "-", "importarMidia", "relinkMidias", "abrirProjeto", "salvarProjeto", "pacoteZip", "-", "gerarSinal", "geradorGC", "rollCrawlDesigner", "colorMatte", "win95ColorPicker", "adicionarMarcador", "abaMarcadores", "-", "addVideoTrack", "addAudioTrack", "-", "configuracoesIlha", "vhsSuite", "toggleAbRoll", "-", "mesaSom", "consoleVU", "analisadorRTA", "rackDinamica", "equalizadorDSP", "corretor3Way", "calculadoraSMPTE", "-", "importarSRT", "exportarSRT", "-", "importarSR"]],
   ["Clipe", "C", ["sobrescreverOrigem", "inserirOrigem", "-", "marcarInTimeline", "marcarOutTimeline", "limparInOutTimeline", "-", "dve3dProcessor", "chromaProcessor", "colorMatte", "quickDissolve", "-", "agruparClipes", "desagruparClipes", "vincularAV", "colarAtributos", "-", "velocidadeClipe", "congelarQuadro", "captureStillBMP", "cortarAgulha", "duplicarClipe", "excluirClipe", "excluirRipple", "rippleDeleteVazio", "-", "toggleSnap", "-", "addVideoTrack", "addAudioTrack", "-", "toolSelect", "toolTrack", "toolRazor", "toolTrim", "toolRipple", "toolRolling", "toolSlip", "toolSlide", "toolHand"]],
-  ["Janela", "J", ["layDual", "layMulticam", "laySingle", "layScript", "-", "dve3dProcessor", "consoleVU", "janelaDub", "multicamSwitcher", "filaRender", "-", "verPainel", "-", "desacoplarProgram", "desacoplarSource", "desacoplarSide", "desacoplarTimeline", "-", "reacoplarTodos", "resetLayout", "-", "esquema"]],
-  ["Áudio/Vídeo", "V", ["vhsSuite", "dve3dProcessor", "toggleAbRoll", "-", "chromaProcessor", "win95ColorPicker", "captureStillBMP", "-", "mesaSom", "consoleVU", "rackDinamica", "equalizadorDSP", "corretor3Way", "-", "janelaDub", "-", "addVideoTrack", "addAudioTrack", "-", "mesaFoley", "gravadorADR", "claqueteCam", "-", "exportarMaster", "filaRender"]],
+  ["Janela", "J", ["layDual", "layMulticam", "laySingle", "layScript", "-", "dve3dProcessor", "consoleVU", "analisadorRTA", "janelaDub", "calculadoraSMPTE", "multicamSwitcher", "filaRender", "-", "verPainel", "-", "desacoplarProgram", "desacoplarSource", "desacoplarSide", "desacoplarTimeline", "-", "reacoplarTodos", "resetLayout", "-", "esquema"]],
+  ["Áudio/Vídeo", "V", ["vhsSuite", "dve3dProcessor", "toggleAbRoll", "-", "chromaProcessor", "win95ColorPicker", "captureStillBMP", "rollCrawlDesigner", "-", "mesaSom", "consoleVU", "analisadorRTA", "rackDinamica", "equalizadorDSP", "corretor3Way", "-", "janelaDub", "calculadoraSMPTE", "-", "addVideoTrack", "addAudioTrack", "-", "mesaFoley", "gravadorADR", "claqueteCam", "-", "exportarMaster", "filaRender"]],
   ["Ajuda", "u", ["atalhosAjuda", "dicaDoDia", "procurarAtualizacoes", "-", "oQueHaDeNovo", "telaAbertura", "sobre"]]
 ];
 
@@ -15169,6 +16399,9 @@ async function boot() {
     else if (match("linkClips") || combo.toLowerCase() === "ctrl+l") { e.preventDefault(); linkSelectedClips(); }
     else if (match("pasteAttributes") || combo.toLowerCase() === "ctrl+alt+v") { e.preventDefault(); openPasteAttributesDialog(); }
     else if (match("colorMatte") || combo.toLowerCase() === "shift+m") { e.preventDefault(); openColorMatteDialog(); }
+    else if (combo.toLowerCase() === "ctrl+alt+r") { e.preventDefault(); openRollCrawlDesigner(); }
+    else if (combo.toLowerCase() === "ctrl+alt+a") { e.preventDefault(); openRTAConsole(); }
+    else if (combo.toLowerCase() === "ctrl+alt+k") { e.preventDefault(); openSmpteCalculatorDialog(); }
     else if (e.key === "Escape") { e.preventDefault(); clearClipSelection(); renderTimeline(); updateStatusBar(); }
     else if (match("duplicateClip") || combo.toLowerCase() === "ctrl+d") {
       e.preventDefault();
@@ -15266,10 +16499,21 @@ async function boot() {
   setupSplitters();
   setupPanelDetaching();
 
+  // Binda botões da bancada MDI limpa de espera
+  const mdiWelcome = document.getElementById("mdiBtnOpenWelcome");
+  if (mdiWelcome) mdiWelcome.onclick = () => openWelcomeDialog();
+  const mdiNew = document.getElementById("mdiBtnNewProj");
+  if (mdiNew) mdiNew.onclick = () => { revealProjectWorkspace(); openNewProjectCustomDialog(); };
+  const mdiOpen = document.getElementById("mdiBtnOpenProj");
+  if (mdiOpen) mdiOpen.onclick = () => { revealProjectWorkspace(); openProjectDialog(); };
+
   await loadFromScriptRoom(true);
   createStarterFreeProject();
   if (prefs.showWelcome !== false) {
+    hideProjectWorkspace();
     setTimeout(openWelcomeDialog, 400);
+  } else {
+    revealProjectWorkspace();
   }
   setTimeout(autoCheckForUpdates, 6000);
 }

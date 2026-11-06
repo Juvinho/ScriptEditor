@@ -70,6 +70,27 @@
 
   <!-- Área de Trabalho Estilo Adobe Premiere 4.2 -->
   <div class="premiere-workspace" id="premiereWorkspace">
+    <!-- Área de Trabalho MDI Limpa de Estúdio (Exibida na Inicialização e ao Fechar Projeto) -->
+    <div class="welcome-mdi-backdrop" id="welcomeMdiBackdrop" style="display:none">
+      <div class="mdi-engraved-watermark">
+        <svg viewBox="0 0 16 16" width="48" height="48" class="mdi-engraved-svg" aria-hidden="true" style="margin-bottom:6px">
+          <path d="M1 2h14v3H1z" fill="#404040"/>
+          <path d="M2 2l2 3h2L4 2zm4 0l2 3h2L8 2zm4 0l2 3h2l-2-3z" fill="#888888"/>
+          <path d="M1 5h14v9H1z" fill="#303030"/>
+          <path d="M3 7h10v5H3z" fill="#202020"/>
+        </svg>
+        <div class="mdi-engraved-title">SCRIPTEDITOR 95</div>
+        <div class="mdi-engraved-sub">Ilha Profissional de Edição Não-Linear · Broadcast NTSC / PAL-M</div>
+        <div class="mdi-engraved-spec">SMPTE 12M Timecode · Matrox / Pinnacle Broadcast Engine · Áudio DSP 16-bit</div>
+        <div class="mdi-engraved-status" id="mdiStatusText">Área de trabalho em espera — Nenhum projeto ativo</div>
+        <div class="row" style="gap:8px;margin-top:14px;justify-content:center;flex-wrap:wrap">
+          <button type="button" class="btn def" id="mdiBtnOpenWelcome" style="padding:4px 12px;font-weight:700">Assistente de Boas-Vindas…</button>
+          <button type="button" class="btn" id="mdiBtnNewProj" style="padding:4px 12px">Novo Projeto (Ctrl+N)</button>
+          <button type="button" class="btn" id="mdiBtnOpenProj" style="padding:4px 12px">Abrir Projeto… (Ctrl+O)</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Contêiner de Janelas Flutuantes MDI -->
     <div id="floatingArea" class="floating-area"></div>
 

@@ -59,17 +59,19 @@ app.whenReady().then(async () => {
       console.log("App carregado. Aguardando inicialização completa...");
       await sleep(1200);
 
-      // 1. TELA DE ENTRADA / ASSISTENTE DE BOAS-VINDAS 95
+      // 1. TELA DE ENTRADA / ASSISTENTE DE BOAS-VINDAS 95 (BANCADA MDI LIMPA)
       await exec(`
+        if (typeof hideProjectWorkspace === "function") hideProjectWorkspace();
         if (typeof openWelcomeDialog === "function") openWelcomeDialog();
       `);
       await sleep(500);
-      await capture("01_tela_boas_vindas_scripteditor95.png", "Assistente de Boas-Vindas 95 (ScriptRoom Style)");
+      await capture("01_tela_boas_vindas_scripteditor95.png", "Assistente de Boas-Vindas 95 sobre Área MDI Limpa");
 
-      // 2. TIMELINE PRINCIPAL & MONITORES DUPLOS (BANCADA DE CORTE)
+      // 2. TIMELINE PRINCIPAL & MONITORES DUPLOS (BANCADA DE CORTE REVELADA)
       await exec(`
         document.querySelectorAll(".win:not(#appWin)").forEach(w => { if (w._close) w._close(); else w.remove(); });
         document.querySelectorAll(".scrim").forEach(s => s.remove());
+        if (typeof revealProjectWorkspace === "function") revealProjectWorkspace();
         if (typeof renderAll === "function") renderAll();
       `);
       await sleep(400);
@@ -293,7 +295,47 @@ app.whenReady().then(async () => {
       await sleep(500);
       await capture("25_processador_efeitos_3d_dve_1995.png", "Processador de Efeitos Digitais 3D (DVE 1995 — Gizmo de Cubo 3D & Perspectiva)");
 
-      console.log("=== TODOS OS 25 TESTES E CAPTURAS CONCLUÍDOS COM SUCESSO! ===");
+      // 26. ROLL & CRAWL DESIGNER 95 (CRÉDITOS ROLANTES & LETREIRO DE NOTÍCIAS)
+      await exec(`
+        document.querySelectorAll(".win:not(#appWin)").forEach(w => { if (w._close) w._close(); else w.remove(); });
+        document.querySelectorAll(".scrim").forEach(s => s.remove());
+        if (typeof openRollCrawlDesigner === "function") openRollCrawlDesigner();
+      `);
+      await sleep(500);
+      await capture("26_roll_crawl_designer_creditos_95.png", "Roll & Crawl Designer 95 (Créditos Verticais e Letreiro de Notícias)");
+
+      // 27. ANALISADOR DE ÁUDIO RTA 31-BANDAS RACK 19" 1995
+      await exec(`
+        document.querySelectorAll(".win:not(#appWin)").forEach(w => { if (w._close) w._close(); else w.remove(); });
+        document.querySelectorAll(".scrim").forEach(s => s.remove());
+        if (typeof openRTAConsole === "function") openRTAConsole();
+      `);
+      await sleep(500);
+      await capture("27_analisador_audio_rta_31_bandas_rack.png", "Analisador de Espectro RTA 31-Bandas Rack 19\" & Medidor de Fase");
+
+      // 28. CALCULADORA BROADCAST SMPTE 12M & BITOLAS DE CINEMA
+      await exec(`
+        document.querySelectorAll(".win:not(#appWin)").forEach(w => { if (w._close) w._close(); else w.remove(); });
+        document.querySelectorAll(".scrim").forEach(s => s.remove());
+        if (typeof openSmpteCalculatorDialog === "function") openSmpteCalculatorDialog();
+      `);
+      await sleep(500);
+      await capture("28_calculadora_broadcast_smpte_e_pelicula.png", "Calculadora Broadcast SMPTE 12M, Película 35mm/16mm & VFD");
+
+      // 29. SUITE ANALÓGICA VHS: DESAJUSTE DE TRACKING & RUÍDO RF
+      await exec(`
+        document.querySelectorAll(".win:not(#appWin)").forEach(w => { if (w._close) w._close(); else w.remove(); });
+        document.querySelectorAll(".scrim").forEach(s => s.remove());
+        if (typeof openAnalogTapeSuiteDialog === "function") {
+          openAnalogTapeSuiteDialog();
+          const btnTrk = document.getElementById("vhsPresetTracking");
+          if (btnTrk) btnTrk.click();
+        }
+      `);
+      await sleep(500);
+      await capture("29_suite_vhs_desajuste_tracking_e_ruido_rf.png", "Suite Analógica VHS — Desajuste de Tracking & Interferência RF");
+
+      console.log("=== TODOS OS 29 TESTES E CAPTURAS CONCLUÍDOS COM SUCESSO! ===");
       await sleep(500);
       app.quit();
     } catch (err) {
