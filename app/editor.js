@@ -5,11 +5,13 @@
    Zero emojis · Ícones SVG 16x16 pixel-art · Edição Comercial, Doméstica e Roteirizada
    ============================================================================ */
 
-let APP_VERSAO = "1.0.1"; // Substituída em boot() pela versão real do package.json
+let APP_VERSAO = "1.0.2"; // Substituída em boot() pela versão real do package.json
 const FPS = 29.97;
 
 const ICON = {
   editor: '<rect x="0.5" y="1.5" width="3" height="13" fill="#202020" stroke="#000"/><rect x="1.2" y="3" width="1.5" height="1.5" fill="#fff"/><rect x="1.2" y="7" width="1.5" height="1.5" fill="#fff"/><rect x="1.2" y="11" width="1.5" height="1.5" fill="#fff"/><rect x="12.5" y="1.5" width="3" height="13" fill="#202020" stroke="#000"/><rect x="13.2" y="3" width="1.5" height="1.5" fill="#fff"/><rect x="13.2" y="7" width="1.5" height="1.5" fill="#fff"/><rect x="13.2" y="11" width="1.5" height="1.5" fill="#fff"/><rect x="3.5" y="2.5" width="9" height="7" fill="#102840" stroke="#000"/><path d="M5.5 4.2l4 2-4 2z" fill="#FFE040"/><rect x="3.5" y="9.5" width="9" height="4" fill="#C6BFA6" stroke="#000"/><path d="M8 2.5v11" stroke="#FF3030"/>',
+  sparkle: '<path d="M8 1l1.8 4.2L14 7l-4.2 1.8L8 13l-1.8-4.2L2 7l4.2-1.8z" fill="#FFE020" stroke="#000" stroke-width="0.8"/>',
+  dock: '<rect x="2" y="2" width="12" height="12" fill="none" stroke="#000" stroke-width="1.2"/><rect x="4" y="6" width="8" height="6" fill="#C0C0C0" stroke="#000"/>',
   new: '<path d="M3.5 1.5h6l3 3v10h-9z" fill="#fff" stroke="#000"/><path d="M9.5 1.5v3h3" fill="#C0C0C0" stroke="#000"/>',
   open: '<path d="M1.5 3.5h5l1 1h5v9h-11z" fill="#E8C000" stroke="#000"/><path d="M3.5 7.5h12l-2 6h-12z" fill="#FFE060" stroke="#000"/>',
   folder: '<path d="M1.5 3.5h5l1.5 1.5h6.5v8.5h-13z" fill="#FFE060" stroke="#000"/><path d="M1.5 6.5h13" stroke="#C09000"/>',
@@ -505,9 +507,34 @@ function initDefaultMediaBin() {
   ];
 }
 
-function createStarterFreeProject() {
+function getRecentProjects() {
+  try {
+    const list = JSON.parse(localStorage.getItem("se95.recent_projects") || "[]");
+    return Array.isArray(list) ? list : [];
+  } catch (_e) {
+    return [];
+  }
+}
+
+function addRecentProject(pathOrId, name) {
+  if (!name && !pathOrId) return;
+  try {
+    let list = getRecentProjects();
+    const entryName = name || (pathOrId ? String(pathOrId).split(/[/\\]/).pop() : "Projeto");
+    list = list.filter(p => p.path !== pathOrId && p.name !== entryName);
+    list.unshift({
+      name: entryName,
+      path: pathOrId || entryName,
+      date: new Date().toLocaleDateString("pt-BR") + " " + new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+    });
+    if (list.length > 8) list = list.slice(0, 8);
+    localStorage.setItem("se95.recent_projects", JSON.stringify(list));
+  } catch (_e) {}
+}
+
+function createStarterFreeProject(name = "PROJETO_LIVRE_01.PPJ", keepBin = false) {
   saveUndoSnapshot();
-  S.projectName = "PROJETO_LIVRE_01.PPJ";
+  S.projectName = name;
   prefs.presetMode = "livre";
   const pm = document.getElementById("presetModeSel");
   if (pm) pm.value = "livre";
@@ -516,120 +543,25 @@ function createStarterFreeProject() {
   S.audioTracks = ["a1", "a2", "a3"];
   S.clips = {
     v3: [],
-    v2: [
-      {
-        id: uid("v2_"),
-        track: "v2",
-        title: "LETREIRO: EDIÇÃO NÃO-LINEAR 1995",
-        text: "SCRIPTEDITOR 95 · IMPORTE SEUS VÍDEOS (CTRL+I)",
-        start: 6,
-        dur: 8,
-        opacity: 100,
-        scale: 100,
-        posX: 0,
-        posY: 140
-      }
-    ],
-    v1: [
-      {
-        id: uid("v1_"),
-        track: "v1",
-        title: "CONTAGEM_REGRESSIVA_95.MOV",
-        synthType: "leader",
-        start: 0,
-        inPoint: 0,
-        dur: 6,
-        speed: 1,
-        volume: 100,
-        opacity: 100,
-        scale: 100,
-        posX: 0,
-        posY: 0,
-        brightness: 0,
-        contrast: 0,
-        saturation: 100,
-        filter: "16mm",
-        trans: "Corte Seco",
-        transDur: 1.0
-      },
-      {
-        id: uid("v1_"),
-        track: "v1",
-        title: "FITA_VHS_FAMILIA_1995.AVI",
-        synthType: "vhs_home",
-        start: 6,
-        inPoint: 0,
-        dur: 10,
-        speed: 1,
-        volume: 100,
-        opacity: 100,
-        scale: 100,
-        posX: 0,
-        posY: 0,
-        brightness: 0,
-        contrast: 0,
-        saturation: 100,
-        filter: "vhs",
-        trans: "Fusão Cruzada (Dissolve)",
-        transDur: 1.5
-      },
-      {
-        id: uid("v1_"),
-        track: "v1",
-        title: "VT_COMERCIAL_VAREJO_95.AVI",
-        synthType: "commercial",
-        start: 16,
-        inPoint: 0,
-        dur: 10,
-        speed: 1,
-        volume: 100,
-        opacity: 100,
-        scale: 100,
-        posX: 0,
-        posY: 0,
-        brightness: 0,
-        contrast: 0,
-        saturation: 100,
-        filter: "none",
-        trans: "Cortina Horizontal (Wipe)",
-        transDur: 1.2
-      }
-    ],
-    a1: [
-      {
-        id: uid("a1_"),
-        track: "a1",
-        title: "LOCUÇÃO: Abertura Comercial 95",
-        speaker: "LOCUTOR",
-        text: "Importe seus próprios vídeos MP4, AVI ou WEBM, corte com a Navalha (C) e aplique efeitos em tempo real!",
-        start: 6.5,
-        inPoint: 0,
-        dur: 9,
-        volume: 100
-      }
-    ],
-    a2: [
-      {
-        id: uid("a2_"),
-        track: "a2",
-        title: "TRILHA: Synthwave / Acorde 1995",
-        sfxPreset: "acorde",
-        start: 6,
-        inPoint: 0,
-        dur: 19,
-        volume: 85
-      }
-    ],
+    v2: [],
+    v1: [],
+    a1: [],
+    a2: [],
     a3: []
   };
 
-  S.isStarterDemo = true;
-  S.selectedClipId = S.clips.v1[1].id;
-  S.selectedClipTrack = "v1";
-  if (S.mediaBin.length) loadIntoSourceMonitor(S.mediaBin[2] || S.mediaBin[0]);
+  if (!keepBin) {
+    S.mediaBin = [];
+  }
+  S.markers = [];
+  S.isStarterDemo = false;
+  S.selectedClipId = null;
+  S.selectedClipTrack = null;
+  S.srcMedia = null;
+  S.playhead = 0;
   recalcSequenceDuration();
-  setPlayhead(0, false);
   renderAll();
+  addRecentProject(S.projectName, S.projectName);
 }
 
 /* ---------- Monitor de Origem (Source / Clip Monitor — Entrada IN, Saída OUT e Inserção) ---------- */
@@ -1404,6 +1336,8 @@ function drawSingleClipToContext(tCtx, W, H, clip, globalSec) {
   if (flt === "pb") filterStr += " grayscale(100%)";
   else if (flt === "sepia") filterStr += " sepia(85%)";
   else if (flt === "invert") filterStr += " invert(100%)";
+  else if (flt === "blur") filterStr += " blur(3.5px)";
+  else if (flt === "posterize") filterStr += " contrast(180%) saturate(160%)";
   tCtx.filter = filterStr;
 
   let drewReal = false;
@@ -1586,6 +1520,37 @@ function drawSingleClipToContext(tCtx, W, H, clip, globalSec) {
     tCtx.fillStyle = "rgba(0, 0, 0, 0.12)";
     for (let x = 0; x < W; x += 12) tCtx.fillRect(x, 0, 1, H);
     for (let y = 0; y < H; y += 12) tCtx.fillRect(0, y, W, 1);
+  } else if (flt === "vignette") {
+    const vg = tCtx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.32, W / 2, H / 2, Math.hypot(W / 2, H / 2));
+    vg.addColorStop(0, "rgba(0, 0, 0, 0)");
+    vg.addColorStop(0.7, "rgba(0, 0, 0, 0.35)");
+    vg.addColorStop(1, "rgba(0, 0, 0, 0.85)");
+    tCtx.fillStyle = vg;
+    tCtx.fillRect(0, 0, W, H);
+  } else if (flt === "glow") {
+    tCtx.save();
+    tCtx.globalCompositeOperation = "screen";
+    tCtx.fillStyle = "rgba(255, 225, 175, 0.22)";
+    tCtx.fillRect(0, 0, W, H);
+    tCtx.restore();
+  } else if (flt === "duotone") {
+    tCtx.save();
+    tCtx.globalCompositeOperation = "color";
+    tCtx.fillStyle = "rgba(0, 180, 220, 0.40)";
+    tCtx.fillRect(0, 0, W, H);
+    tCtx.globalCompositeOperation = "hard-light";
+    tCtx.fillStyle = "rgba(255, 175, 40, 0.30)";
+    tCtx.fillRect(0, 0, W, H);
+    tCtx.restore();
+  } else if (flt === "filmborder") {
+    tCtx.fillStyle = "#0A0A0A";
+    tCtx.fillRect(0, 0, W, 24);
+    tCtx.fillRect(0, H - 24, W, 24);
+    tCtx.fillStyle = "#E8E8E8";
+    for (let x = 10; x < W; x += 32) {
+      tCtx.fillRect(x, 5, 14, 14);
+      tCtx.fillRect(x, H - 19, 14, 14);
+    }
   }
 
   if (flt === "tv95" || flt === "vhs" || flt === "16mm") {
@@ -1771,6 +1736,113 @@ function renderMonitorFrame() {
         ctx.clip();
         drawSingleClipToContext(ctx, W, H, v1, S.playhead);
         ctx.restore();
+      } else if (trans.startsWith("Íris Circular")) {
+        if (prevClip) drawSingleClipToContext(ctx, W, H, prevClip, prevClip.start + prevClip.dur - 0.05);
+        ctx.save();
+        const maxR = Math.hypot(W / 2, H / 2);
+        ctx.beginPath();
+        ctx.arc(W / 2, H / 2, maxR * p, 0, Math.PI * 2);
+        ctx.clip();
+        drawSingleClipToContext(ctx, W, H, v1, S.playhead);
+        ctx.restore();
+      } else if (trans.startsWith("Cortina Diagonal")) {
+        if (prevClip) drawSingleClipToContext(ctx, W, H, prevClip, prevClip.start + prevClip.dur - 0.05);
+        ctx.save();
+        ctx.beginPath();
+        const d = (W + H) * p;
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.min(W, d), 0);
+        if (d > W) ctx.lineTo(W, d - W);
+        ctx.lineTo(Math.max(0, d - H), Math.min(H, d));
+        ctx.lineTo(0, Math.min(H, d));
+        ctx.closePath();
+        ctx.clip();
+        drawSingleClipToContext(ctx, W, H, v1, S.playhead);
+        ctx.restore();
+      } else if (trans.startsWith("Porta Dupla")) {
+        if (prevClip) drawSingleClipToContext(ctx, W, H, prevClip, prevClip.start + prevClip.dur - 0.05);
+        ctx.save();
+        const wHalf = (W / 2) * p;
+        ctx.beginPath();
+        ctx.rect(W / 2 - wHalf, 0, wHalf * 2, H);
+        ctx.clip();
+        drawSingleClipToContext(ctx, W, H, v1, S.playhead);
+        ctx.restore();
+      } else if (trans.startsWith("Veneziana")) {
+        if (prevClip) drawSingleClipToContext(ctx, W, H, prevClip, prevClip.start + prevClip.dur - 0.05);
+        ctx.save();
+        ctx.beginPath();
+        const slats = 10;
+        const slatH = H / slats;
+        for (let s = 0; s < slats; s++) {
+          ctx.rect(0, s * slatH, W, slatH * p);
+        }
+        ctx.clip();
+        drawSingleClipToContext(ctx, W, H, v1, S.playhead);
+        ctx.restore();
+      } else if (trans.startsWith("Empurrar Horizontal")) {
+        const shift = W * p;
+        ctx.save();
+        if (prevClip) {
+          ctx.save();
+          ctx.translate(-shift, 0);
+          drawSingleClipToContext(ctx, W, H, prevClip, prevClip.start + prevClip.dur - 0.05);
+          ctx.restore();
+        }
+        ctx.save();
+        ctx.translate(W - shift, 0);
+        drawSingleClipToContext(ctx, W, H, v1, S.playhead);
+        ctx.restore();
+        ctx.restore();
+      } else if (trans.startsWith("Empurrar Vertical")) {
+        const shift = H * p;
+        ctx.save();
+        if (prevClip) {
+          ctx.save();
+          ctx.translate(0, shift);
+          drawSingleClipToContext(ctx, W, H, prevClip, prevClip.start + prevClip.dur - 0.05);
+          ctx.restore();
+        }
+        ctx.save();
+        ctx.translate(0, -H + shift);
+        drawSingleClipToContext(ctx, W, H, v1, S.playhead);
+        ctx.restore();
+        ctx.restore();
+      } else if (trans.startsWith("Zoom Dissolve")) {
+        if (prevClip) drawSingleClipToContext(ctx, W, H, prevClip, prevClip.start + prevClip.dur - 0.05);
+        ctx.save();
+        ctx.globalAlpha = p;
+        const scl = 0.5 + p * 0.5;
+        ctx.translate(W / 2, H / 2);
+        ctx.scale(scl, scl);
+        ctx.translate(-W / 2, -H / 2);
+        drawSingleClipToContext(ctx, W, H, v1, S.playhead);
+        ctx.restore();
+      } else if (trans.startsWith("Strobe")) {
+        drawSingleClipToContext(ctx, W, H, v1, S.playhead);
+        if (p < 0.4) {
+          const flash = (Math.sin(p * Math.PI * 14) + 1) / 2;
+          ctx.fillStyle = `rgba(255, 255, 255, ${flash * (1 - p / 0.4)})`;
+          ctx.fillRect(0, 0, W, H);
+        }
+      } else if (trans.startsWith("Xadrez")) {
+        if (prevClip) drawSingleClipToContext(ctx, W, H, prevClip, prevClip.start + prevClip.dur - 0.05);
+        ctx.save();
+        ctx.beginPath();
+        const cols = 12, rows = 9;
+        const cw = W / cols, ch = H / rows;
+        for (let c = 0; c < cols; c++) {
+          for (let r = 0; r < rows; r++) {
+            const progOffset = ((c + r) % 2 === 0) ? p * 1.5 : Math.max(0, (p - 0.25) * 1.33);
+            const curScale = Math.min(1, progOffset);
+            if (curScale > 0) {
+              ctx.rect(c * cw + (cw * (1 - curScale)) / 2, r * ch + (ch * (1 - curScale)) / 2, cw * curScale, ch * curScale);
+            }
+          }
+        }
+        ctx.clip();
+        drawSingleClipToContext(ctx, W, H, v1, S.playhead);
+        ctx.restore();
       } else if (trans.startsWith("Íris")) {
         if (prevClip) drawSingleClipToContext(ctx, W, H, prevClip, prevClip.start + prevClip.dur - 0.05);
         ctx.save();
@@ -1839,6 +1911,7 @@ function renderMonitorFrame() {
   if (typeof S._exportFrameHook === "function" && S._exportBurnTC) {
     S._exportFrameHook(cv);
   }
+  syncDetachedWindows();
 }
 
 function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight) {
@@ -3884,6 +3957,12 @@ function renderSide() {
                 <option value="noturno"${clip.filter === "noturno" ? " selected" : ""}>Visão Noturna</option>
                 <option value="invert"${clip.filter === "invert" ? " selected" : ""}>Negativo (Inverter)</option>
                 <option value="mosaic"${clip.filter === "mosaic" ? " selected" : ""}>Mosaico 8-bit</option>
+                <option value="vignette"${clip.filter === "vignette" ? " selected" : ""}>Vinheta 35mm</option>
+                <option value="glow"${clip.filter === "glow" ? " selected" : ""}>Brilho Difuso Anos 90</option>
+                <option value="blur"${clip.filter === "blur" ? " selected" : ""}>Desfoque Suave</option>
+                <option value="posterize"${clip.filter === "posterize" ? " selected" : ""}>Pôster 8-Cores</option>
+                <option value="duotone"${clip.filter === "duotone" ? " selected" : ""}>Bicolor Cyan/Âmbar</option>
+                <option value="filmborder"${clip.filter === "filmborder" ? " selected" : ""}>Borda de Película 35mm</option>
               </select>
             </div>
             <div class="slider-row">
@@ -4149,7 +4228,16 @@ function renderSide() {
       ["Fade do Branco", "Surge a partir de um clarão branco de película."],
       ["Cortina Horizontal (Wipe)", "Revela o novo plano da esquerda para a direita."],
       ["Cortina Vertical", "Revela o novo plano de cima para baixo."],
-      ["Íris Central (Iris Box)", "Abre um quadro retangular do centro para as bordas."]
+      ["Cortina Diagonal", "Varredura diagonal do canto superior para o inferior."],
+      ["Porta Dupla (Barn Doors)", "Abre do centro para as duas laterais simultaneamente."],
+      ["Veneziana (Blinds)", "Fatias horizontais abrem revelando o novo plano."],
+      ["Empurrar Horizontal", "Novo plano empurra o anterior da direita para a esquerda."],
+      ["Empurrar Vertical", "Novo plano empurra o anterior de cima para baixo."],
+      ["Íris Central (Iris Box)", "Abre um quadro retangular do centro para as bordas."],
+      ["Íris Circular", "Abre um círculo expansivo a partir do centro."],
+      ["Zoom Dissolve", "Aproximação com dissolução óptica gradual."],
+      ["Strobe / Flash Cut", "Clarão estroboscópico de corte rápido."],
+      ["Xadrez (Checkerboard)", "Revela o plano em blocos alternados de tabuleiro de xadrez."]
     ];
     box.innerHTML = `
       <div class="col">
@@ -5013,6 +5101,7 @@ async function saveCurrentProject(asNew = false) {
       S.projectName = targetPath.split(/[/\\]/).pop().toUpperCase();
       S.isDirty = false;
       updateStatusBar();
+      addRecentProject(targetPath, S.projectName);
       toast(`Projeto salvo em ${S.projectName} com sucesso!`);
     } else {
       toast("Erro ao gravar arquivo de projeto no disco.");
@@ -5023,6 +5112,196 @@ async function saveCurrentProject(asNew = false) {
     S.isDirty = false;
     toast(`Projeto ${S.projectName} salvo localmente.`);
   }
+}
+
+function openNewProjectCustomDialog() {
+  const w = openDialog({
+    title: "Novo Projeto — Predefinições de Montagem 1995",
+    width: 480,
+    body: `
+      <div class="col" style="gap:10px">
+        <div class="muted" style="font-size:11px">Configure os parâmetros da sua nova sequência master. A linha do tempo será iniciada totalmente vazia.</div>
+        <div class="fx-group">
+          <div class="fx-title">Configurações Gerais do Projeto</div>
+          <div class="slider-row" style="grid-template-columns:120px 1fr">
+            <span>Nome do Arquivo:</span>
+            <input type="text" id="npName" value="PROJETO_LIVRE_01.PPJ" style="font-weight:700">
+          </div>
+          <div class="slider-row" style="grid-template-columns:120px 1fr">
+            <span>Padrão de Vídeo:</span>
+            <select id="npPreset">
+              <option value="4:3_ntsc" selected>4:3 Betacam SP NTSC (640×480 · 29.97 fps)</option>
+              <option value="16:9_dv">16:9 DV NTSC Widescreen (720×480 · 29.97 fps)</option>
+              <option value="4:3_pal">4:3 PAL Emissora (768×576 · 25.00 fps)</option>
+              <option value="16:9_hd">16:9 Película Cinema HD (1280×720 · 24.00 fps)</option>
+              <option value="1:1_sq">1:1 Quadrado Multimídia (600×600 · 30.00 fps)</option>
+            </select>
+          </div>
+          <div class="slider-row" style="grid-template-columns:120px 1fr">
+            <span>Taxa de Quadros:</span>
+            <select id="npFps">
+              <option value="29.97" selected>29.97 quadros/seg (NTSC broadcast)</option>
+              <option value="24">24.00 quadros/seg (Cinema clássico)</option>
+              <option value="25">25.00 quadros/seg (PAL europeu)</option>
+              <option value="30">30.00 quadros/seg (Digital progressivo)</option>
+            </select>
+          </div>
+        </div>
+        <div class="fx-group">
+          <div class="fx-title">Faixas e Mídias</div>
+          <label class="row" style="gap:4px;font-size:11px">
+            <input type="checkbox" id="npClearBin" checked>
+            Iniciar com o Gerenciador de Mídias (Bin) vazio
+          </label>
+        </div>
+        <div class="row" style="justify-content:flex-end;gap:6px;margin-top:6px">
+          <button type="button" class="btn" id="npBtnCancel">Cancelar</button>
+          <button type="button" class="btn def" id="npBtnConfirm">Criar Projeto Vazio ►</button>
+        </div>
+      </div>
+    `
+  });
+
+  w.querySelector("#npBtnCancel").onclick = () => closeDialog(w);
+  w.querySelector("#npBtnConfirm").onclick = () => {
+    let nome = (w.querySelector("#npName").value || "PROJETO_LIVRE.PPJ").trim();
+    if (!nome.toUpperCase().endsWith(".PPJ")) nome += ".PPJ";
+    const clearBin = w.querySelector("#npClearBin").checked;
+    closeDialog(w);
+    createStarterFreeProject(nome, !clearBin);
+    toast(`Projeto vazio "${nome}" pronto para montagem!`);
+  };
+}
+
+function openWelcomeDialog() {
+  const recents = getRecentProjects();
+  const recentHtml = recents.length ? recents.map((p, idx) => `
+    <div class="recent-item" data-recidx="${idx}" title="Clique para abrir ${escH(p.path || p.name)}">
+      <span>📄 <b>${escH(p.name)}</b></span>
+      <span class="muted" style="font-size:10px">${escH(p.date || "")}</span>
+    </div>
+  `).join("") : `<div class="muted" style="padding:16px;text-align:center">Nenhum projeto recente salvo. Escolha uma das opções acima para começar.</div>`;
+
+  const w = openDialog({
+    title: "ScriptEditor 95 — Assistente de Projetos e Boas-Vindas",
+    width: 630,
+    body: `
+      <div class="welcome-grid">
+        <div class="welcome-sidebar">
+          <div>
+            <div class="welcome-brand">
+              ScriptEditor 95
+              <small>Edição Não-Linear &amp; Montagem</small>
+            </div>
+            <div style="font-size:10px;margin-top:14px;color:#D0E8FF;line-height:1.4">
+              Ilha de montagem de vídeo estilo Windows 95.<br>
+              Corte, transições, efeitos, áudio multifaixas e renderização master.
+            </div>
+          </div>
+          <div style="font-size:10px;color:#A0C8FF">
+            Versão ${APP_VERSAO}<br>
+            C2 Montagem &amp; Videografismo
+          </div>
+        </div>
+        <div class="welcome-actions-col">
+          <div style="font-weight:700;font-size:11.5px;margin-bottom:2px">O que você deseja fazer agora?</div>
+          <button type="button" class="welcome-big-btn" id="wBtnNew">
+            <span style="font-size:22px">✨</span>
+            <div>
+              <b>Criar Novo Projeto Vazio</b>
+              <span>Inicia com linha do tempo totalmente limpa, pronta para receber seus vídeos e áudios.</span>
+            </div>
+          </button>
+          <button type="button" class="welcome-big-btn" id="wBtnOpen">
+            <span style="font-size:22px">📂</span>
+            <div>
+              <b>Abrir Projeto Existente (.PPJ)</b>
+              <span>Localiza um arquivo de projeto salvo no seu computador ou na pasta Documentos\\ScriptEditor.</span>
+            </div>
+          </button>
+          <button type="button" class="welcome-big-btn" id="wBtnImport">
+            <span style="font-size:22px">🎬</span>
+            <div>
+              <b>Importar Arquivos de Mídia</b>
+              <span>Seleciona vídeos (MP4, AVI, WEBM, MOV), músicas e imagens do computador para o Bin.</span>
+            </div>
+          </button>
+          <button type="button" class="welcome-big-btn" id="wBtnSR">
+            <span style="font-size:22px">📜</span>
+            <div>
+              <b>Carregar Roteiro do ScriptRoom (.ROT)</b>
+              <span>Monta a sequência cena a cena sincronizada com os roteiros de Documentos\\ScriptRoom.</span>
+            </div>
+          </button>
+
+          <div style="margin-top:4px">
+            <div style="font-weight:700;font-size:11px;margin-bottom:2px">Projetos Recentes:</div>
+            <div class="recent-list" id="wRecentList">${recentHtml}</div>
+          </div>
+        </div>
+      </div>
+      <div class="row" style="justify-content:space-between;margin-top:10px;border-top:1px solid var(--lo);padding-top:6px">
+        <label class="row" style="gap:4px;font-size:11px">
+          <input type="checkbox" id="wChkStartup" ${prefs.showWelcome !== false ? "checked" : ""}>
+          Exibir este assistente ao iniciar o ScriptEditor
+        </label>
+        <button type="button" class="btn def" id="wBtnClose">Ir para a Linha do Tempo ►</button>
+      </div>
+    `
+  });
+
+  const chk = w.querySelector("#wChkStartup");
+  if (chk) {
+    chk.onchange = () => {
+      prefs.showWelcome = chk.checked;
+      savePrefs();
+    };
+  }
+
+  w.querySelector("#wBtnNew").onclick = () => {
+    closeDialog(w);
+    openNewProjectCustomDialog();
+  };
+
+  w.querySelector("#wBtnOpen").onclick = () => {
+    closeDialog(w);
+    openProjectDialog();
+  };
+
+  w.querySelector("#wBtnImport").onclick = () => {
+    closeDialog(w);
+    importMediaFiles("all", true);
+  };
+
+  w.querySelector("#wBtnSR").onclick = () => {
+    closeDialog(w);
+    loadFromScriptRoom();
+  };
+
+  w.querySelector("#wBtnClose").onclick = () => {
+    closeDialog(w);
+  };
+
+  w.querySelectorAll("[data-recidx]").forEach(item => {
+    item.onclick = async () => {
+      const idx = +item.dataset.recidx;
+      const target = recents[idx];
+      if (!target) return;
+      closeDialog(w);
+      if (target.path && window.editorNative) {
+        try {
+          const raw = await window.editorNative.readTextFile(target.path);
+          if (raw) {
+            const data = JSON.parse(raw);
+            loadProjectData(data, target.path);
+            toast(`Projeto "${target.name}" carregado!`);
+            return;
+          }
+        } catch (_e) {}
+      }
+      openProjectDialog();
+    };
+  });
 }
 
 async function openProjectDialog() {
@@ -5098,6 +5377,7 @@ function loadProjectData(proj, filePath = null) {
   S.isDirty = false;
   recalcSequenceDuration();
   renderAll();
+  addRecentProject(S.projectFilePath || S.projectName, S.projectName);
   toast(`Projeto ${S.projectName} carregado com sucesso!`);
 }
 
@@ -6007,14 +6287,22 @@ function aboutDialog() {
       <b style="margin-top:4px">Recursos da Edição 95 (Moldes Adobe Premiere 4.2)</b>
       <div class="listview vers" style="max-height:175px">
         <div class="ver-block">
-          <b>1.0.1 · Núcleo Profissional Não-Linear &amp; Mesa de Som Analógica</b><span class="chip95">você está nesta</span>
+          <b>1.0.2 · Linha do Tempo Limpa, Assistente 95, Janelas MDI/Externas &amp; Efeitos/Transições</b><span class="chip95">você está nesta</span>
+          <ul>
+            <li>Inicialização com Linha do Tempo 100% vazia (sem clipes de demonstração) e Assistente de Boas-Vindas 95</li>
+            <li>Divisores de tela redimensionáveis (Splitters) com arraste suave e salvamento de dimensões</li>
+            <li>Desacoplamento de painéis em Janelas Flutuantes MDI e Janelas Externas nativas para Monitores Secundários</li>
+            <li>9 Novas Transições: Cortina Diagonal, Porta Dupla, Veneziana, Empurrar H/V, Íris Circular, Zoom Dissolve, Strobe e Xadrez</li>
+            <li>7 Novos Efeitos: Vinheta 35mm, Brilho Difuso Anos 90, Desfoque Suave, Caleidoscópio 4x, Pôster 8-Cores, Duotone e Borda 35mm</li>
+          </ul>
+        </div>
+        <div class="ver-block">
+          <b>1.0.1 · Núcleo Profissional Não-Linear &amp; Mesa de Som Analógica</b>
           <ul>
             <li>Modelo de Projeto (.PPJ), Salvamento Automático (Autosave 60s) e Recuperação de Falhas</li>
             <li>Sistema de Keyframes com interpolação Hermite suave para Opacidade, Posição, Escala, Rotação e Volume</li>
             <li>Mesa de Som Analógica 95 com Faders individuais, VU por canal, Pan, Mute/Solo e Normalização de Picos (-0.1 dB)</li>
-            <li>Modos de Mesclagem (Multiplicar, Tela, Sobrepor, Adicionar, Diferença), Temperatura Kelvin, Tint e Chroma Key</li>
-            <li>Títulos Animados Chyron (Letreiro Rotativo/Crawl, Créditos Rolantes/Roll e Piscante) e Suporte a Legendas SRT</li>
-            <li>Cesto de Mídia (Project Bin) com busca instantânea, abas de categoria, Miniaturas e Lista Detalhada</li>
+            <li>Modos de Mesclagem, Temperatura Kelvin, Tint, Chroma Key, Chyron e Legendas SRT</li>
           </ul>
         </div>
         <div class="ver-block">
@@ -6108,7 +6396,18 @@ function openWhatsNewDialog() {
       </div>
       <div class="listview vers" style="max-height:220px;overflow:auto">
         <div class="ver-block">
-          <b>1.0.1 · A Grande Atualização de Recursos do ScriptEditor</b><span class="chip95">versão instalada</span>
+          <b>1.0.2 · Linha do Tempo Limpa, Assistente 95, Janelas MDI/Externas &amp; Efeitos/Transições</b><span class="chip95">versão instalada</span>
+          <ul>
+            <li><b>Linha do Tempo Limpa:</b> Inicialização 100% vazia sem nenhum clipe ou áudio demo sintético.</li>
+            <li><b>Assistente de Boas-Vindas 95:</b> Tela inicial clássica para Criar Novo Projeto, Abrir Projeto (.PPJ), Importar Mídias ou Carregar Roteiros, além de atalho rápido para Projetos Recentes.</li>
+            <li><b>Divisores Redimensionáveis (Splitters):</b> Ajuste arrastável com o mouse entre Painel Lateral, Monitores e Linha do Tempo, com salvamento automático das dimensões escolhidas.</li>
+            <li><b>Desacoplamento de Janelas (MDI e Telas Externas):</b> Transforme monitores e timeline em janelas flutuantes internas ou janelas nativas externas do Windows para trabalhar com múltiplos monitores.</li>
+            <li><b>9 Novas Transições Profissionais:</b> Cortina Diagonal, Porta Dupla (Barn Doors), Veneziana (Blinds), Empurrar Horizontal, Empurrar Vertical, Íris Circular, Zoom Dissolve, Strobe e Xadrez.</li>
+            <li><b>7 Novos Efeitos e Filtros:</b> Vinheta 35mm, Brilho Difuso (Glow Halation 90s), Desfoque Suave (Blur), Caleidoscópio 4x, Pôster 8-Cores, Duotone Cyan/Âmbar e Borda de Película 35mm.</li>
+          </ul>
+        </div>
+        <div class="ver-block">
+          <b>1.0.1 · A Grande Atualização de Recursos do ScriptEditor</b>
           <ul>
             <li><b>Projetos Não-Destrutivos (.PPJ):</b> Salve (Ctrl+S) e abra (Ctrl+O) projetos completos preservando timecodes e faixas.</li>
             <li><b>Salvamento Automático &amp; Recuperação:</b> Autosave a cada 60s e detecção com recuperação automática contra quedas de energia.</li>
@@ -6476,6 +6775,13 @@ const CMD = {
   mesaFoley: { label: "Mesa de Áudio e Foley 16-bit", icon: "foley", run: () => { S.sideTab = "audio"; renderSide(); } },
   gravadorADR: { label: "Gravar Narração pelo Microfone…", icon: "mic", run: () => openADRDialog() },
   claqueteCam: { label: "Claquete Virtual & Boletim de Câmera…", icon: "slate", run: () => openSlateDialog() },
+  telaInicial: { label: "Assistente de Boas-Vindas (Tela Inicial)…", icon: "sparkle", key: "Ctrl+Home", run: () => openWelcomeDialog() },
+  desacoplarProgram: { label: "Desacoplar Monitor de Programa (MDI/Externa)", run: () => detachPanel("programBox", "floating") },
+  desacoplarSource: { label: "Desacoplar Monitor de Origem (MDI/Externa)", run: () => detachPanel("sourceBox", "floating") },
+  desacoplarSide: { label: "Desacoplar Janela Projeto (MDI/Externa)", run: () => detachPanel("sideRack", "floating") },
+  desacoplarTimeline: { label: "Desacoplar Linha do Tempo (MDI/Externa)", run: () => detachPanel("timelineDock", "floating") },
+  reacoplarTodos: { label: "Reacoplar Todas as Janelas à Bancada", run: () => { ["sideRack", "sourceBox", "programBox", "timelineDock"].forEach(attachPanel); } },
+  resetLayout: { label: "Redefinir Dimensões das Telas para o Padrão", run: () => { prefs.layoutSizes = null; savePrefs(); document.documentElement.style.removeProperty("--side-width"); document.documentElement.style.removeProperty("--src-width"); document.documentElement.style.removeProperty("--prog-width"); document.documentElement.style.removeProperty("--tl-height"); resizeCanvasMonitors(); renderAll(); toast("Dimensões originais restauradas!"); } },
   esquema: { label: "Esquema de Cores Windows 95…", icon: "gear", run: () => openSchemeDialog() },
   atalhosAjuda: { label: "Atalhos de teclado", icon: "help", run: () => { S.sideTab = "atalhos"; prefs.painel = true; document.body.dataset.painel = "on"; renderSide(); } },
   dicaDoDia: { label: "Dica do dia…", icon: "bulb", run: () => openTipOfDayDialog() },
@@ -6486,13 +6792,13 @@ const CMD = {
 };
 
 const MENUS = [
-  ["Arquivo", "A", ["novoProjetoLivre", "abrirProjeto", "salvarProjeto", "salvarProjetoComo", "-", "importarMidia", "importarSRT", "exportarSRT", "-", "gerarSinal", "geradorGC", "-", "importarSR", "salvarNoSR", "-", "exportarMaster", "-", "abrirScriptRoom", "-", "desligar"]],
+  ["Arquivo", "A", ["telaInicial", "-", "novoProjetoLivre", "abrirProjeto", "salvarProjeto", "salvarProjetoComo", "-", "importarMidia", "importarSRT", "exportarSRT", "-", "gerarSinal", "geradorGC", "-", "importarSR", "salvarNoSR", "-", "exportarMaster", "-", "abrirScriptRoom", "-", "desligar"]],
   ["Editar", "E", ["desfazer", "refazer", "-", "copiarClipe", "colarClipe", "duplicarClipe", "-", "cortarAgulha", "excluirClipe", "excluirRipple", "-", "configTeclas"]],
   ["Projeto", "P", ["importarMidia", "abrirProjeto", "salvarProjeto", "-", "gerarSinal", "geradorGC", "adicionarMarcador", "-", "addVideoTrack", "addAudioTrack", "-", "mesaSom", "-", "importarSRT", "exportarSRT", "-", "importarSR"]],
   ["Clipe", "C", ["velocidadeClipe", "cortarAgulha", "duplicarClipe", "excluirClipe", "excluirRipple", "-", "addVideoTrack", "addAudioTrack", "-", "toolSelect", "toolTrack", "toolRazor", "toolTrim", "toolHand"]],
-  ["Janela", "J", ["layDual", "laySingle", "layScript", "-", "verPainel", "-", "esquema"]],
+  ["Janela", "J", ["layDual", "laySingle", "layScript", "-", "verPainel", "-", "desacoplarProgram", "desacoplarSource", "desacoplarSide", "desacoplarTimeline", "-", "reacoplarTodos", "resetLayout", "-", "esquema"]],
   ["Áudio/Vídeo", "V", ["mesaSom", "addVideoTrack", "addAudioTrack", "-", "mesaFoley", "gravadorADR", "claqueteCam", "-", "exportarMaster"]],
-  ["Ajuda", "u", ["atalhosAjuda", "dicaDoDia", "procurarAtualizacoes", "-", "oQueHaDeNovo", "telaAbertura", "sobre"]]
+  ["Ajuda", "u", ["atalhosAjuda", "dicaDoDia", "procurarAtualizacoes", "-", "telaInicial", "oQueHaDeNovo", "telaAbertura", "sobre"]]
 ];
 
 let menuStack = [], menuOwner = null;
@@ -6524,6 +6830,339 @@ function showMenu(items, x, y, opts = {}) {
   m.style.left = Math.max(4, Math.min(x, innerWidth - w - 4)) + "px";
   m.style.top = Math.max(4, Math.min(opts.up ? y - h : y, innerHeight - h - 4)) + "px";
   m.onclick = e => { const b = e.target.closest("[data-cmdid]"); if (b) runCmd(b.dataset.cmdid); };
+}
+
+/* ---------- Divisores Redimensionáveis (Splitters) ---------- */
+function setupSplitters() {
+  // Restaura dimensões salvas das preferências
+  if (prefs.layoutSizes) {
+    if (prefs.layoutSizes.sideWidth) {
+      document.documentElement.style.setProperty("--side-width", prefs.layoutSizes.sideWidth + "px");
+    }
+    if (prefs.layoutSizes.tlHeight) {
+      document.documentElement.style.setProperty("--tl-height", prefs.layoutSizes.tlHeight + "px");
+    }
+    if (prefs.layoutSizes.srcWidth) {
+      document.documentElement.style.setProperty("--src-width", prefs.layoutSizes.srcWidth + "px");
+      document.documentElement.style.setProperty("--prog-width", "1fr");
+    }
+  }
+
+  // 1. Splitter Lateral (#splitSide)
+  const splitSide = document.getElementById("splitSide");
+  if (splitSide) {
+    let startX = 0, startW = 0, dragging = false;
+    splitSide.onpointerdown = (e) => {
+      e.preventDefault();
+      dragging = true;
+      splitSide.classList.add("dragging");
+      splitSide.setPointerCapture(e.pointerId);
+      startX = e.clientX;
+      startW = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--side-width")) || 330;
+    };
+    splitSide.onpointermove = (e) => {
+      if (!dragging) return;
+      const dx = e.clientX - startX;
+      const newW = Math.max(180, Math.min(640, startW + dx));
+      document.documentElement.style.setProperty("--side-width", newW + "px");
+    };
+    const endDragSide = (e) => {
+      if (!dragging) return;
+      dragging = false;
+      splitSide.classList.remove("dragging");
+      try { splitSide.releasePointerCapture(e.pointerId); } catch (_e) {}
+      if (!prefs.layoutSizes) prefs.layoutSizes = {};
+      prefs.layoutSizes.sideWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--side-width")) || 330;
+      savePrefs();
+      resizeCanvasMonitors();
+    };
+    splitSide.onpointerup = endDragSide;
+    splitSide.onpointercancel = endDragSide;
+  }
+
+  // 2. Splitter Monitores (#splitMonitors)
+  const splitMon = document.getElementById("splitMonitors");
+  if (splitMon) {
+    let startX = 0, startSrcW = 0, dragging = false;
+    splitMon.onpointerdown = (e) => {
+      e.preventDefault();
+      dragging = true;
+      splitMon.classList.add("dragging");
+      splitMon.setPointerCapture(e.pointerId);
+      startX = e.clientX;
+      const srcBox = document.getElementById("sourceBox");
+      startSrcW = srcBox ? srcBox.offsetWidth : 400;
+    };
+    splitMon.onpointermove = (e) => {
+      if (!dragging) return;
+      const dx = e.clientX - startX;
+      const newSrcW = Math.max(180, Math.min(window.innerWidth - 320, startSrcW + dx));
+      document.documentElement.style.setProperty("--src-width", newSrcW + "px");
+      document.documentElement.style.setProperty("--prog-width", "1fr");
+    };
+    const endDragMon = (e) => {
+      if (!dragging) return;
+      dragging = false;
+      splitMon.classList.remove("dragging");
+      try { splitMon.releasePointerCapture(e.pointerId); } catch (_e) {}
+      if (!prefs.layoutSizes) prefs.layoutSizes = {};
+      prefs.layoutSizes.srcWidth = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--src-width")) || 400;
+      savePrefs();
+      resizeCanvasMonitors();
+    };
+    splitMon.onpointerup = endDragMon;
+    splitMon.onpointercancel = endDragMon;
+  }
+
+  // 3. Splitter Timeline (#splitTimeline)
+  const splitTl = document.getElementById("splitTimeline");
+  if (splitTl) {
+    let startY = 0, startH = 0, dragging = false;
+    splitTl.onpointerdown = (e) => {
+      e.preventDefault();
+      dragging = true;
+      splitTl.classList.add("dragging");
+      splitTl.setPointerCapture(e.pointerId);
+      startY = e.clientY;
+      startH = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--tl-height")) || 258;
+    };
+    splitTl.onpointermove = (e) => {
+      if (!dragging) return;
+      const dy = startY - e.clientY;
+      const newH = Math.max(140, Math.min(window.innerHeight - 200, startH + dy));
+      document.documentElement.style.setProperty("--tl-height", newH + "px");
+    };
+    const endDragTl = (e) => {
+      if (!dragging) return;
+      dragging = false;
+      splitTl.classList.remove("dragging");
+      try { splitTl.releasePointerCapture(e.pointerId); } catch (_e) {}
+      if (!prefs.layoutSizes) prefs.layoutSizes = {};
+      prefs.layoutSizes.tlHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--tl-height")) || 258;
+      savePrefs();
+      renderTimeline();
+    };
+    splitTl.onpointerup = endDragTl;
+    splitTl.onpointercancel = endDragTl;
+  }
+}
+
+/* ---------- Janelas Flutuantes MDI e Desacoplamento Multi-Monitor ---------- */
+const detachedPanels = new Map();
+
+function detachPanel(panelId, mode = "floating") {
+  const el = document.getElementById(panelId);
+  if (!el || detachedPanels.has(panelId)) return;
+
+  const panelNames = {
+    sideRack: "Janela Projeto / Efeitos (Bin)",
+    sourceBox: "Monitor de Origem (Clipe Bruto)",
+    programBox: "Monitor de Programa Master",
+    timelineDock: "Linha do Tempo (Timeline)"
+  };
+  const title = panelNames[panelId] || panelId;
+
+  // Cria o placeholder no lugar original
+  const placeholder = document.createElement("div");
+  placeholder.className = "dock-placeholder";
+  placeholder.id = "ph_" + panelId;
+  placeholder.innerHTML = `<span>[ ${escH(title)} desacoplado — clique para reacoplar ]</span>`;
+  placeholder.onclick = () => attachPanel(panelId);
+
+  const parent = el.parentNode;
+  const next = el.nextSibling;
+  parent.insertBefore(placeholder, el);
+
+  if (mode === "external" && window.editorNative && typeof window.editorNative.openDetachedWindow === "function") {
+    el.style.display = "none";
+    detachedPanels.set(panelId, { placeholder, floatingEl: null, origParent: parent, origNextSibling: next, isExt: true });
+    window.editorNative.openDetachedWindow({
+      panelId,
+      title: `ScriptEditor 95 — ${title}`,
+      width: panelId === "programBox" ? 840 : 780,
+      height: panelId === "programBox" ? 600 : 520
+    });
+    toast(`Painel "${title}" aberto em janela externa.`);
+    return;
+  }
+
+  // Modo Janela Flutuante MDI (dentro do aplicativo)
+  const floatingArea = document.getElementById("floatingArea");
+  if (!floatingArea) return;
+
+  const winMdi = document.createElement("div");
+  winMdi.className = "win-floating active-mdi";
+  winMdi.id = "float_" + panelId;
+
+  const rect = el.getBoundingClientRect();
+  const left = Math.max(20, Math.min(window.innerWidth - 380, rect.left + 20));
+  const top = Math.max(40, Math.min(window.innerHeight - 300, rect.top + 20));
+  winMdi.style.left = left + "px";
+  winMdi.style.top = top + "px";
+  winMdi.style.width = Math.max(340, rect.width) + "px";
+  winMdi.style.height = Math.max(220, rect.height) + "px";
+
+  winMdi.innerHTML = `
+    <div class="win-floating-hdr">
+      <span class="win-floating-title">🖥️ ${escH(title)}</span>
+      <div class="row" style="gap:2px">
+        <button type="button" class="mon-dock-btn" data-float-ext="${panelId}" title="Mover para Janela Externa do Windows (Monitor Secundário)">↗</button>
+        <button type="button" class="mon-dock-btn" data-float-dock="${panelId}" title="Reacoplar à Área de Trabalho Principal">⇲</button>
+      </div>
+    </div>
+    <div class="win-floating-body" id="float_body_${panelId}"></div>
+  `;
+
+  floatingArea.appendChild(winMdi);
+  const body = winMdi.querySelector("#float_body_" + panelId);
+  body.appendChild(el);
+
+  detachedPanels.set(panelId, { placeholder, floatingEl: winMdi, origParent: parent, origNextSibling: next, isExt: false });
+
+  // Eventos de arrastar a janela flutuante
+  const hdr = winMdi.querySelector(".win-floating-hdr");
+  let dragX = 0, dragY = 0, isDragging = false;
+  hdr.onpointerdown = (e) => {
+    if (e.target.closest("button")) return;
+    e.preventDefault();
+    isDragging = true;
+    hdr.setPointerCapture(e.pointerId);
+    dragX = e.clientX - winMdi.offsetLeft;
+    dragY = e.clientY - winMdi.offsetTop;
+    document.querySelectorAll(".win-floating").forEach(w => w.classList.remove("active-mdi"));
+    winMdi.classList.add("active-mdi");
+  };
+  hdr.onpointermove = (e) => {
+    if (!isDragging) return;
+    const nx = Math.max(0, Math.min(window.innerWidth - winMdi.offsetWidth, e.clientX - dragX));
+    const ny = Math.max(0, Math.min(window.innerHeight - winMdi.offsetHeight, e.clientY - dragY));
+    winMdi.style.left = nx + "px";
+    winMdi.style.top = ny + "px";
+  };
+  const endDragWin = (e) => {
+    if (!isDragging) return;
+    isDragging = false;
+    try { hdr.releasePointerCapture(e.pointerId); } catch (_e) {}
+  };
+  hdr.onpointerup = endDragWin;
+  hdr.onpointercancel = endDragWin;
+
+  winMdi.onpointerdown = () => {
+    document.querySelectorAll(".win-floating").forEach(w => w.classList.remove("active-mdi"));
+    winMdi.classList.add("active-mdi");
+  };
+
+  winMdi.querySelector(`[data-float-dock="${panelId}"]`).onclick = () => attachPanel(panelId);
+  winMdi.querySelector(`[data-float-ext="${panelId}"]`).onclick = () => {
+    attachPanel(panelId);
+    detachPanel(panelId, "external");
+  };
+
+  resizeCanvasMonitors();
+}
+
+function attachPanel(panelId) {
+  if (!detachedPanels.has(panelId)) return;
+  const rec = detachedPanels.get(panelId);
+  const el = document.getElementById(panelId);
+
+  if (rec.floatingEl) {
+    rec.floatingEl.remove();
+  }
+
+  if (el && rec.origParent) {
+    el.style.display = "";
+    if (rec.origNextSibling && rec.origParent.contains(rec.origNextSibling)) {
+      rec.origParent.insertBefore(el, rec.origNextSibling);
+    } else {
+      rec.origParent.appendChild(el);
+    }
+  }
+
+  if (rec.placeholder) {
+    rec.placeholder.remove();
+  }
+
+  detachedPanels.delete(panelId);
+
+  if (rec.isExt && window.editorNative && typeof window.editorNative.closeDetachedWindow === "function") {
+    window.editorNative.closeDetachedWindow(panelId);
+  }
+
+  resizeCanvasMonitors();
+  renderAll();
+  toast("Painel reacoplado com sucesso.");
+}
+
+function setupPanelDetaching() {
+  document.querySelectorAll("[data-detach]").forEach(btn => {
+    btn.onclick = () => {
+      const pid = btn.dataset.detach;
+      if (detachedPanels.has(pid)) attachPanel(pid);
+      else detachPanel(pid, "floating");
+    };
+  });
+  document.querySelectorAll("[data-extwin]").forEach(btn => {
+    btn.onclick = () => {
+      const pid = btn.dataset.extwin;
+      if (detachedPanels.has(pid)) attachPanel(pid);
+      detachPanel(pid, "external");
+    };
+  });
+
+  if (window.editorNative && typeof window.editorNative.onDetachedClosed === "function") {
+    window.editorNative.onDetachedClosed(({ panelId }) => {
+      if (panelId && detachedPanels.has(panelId)) {
+        attachPanel(panelId);
+      }
+    });
+  }
+
+  const bc = new BroadcastChannel("scripteditor_detached");
+  bc.onmessage = (e) => {
+    const msg = e.data;
+    if (!msg) return;
+    if (msg.type === "cmd") {
+      if (msg.cmd === "togglePlay") togglePlay(1);
+      else if (msg.cmd === "stop") { togglePlay(0); setPlayhead(0); }
+      else if (msg.cmd === "rewind") setPlayhead(0);
+      else if (msg.cmd === "seek") setPlayhead(msg.sec, false);
+      else if (msg.cmd === "dockBack") attachPanel(msg.panelId);
+      else if (msg.cmd === "requestSync") syncDetachedWindows();
+    }
+  };
+
+  if (window.editorNative && typeof window.editorNative.onDetachedMessage === "function") {
+    window.editorNative.onDetachedMessage((msg) => {
+      if (!msg) return;
+      if (msg.type === "cmd") {
+        if (msg.cmd === "togglePlay") togglePlay(1);
+        else if (msg.cmd === "stop") { togglePlay(0); setPlayhead(0); }
+        else if (msg.cmd === "rewind") setPlayhead(0);
+        else if (msg.cmd === "seek") setPlayhead(msg.sec, false);
+        else if (msg.cmd === "dockBack") attachPanel(msg.panelId);
+        else if (msg.cmd === "requestSync") syncDetachedWindows();
+      }
+    });
+  }
+}
+
+function syncDetachedWindows() {
+  const isAnyExt = Array.from(detachedPanels.values()).some(p => p.isExt);
+  if (!isAnyExt) return;
+  const tc = formatSMPTE(S.playhead, FPS);
+  const msg = {
+    type: "frameSync",
+    tc,
+    playhead: S.playhead,
+    dur: S.totalDuration,
+    playing: S.playing
+  };
+  const bc = new BroadcastChannel("scripteditor_detached");
+  bc.postMessage(msg);
+  if (window.editorNative && typeof window.editorNative.broadcastToDetached === "function") {
+    window.editorNative.broadcastToDetached(msg);
+  }
 }
 
 function buildMenubar() {
@@ -6904,8 +7543,14 @@ async function boot() {
     localStorage.setItem("varguelia.scripteditor.session_unclean", "0");
   });
 
+  setupSplitters();
+  setupPanelDetaching();
+
   await loadFromScriptRoom(true);
   createStarterFreeProject();
+  if (prefs.showWelcome !== false) {
+    setTimeout(openWelcomeDialog, 400);
+  }
   setTimeout(autoCheckForUpdates, 6000);
 }
 

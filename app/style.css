@@ -279,20 +279,28 @@ input[type="range"] {
   accent-color: var(--sel);
 }
 
+:root {
+  --side-width: 330px;
+  --src-width: 0.95fr;
+  --prog-width: 1.15fr;
+  --tl-height: 258px;
+}
+
 /* ---------- Bancada Adobe Premiere 4.2 (Projeto/Efeitos + Monitores Duplos + Timeline) ---------- */
 .premiere-workspace {
   flex: 1;
   display: flex;
   flex-direction: column;
   min-height: 0;
-  gap: 3px;
+  gap: 0;
+  position: relative;
 }
 
 .upper-deck {
   flex: 1;
   display: grid;
-  grid-template-columns: 330px minmax(0, 1fr);
-  gap: 3px;
+  grid-template-columns: var(--side-width) 5px minmax(0, 1fr);
+  gap: 0;
   min-height: 0;
 }
 
@@ -300,8 +308,9 @@ body[data-painel="off"] .upper-deck {
   grid-template-columns: minmax(0, 1fr);
 }
 
-body[data-painel="off"] .side-rack {
-  display: none;
+body[data-painel="off"] .side-rack,
+body[data-painel="off"] #splitSide {
+  display: none !important;
 }
 
 /* Coluna Esquerda: Janela Projeto (Bin), Efeitos/Controles e Roteiro (ScriptRoom) */
@@ -414,8 +423,8 @@ body[data-painel="off"] .side-rack {
 .monitors-grid {
   flex: 1;
   display: grid;
-  grid-template-columns: minmax(260px, 0.85fr) minmax(340px, 1.15fr);
-  gap: 4px;
+  grid-template-columns: minmax(200px, var(--src-width)) 5px minmax(280px, var(--prog-width));
+  gap: 0;
   min-height: 0;
 }
 
@@ -423,16 +432,18 @@ body[data-monlayout="single"] .monitors-grid {
   grid-template-columns: minmax(0, 1fr);
 }
 
-body[data-monlayout="single"] #sourceBox {
-  display: none;
+body[data-monlayout="single"] #sourceBox,
+body[data-monlayout="single"] #splitMonitors {
+  display: none !important;
 }
 
 body[data-monlayout="script"] .monitors-grid {
   grid-template-columns: minmax(340px, 1.1fr) minmax(320px, 0.9fr);
 }
 
-body[data-monlayout="script"] #sourceBox {
-  display: none;
+body[data-monlayout="script"] #sourceBox,
+body[data-monlayout="script"] #splitMonitors {
+  display: none !important;
 }
 
 body[data-monlayout="script"] #inlineScriptBox {
@@ -676,7 +687,9 @@ body[data-monlayout="script"] #inlineScriptBox {
 
 /* ---------- Linha do Tempo Adobe Premiere 4.2 (Com Paleta de Ferramentas, Trim e Drag) ---------- */
 .timeline-dock {
-  height: 258px;
+  height: var(--tl-height);
+  min-height: 140px;
+  max-height: 85vh;
   background: var(--face);
   padding: 3px;
   display: flex;
@@ -1772,3 +1785,272 @@ body[data-tool="razor"] .tl-clip {
 .kf-tag:hover {
   background: #FFE060;
 }
+
+/* ---------- Divisores Redimensionáveis Estilo Windows 95 (Splitters) ---------- */
+.splitter-v {
+  width: 5px;
+  cursor: col-resize;
+  background: var(--face);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  z-index: 5;
+  box-shadow: inset 1px 0 var(--hi), inset -1px 0 var(--lo);
+}
+
+.splitter-v:hover, .splitter-v.dragging {
+  background: var(--light);
+  box-shadow: inset 1px 0 var(--hi), inset -1px 0 var(--dk);
+}
+
+.splitter-v .splitter-grip {
+  width: 3px;
+  height: 24px;
+  border-left: 1px dotted var(--dk);
+  border-right: 1px dotted var(--hi);
+}
+
+.splitter-h {
+  height: 6px;
+  cursor: row-resize;
+  background: var(--face);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  z-index: 5;
+  box-shadow: inset 0 1px var(--hi), inset 0 -1px var(--lo);
+  margin: 1px 0;
+}
+
+.splitter-h:hover, .splitter-h.dragging {
+  background: var(--light);
+  box-shadow: inset 0 1px var(--hi), inset 0 -1px var(--dk);
+}
+
+.splitter-h .splitter-grip {
+  height: 2px;
+  width: 32px;
+  border-top: 1px dotted var(--dk);
+  border-bottom: 1px dotted var(--hi);
+}
+
+/* ---------- Cabeçalhos e Botões de Desacoplar Painéis ---------- */
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 4px;
+  background: var(--dk);
+  color: #fff;
+  font: 700 10.5px/1 var(--f-ui);
+  margin-bottom: 2px;
+  box-shadow: inset 1px 1px var(--hi), inset -1px -1px #000;
+}
+
+.panel-header-title {
+  letter-spacing: 0.5px;
+}
+
+.panel-header-btns {
+  display: flex;
+  gap: 2px;
+}
+
+.mon-dock-btn {
+  width: 17px;
+  height: 15px;
+  padding: 0;
+  border: 0;
+  background: var(--face);
+  color: #000;
+  font: 700 10px/1 var(--f-ui);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+  box-shadow: inset 1px 1px var(--hi), inset -1px -1px var(--dk);
+}
+
+.mon-dock-btn:hover {
+  background: #FFF;
+}
+
+.mon-dock-btn:active {
+  box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--dk);
+}
+
+/* ---------- Janelas Flutuantes MDI e Desacoplamento ---------- */
+.floating-area {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  overflow: hidden;
+}
+
+.win-floating {
+  position: absolute;
+  pointer-events: auto;
+  background: var(--face);
+  box-shadow: inset 1px 1px var(--hi), inset -1px -1px #000, inset 2px 2px var(--light), inset -2px -2px var(--dk), 3px 3px 8px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  min-width: 280px;
+  min-height: 200px;
+  z-index: 60;
+  resize: both;
+  overflow: hidden;
+}
+
+.win-floating.active-mdi {
+  z-index: 70;
+}
+
+.win-floating-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 4px;
+  background: linear-gradient(90deg, var(--title-l) 0%, var(--title-r) 100%);
+  color: var(--title-tx);
+  font: 700 11px/1 var(--f-ui);
+  cursor: move;
+  user-select: none;
+}
+
+.win-floating:not(.active-mdi) .win-floating-hdr {
+  background: #808080;
+  color: #C0C0C0;
+}
+
+.win-floating-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  background: var(--face);
+}
+
+.dock-placeholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed var(--dk);
+  background: repeating-conic-gradient(var(--face) 0 25%, var(--light) 0 50%) 0 0 / 4px 4px;
+  color: var(--dk);
+  padding: 16px;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  min-height: 80px;
+}
+
+.dock-placeholder:hover {
+  background: var(--light);
+  border-color: var(--sel);
+  color: var(--sel);
+}
+
+.dock-placeholder span {
+  font-weight: 700;
+  font-size: 11px;
+}
+
+/* ---------- Assistente de Boas-Vindas 95 (Tela Inicial) ---------- */
+.welcome-grid {
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  gap: 12px;
+  min-height: 380px;
+}
+
+.welcome-sidebar {
+  background: linear-gradient(180deg, #000080 0%, #1084D0 100%);
+  color: #FFFFFF;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: inset 1px 1px var(--hi), inset -1px -1px #000;
+}
+
+.welcome-brand {
+  font: 700 16px/1.2 var(--f-ui);
+  text-shadow: 1px 1px 2px #000;
+}
+
+.welcome-brand small {
+  font-size: 11px;
+  font-weight: 400;
+  color: #FFE040;
+  display: block;
+  margin-top: 4px;
+}
+
+.welcome-actions-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.welcome-big-btn {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  text-align: left;
+  border: 0;
+  background: var(--face);
+  cursor: default;
+  box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--hi), inset -2px -2px var(--lo), inset 2px 2px var(--light);
+}
+
+.welcome-big-btn:hover {
+  background: #FFF;
+}
+
+.welcome-big-btn:active {
+  box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--dk), inset -2px -2px var(--light), inset 2px 2px var(--lo);
+}
+
+.welcome-big-btn b {
+  font-size: 12px;
+  display: block;
+  color: #000;
+}
+
+.welcome-big-btn span {
+  font-size: 10.5px;
+  color: #404040;
+}
+
+.recent-list {
+  background: var(--field);
+  border: 1px solid var(--lo);
+  box-shadow: inset 1px 1px #000;
+  height: 120px;
+  overflow: auto;
+  padding: 2px;
+}
+
+.recent-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 6px;
+  border-bottom: 1px dotted var(--light);
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.recent-item:hover {
+  background: var(--sel);
+  color: var(--sel-tx);
+}
+

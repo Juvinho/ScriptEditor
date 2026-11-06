@@ -979,6 +979,83 @@ ipcMain.handle("update:openPage", (_e, url) => {
   return true;
 });
 
+/* ---------- IPC: Janelas Externas / Desacoplamento Multi-Monitor ---------- */
+const detachedWins = new Map();
+
+ipcMain.handle("win:openDetached", (_e, { panelId, title, width, height }) => {
+  if (detachedWins.has(panelId)) {
+    const existing = detachedWins.get(panelId);
+    if (!existing.isDestroyed()) {
+      existing.show();
+      existing.focus();
+      return true;
+    }
+  }
+  const dw = new BrowserWindow({
+    width: width || 840,
+    height: height || 580,
+    minWidth: 360,
+    minHeight: 240,
+    frame: true,
+    title: title || `ScriptEditor 95 — ${panelId}`,
+    backgroundColor: "#C6BFA6",
+    icon: path.join(__dirname, "build", "icon.png"),
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js"),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: false
+    }
+  });
+  dw.setMenu(null);
+  protegerNavegacao(dw);
+  detachedWins.set(panelId, dw);
+
+  dw.loadFile(path.join(__dirname, "app", "detached.html"), {
+    query: { panel: panelId, title: title || "" }
+  });
+
+  dw.on("closed", () => {
+    detachedWins.delete(panelId);
+    if (win && !win.isDestroyed()) {
+      win.webContents.send("detached:closed", { panelId });
+    }
+  });
+
+  return true;
+});
+
+ipcMain.handle("win:closeDetached", (_e, panelId) => {
+  if (detachedWins.has(panelId)) {
+    const dw = detachedWins.get(panelId);
+    if (!dw.isDestroyed()) dw.close();
+    detachedWins.delete(panelId);
+  }
+  return true;
+});
+
+ipcMain.handle("win:isDetachedOpen", (_e, panelId) => {
+  if (!detachedWins.has(panelId)) return false;
+  const dw = detachedWins.get(panelId);
+  return !!(dw && !dw.isDestroyed());
+});
+
+ipcMain.handle("win:sendToMain", (_e, msg) => {
+  if (win && !win.isDestroyed()) {
+    win.webContents.send("detached:message", msg);
+  }
+  return true;
+});
+
+ipcMain.handle("win:broadcastToDetached", (_e, msg) => {
+  for (const dw of detachedWins.values()) {
+    if (dw && !dw.isDestroyed()) {
+      dw.webContents.send("detached:sync", msg);
+    }
+  }
+  return true;
+});
+
 function protegerNavegacao(w) {
   w.webContents.setWindowOpenHandler(({ url }) => {
     if (/^https?:/.test(url)) shell.openExternal(url);

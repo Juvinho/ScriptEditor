@@ -40,6 +40,28 @@ contextBridge.exposeInMainWorld("editorNative", {
   splashDone: () => ipcRenderer.invoke("splash:done"),
   openSplash: () => ipcRenderer.invoke("app:splash"),
 
+  // Janelas Externas / Desacoplamento Multi-Monitor
+  openDetachedWindow: (opts) => ipcRenderer.invoke("win:openDetached", opts),
+  closeDetachedWindow: (panelId) => ipcRenderer.invoke("win:closeDetached", panelId),
+  isDetachedOpen: (panelId) => ipcRenderer.invoke("win:isDetachedOpen", panelId),
+  sendToMain: (msg) => ipcRenderer.invoke("win:sendToMain", msg),
+  broadcastToDetached: (msg) => ipcRenderer.invoke("win:broadcastToDetached", msg),
+  onDetachedClosed: (cb) => {
+    const fn = (_e, d) => cb(d);
+    ipcRenderer.on("detached:closed", fn);
+    return () => ipcRenderer.removeListener("detached:closed", fn);
+  },
+  onDetachedMessage: (cb) => {
+    const fn = (_e, d) => cb(d);
+    ipcRenderer.on("detached:message", fn);
+    return () => ipcRenderer.removeListener("detached:message", fn);
+  },
+  onDetachedSync: (cb) => {
+    const fn = (_e, d) => cb(d);
+    ipcRenderer.on("detached:sync", fn);
+    return () => ipcRenderer.removeListener("detached:sync", fn);
+  },
+
   // Sistema de Atualização (GitHub: Juvinho/ScriptEditor)
   checkUpdate: () => ipcRenderer.invoke("update:check"),
   downloadUpdate: () => ipcRenderer.invoke("update:download"),

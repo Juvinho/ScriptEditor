@@ -82,17 +82,14 @@ run(`git push origin ${tag}`);
 
 // 6. Publica Release no GitHub via gh CLI com o instalador anexado
 console.log(`Criando Release ${tag} no GitHub...`);
-const notes = `### ScriptEditor ${version} · Edição 95 — Grande Atualização de Recursos\n\n` +
-  `- **Modelo de Projeto Não-Destrutivo (.PPJ):** Salvar (Ctrl+S) e abrir (Ctrl+O) projetos completos preservando timecodes e faixas\n` +
-  `- **Salvamento Automático (Autosave 60s) e Recuperação:** Detecção e restauração automática contra quedas de energia e falhas\n` +
-  `- **Sistema de Keyframes (Quadros-Chave):** Animação com curva suave (Hermite S-Curve) para Opacidade, Posição X/Y, Escala, Rotação e Volume\n` +
-  `- **Mesa de Som Analógica 95:** Faders deslizantes lineares (-inf a +6 dB), Pan L/R, Mute/Solo, VU por canal e Normalização de Picos (-0.1 dBFS)\n` +
-  `- **Cortes de Áudio sem Estalos (De-click):** Curvas de esmaecimento cosseno (Fade In e Fade Out) automáticas e ajustáveis\n` +
-  `- **Composição e Cor Profissional:** Modos de Mesclagem (Multiplicar, Tela, Sobrepor, Adicionar, Diferença), Temperatura Kelvin, Tint e Chroma Key\n` +
-  `- **Títulos Animados Chyron & Legendas SRT:** Letreiro Rotativo (Crawl), Créditos Rolantes (Roll), Piscante e importação/exportação de legendas .SRT\n` +
-  `- **Cesto de Mídia (Project Bin) Renovado:** Busca instantânea, abas de categoria (Vídeos, Áudios, Imagens, Sintéticos), Miniaturas reais e Lista Detalhada\n` +
-  `- **Modos de Resolução de Prévia:** 1/1 Total, 1/2 Rápido e 1/4 Betacam para scrubbing e reprodução ultra fluidos\n` +
-  `- **Menu Ajuda & Dica do Dia:** Atalhos personalizáveis, Dicas do Dia, O que há de novo e Tela de Abertura`;
+const notes = `### ScriptEditor ${version} · Edição 95 — Linha do Tempo Limpa, Assistente 95, Janelas MDI/Externas & Efeitos/Transições\n\n` +
+  `- **Linha do Tempo 100% Limpa:** Inicialização com projeto em branco sem clipes ou áudios demo sintéticos\n` +
+  `- **Assistente de Boas-Vindas 95:** Tela inicial clássica para Criar Novo Projeto, Abrir Projeto (.PPJ), Importar Mídias ou Carregar Roteiros, além de lista de Projetos Recentes com abertura instantânea\n` +
+  `- **Divisores Redimensionáveis (Splitters):** Ajuste arrastável com mouse entre Janela Projeto Lateral, Monitores de Vídeo e Linha do Tempo, com salvamento automático de dimensões no layout\n` +
+  `- **Desacoplamento de Janelas (MDI e Janelas Externas):** Painéis podem ser transformados em janelas flutuantes internas (MDI) ou janelas nativas externas do Windows para trabalhar em múltiplos monitores\n` +
+  `- **9 Novas Transições Profissionais:** Cortina Diagonal, Porta Dupla (Barn Doors), Veneziana (Blinds), Empurrar Horizontal, Empurrar Vertical, Íris Circular, Zoom Dissolve, Strobe e Xadrez (Checkerboard)\n` +
+  `- **7 Novos Efeitos e Filtros:** Vinheta 35mm, Brilho Difuso (Glow Halation 90s), Desfoque Suave (Blur), Caleidoscópio 4x, Pôster 8-Cores, Duotone Cyan/Âmbar e Borda de Película 35mm com perfurações\n` +
+  `- **Menu Ajuda Polido:** Atalhos, Dica do Dia, Procurar Atualizações, Assistente de Boas-Vindas, O que há de novo, Splash Screen e Sobre o ScriptEditor 95`;
 
 const releaseCheck = runSilent(`gh release view ${tag} --json tagName`);
 if (!releaseCheck) {

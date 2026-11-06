@@ -25,6 +25,7 @@
 
   <!-- Barra de Ferramentas Principal -->
   <div class="toolbar" id="typebar" role="toolbar" aria-label="Barra de ferramentas">
+    <button class="tbtn" type="button" data-cmd="telaInicial" data-icon="sparkle" title="Assistente de Projetos e Tela Inicial (Criar / Abrir / Recentes)"></button>
     <button class="tbtn" type="button" data-cmd="novoProjetoLivre" data-icon="new" title="Novo Projeto Livre em Branco (Ctrl+N)"></button>
     <button class="tbtn" type="button" data-cmd="abrirProjeto" data-icon="open" title="Abrir Projeto do ScriptEditor .PPJ (Ctrl+O)"></button>
     <button class="tbtn" type="button" data-cmd="salvarProjeto" data-icon="save" title="Salvar Projeto Atual (Ctrl+S)"></button>
@@ -60,10 +61,20 @@
   </div>
 
   <!-- Área de Trabalho Estilo Adobe Premiere 4.2 -->
-  <div class="premiere-workspace">
-    <div class="upper-deck">
+  <div class="premiere-workspace" id="premiereWorkspace">
+    <!-- Contêiner de Janelas Flutuantes MDI -->
+    <div id="floatingArea" class="floating-area"></div>
+
+    <div class="upper-deck" id="upperDeck">
       <!-- COLUNA ESQUERDA: Janela Projeto (Bin), Filtros/Efeitos, Transições e Roteiro -->
       <aside class="side-rack" id="sideRack">
+        <div class="panel-header" id="sideRackHdr">
+          <span class="panel-header-title">JANELA PROJETO / EFEITOS</span>
+          <div class="panel-header-btns">
+            <button type="button" class="mon-dock-btn" data-detach="sideRack" title="Desacoplar como Janela Flutuante (MDI)">⧉</button>
+            <button type="button" class="mon-dock-btn" data-extwin="sideRack" title="Mover para Janela Externa do Windows (Monitor Secundário)">↗</button>
+          </div>
+        </div>
         <div class="ptabs" id="sideTabsRow1">
           <button type="button" data-stab="bin" aria-pressed="true">Projeto (Bin)</button>
           <button type="button" data-stab="fx" aria-pressed="false">Efeitos (FX)</button>
@@ -79,6 +90,9 @@
         <div class="tabpanel" id="sideContent"></div>
       </aside>
 
+      <!-- Divisor Redimensionável Lateral (Splitter) -->
+      <div class="splitter-v" id="splitSide" title="Arraste para redimensionar a Janela Lateral"><div class="splitter-grip"></div></div>
+
       <!-- ÁREA CENTRAL EM PRIMEIRO PLANO: Monitores de Vídeo (Origem + Programa Master) -->
       <section class="monitors-stage" id="monitorsStage">
         <div class="monitors-grid">
@@ -86,7 +100,11 @@
           <div class="mon-window" id="sourceBox">
             <div class="mon-title src-hdr">
               <span id="srcTitle">MONITOR DE ORIGEM (CLIPE BRUTO)</span>
-              <span class="tc-led amber" id="srcTC">00:00:00:00</span>
+              <div class="row" style="gap:4px">
+                <span class="tc-led amber" id="srcTC">00:00:00:00</span>
+                <button type="button" class="mon-dock-btn" data-detach="sourceBox" title="Desacoplar Monitor de Origem (MDI)">⧉</button>
+                <button type="button" class="mon-dock-btn" data-extwin="sourceBox" title="Mover para Janela Externa do Windows">↗</button>
+              </div>
             </div>
             <div class="crt-bezel" id="srcDropZone" title="Arraste arquivos de vídeo do Windows para cá ou dê duplo clique no Bin">
               <canvas id="srcCanvas" class="video-canvas" width="640" height="480"></canvas>
@@ -108,11 +126,18 @@
             </div>
           </div>
 
+          <!-- Divisor Redimensionável Entre Monitores (Splitter) -->
+          <div class="splitter-v" id="splitMonitors" title="Arraste para redimensionar os Monitores"><div class="splitter-grip"></div></div>
+
           <!-- MONITOR DE PROGRAMA (MASTER SEQUENCE MONITOR — Em Primeiro Plano) -->
           <div class="mon-window" id="programBox">
             <div class="mon-title">
               <span id="progTitle">MONITOR DE PROGRAMA (SEQUÊNCIA MASTER · CLIQUE/ARRASTE PARA REDIMENSIONAR)</span>
-              <span class="tc-led" id="tcDisplay">00:00:00:00</span>
+              <div class="row" style="gap:4px">
+                <span class="tc-led" id="tcDisplay">00:00:00:00</span>
+                <button type="button" class="mon-dock-btn" data-detach="programBox" title="Desacoplar Monitor de Programa (MDI)">⧉</button>
+                <button type="button" class="mon-dock-btn" data-extwin="programBox" title="Mover para Janela Externa do Windows (Monitor Secundário)">↗</button>
+              </div>
             </div>
             <div class="prog-with-vu">
               <div class="crt-bezel" id="progDropZone" title="Arraste as alças azuis/amarelas para redimensionar/mover a imagem ou vídeo selecionado · Duplo clique para Tocar/Pausar">
@@ -176,6 +201,9 @@
       </section>
     </div>
 
+    <!-- Divisor Redimensionável Horizontal da Linha do Tempo (Splitter) -->
+    <div class="splitter-h" id="splitTimeline" title="Arraste para redimensionar a Linha do Tempo"><div class="splitter-grip"></div></div>
+
     <!-- LINHA DO TEMPO NÃO-LINEAR (ADOBE PREMIERE 4.2 CONSTRUCTION WINDOW) -->
     <div class="timeline-dock" id="timelineDock">
       <div class="tl-toolbar">
@@ -219,6 +247,13 @@
               <option value="noturno">Câmera Noturna</option>
               <option value="invert">Negativo / Inverter</option>
               <option value="mosaic">Pixelizar / Mosaico 8-bit</option>
+              <option value="vignette">Vinheta 35mm</option>
+              <option value="glow">Brilho Difuso Anos 90</option>
+              <option value="blur">Desfoque Suave</option>
+              <option value="kaleidoscope">Caleidoscópio 4x</option>
+              <option value="posterize">Pôster 8-Cores</option>
+              <option value="duotone">Bicolor Cyan/Âmbar</option>
+              <option value="filmborder">Borda de Película 35mm</option>
             </select>
           </label>
           <label class="row" style="gap:3px"><input type="checkbox" id="chkSafe"> Grade TV</label>
@@ -226,6 +261,10 @@
           <span>Zoom:</span>
           <input type="range" id="tlZoom" min="0.5" max="60" step="0.5" value="10" style="width:82px" title="Zoom da Linha do Tempo focado na Agulha (ou use Ctrl + Roda do Mouse / teclas + e -)">
           <button type="button" class="btn sm" data-cmd="configTeclas" title="Trocar e personalizar atalhos de teclado">Teclas…</button>
+          <div class="row" style="gap:2px">
+            <button type="button" class="mon-dock-btn" data-detach="timelineDock" title="Desacoplar Linha do Tempo (MDI)">⧉</button>
+            <button type="button" class="mon-dock-btn" data-extwin="timelineDock" title="Mover para Janela Externa do Windows">↗</button>
+          </div>
         </div>
       </div>
 

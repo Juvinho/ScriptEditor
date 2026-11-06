@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ScriptEditor 95 — Janela Externa</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 4px;
+      background: var(--face);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      box-sizing: border-box;
+      overflow: hidden;
+      font-family: var(--f-ui);
+    }
+    .detached-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 3px 6px;
+      background: var(--dk);
+      color: #fff;
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      box-shadow: inset 1px 1px var(--hi), inset -1px -1px #000;
+      margin-bottom: 3px;
+    }
+    .detached-top .title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .detached-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      background: #000;
+      box-shadow: inset 2px 2px #000, inset -2px -2px var(--hi);
+      position: relative;
+    }
+    .detached-body canvas {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      background: #000;
+    }
+    .detached-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      padding: 4px;
+      background: var(--face);
+      box-shadow: inset 1px 1px var(--hi), inset -1px -1px var(--lo);
+      margin-top: 3px;
+    }
+    .btn-reacoplar {
+      font-weight: 700;
+      color: #003060;
+    }
+  </style>
+</head>
+<body>
+  <div class="detached-top">
+    <div class="title">
+      <span id="winIcon">🖥️</span>
+      <span id="winTitle">MONITOR DE PROGRAMA — JANELA EXTERNA</span>
+    </div>
+    <div class="row" style="gap:4px">
+      <span class="tc-led" id="tcLed" style="font-size:12px;padding:1px 6px">00:00:00:00</span>
+      <button type="button" class="btn sm btn-reacoplar" id="btnDockBack" title="Fechar janela externa e trazer painel de volta para a tela principal">⇲ Reacoplar</button>
+    </div>
+  </div>
+
+  <div class="detached-body" id="bodyContainer">
+    <canvas id="extCanvas" width="640" height="480"></canvas>
+  </div>
+
+  <div class="detached-bottom" id="bottomBar">
+    <div class="row" style="gap:3px;flex:1">
+      <button type="button" class="vtr-btn" id="btnExtRew" title="Início">|&lt;&lt;</button>
+      <button type="button" class="vtr-btn" id="btnExtPlay" title="Tocar / Pausar">► Tocar</button>
+      <button type="button" class="vtr-btn" id="btnExtStop" title="Parar">■</button>
+      <input type="range" id="extScrub" min="0" max="60" step="0.033" value="0" style="flex:1" title="Posição na Linha do Tempo">
+      <span class="inout-pill" id="durPill">00:00:00</span>
+    </div>
+    <div class="row" style="gap:3px">
+      <button type="button" class="vtr-btn" id="btnFullscreen" title="Tela Cheia">⛶ Tela Cheia</button>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const panelId = params.get("panel") || "program";
+    const panelTitle = params.get("title") || "Painel Externo";
+    document.getElementById("winTitle").textContent = panelTitle.toUpperCase();
+
+    const canvas = document.getElementById("extCanvas");
+    const ctx = canvas.getContext("2d");
+    const tcLed = document.getElementById("tcLed");
+    const durPill = document.getElementById("durPill");
+    const scrub = document.getElementById("extScrub");
+    const btnPlay = document.getElementById("btnExtPlay");
+    const btnStop = document.getElementById("btnExtStop");
+    const btnRew = document.getElementById("btnExtRew");
+    const btnDockBack = document.getElementById("btnDockBack");
+    const btnFullscreen = document.getElementById("btnFullscreen");
+
+    // Comunicação bidirecional com a janela principal via BroadcastChannel e IPC
+    const bc = new BroadcastChannel("scripteditor_detached");
+
+    function formatTC(sec) {
+      if (!isFinite(sec) || sec < 0) sec = 0;
+      const h = (sec / 3600) | 0;
+      const m = ((sec % 3600) / 60) | 0;
+      const s = (sec % 60) | 0;
+      const f = (((sec % 1) * 30) | 0);
+      const pad = n => String(n).padStart(2, "0");
+      return `${pad(h)}:${pad(m)}:${pad(s)}:${pad(f)}`;
+    }
+
+    bc.onmessage = (e) => {
+      const msg = e.data;
+      if (!msg) return;
+      if (msg.type === "frameSync") {
+        if (msg.tc) tcLed.textContent = msg.tc;
+        if (msg.playhead != null) {
+          scrub.value = msg.playhead;
+        }
+        if (msg.dur != null) {
+          scrub.max = msg.dur;
+          durPill.textContent = formatTC(msg.dur).slice(3, 8);
+        }
+        if (msg.playing != null) {
+          btnPlay.textContent = msg.playing ? "❚❚ Pausar" : "► Tocar";
+        }
+        // Se receber imagem de quadro renderizado
+        if (msg.frameBitmap) {
+          ctx.drawImage(msg.frameBitmap, 0, 0, canvas.width, canvas.height);
+        }
+      }
+    };
+
+    if (window.editorNative && typeof window.editorNative.onDetachedSync === "function") {
+      window.editorNative.onDetachedSync((msg) => {
+        if (!msg) return;
+        if (msg.type === "frameSync") {
+          if (msg.tc) tcLed.textContent = msg.tc;
+          if (msg.playhead != null) scrub.value = msg.playhead;
+          if (msg.dur != null) scrub.max = msg.dur;
+          if (msg.playing != null) btnPlay.textContent = msg.playing ? "❚❚ Pausar" : "► Tocar";
+        }
+      });
+    }
+
+    // Controles de transporte
+    btnPlay.onclick = () => {
+      bc.postMessage({ type: "cmd", cmd: "togglePlay" });
+      if (window.editorNative) window.editorNative.sendToMain({ type: "cmd", cmd: "togglePlay" });
+    };
+    btnStop.onclick = () => {
+      bc.postMessage({ type: "cmd", cmd: "stop" });
+      if (window.editorNative) window.editorNative.sendToMain({ type: "cmd", cmd: "stop" });
+    };
+    btnRew.onclick = () => {
+      bc.postMessage({ type: "cmd", cmd: "rewind" });
+      if (window.editorNative) window.editorNative.sendToMain({ type: "cmd", cmd: "rewind" });
+    };
+    scrub.oninput = () => {
+      const val = Number(scrub.value);
+      tcLed.textContent = formatTC(val);
+      bc.postMessage({ type: "cmd", cmd: "seek", sec: val });
+      if (window.editorNative) window.editorNative.sendToMain({ type: "cmd", cmd: "seek", sec: val });
+    };
+
+    btnDockBack.onclick = () => {
+      bc.postMessage({ type: "cmd", cmd: "dockBack", panelId });
+      if (window.editorNative) {
+        window.editorNative.sendToMain({ type: "cmd", cmd: "dockBack", panelId });
+        window.editorNative.closeDetachedWindow(panelId);
+      } else {
+        window.close();
+      }
+    };
+
+    btnFullscreen.onclick = () => {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    };
+
+    // Solicita estado inicial à janela principal
+    bc.postMessage({ type: "cmd", cmd: "requestSync", panelId });
+    if (window.editorNative) window.editorNative.sendToMain({ type: "cmd", cmd: "requestSync", panelId });
+  </script>
+</body>
+</html>
+
