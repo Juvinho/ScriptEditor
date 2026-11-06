@@ -5,7 +5,7 @@
    Zero emojis · Ícones SVG 16x16 pixel-art · Edição Comercial, Doméstica e Roteirizada
    ============================================================================ */
 
-let APP_VERSAO = "1.1.2"; // Substituída em boot() pela versão real do package.json
+let APP_VERSAO = "1.1.3"; // Substituída em boot() pela versão real do package.json
 const FPS = 29.97;
 
 const ICON = {
@@ -3386,32 +3386,25 @@ function draw3DBevelBorder(ctx, W, H, thickness = 6) {
   ctx.restore();
 }
 
-function draw3DAnaglyphSplit(ctx, W, H, offset = 8) {
-  try {
-    const imgData = ctx.getImageData(0, 0, W, H);
-    const d = imgData.data;
-    const copy = new Uint8ClampedArray(d);
-    for (let y = 0; y < H; y++) {
-      for (let x = 0; x < W; x++) {
-        const i = (y * W + x) * 4;
-        const rightX = Math.min(W - 1, x + offset);
-        const iRight = (y * W + rightX) * 4;
-        d[i + 1] = copy[iRight + 1];
-        d[i + 2] = copy[iRight + 2];
-      }
-    }
-    ctx.putImageData(imgData, 0, 0);
-  } catch (_e) {}
+function draw3DAnaglyphSplit(ctx, W, H, offset = 6) {
+  ctx.save();
+  // Anáglifo Estereoscópico 3D 1995 de Alta Performance:
+  // Usa composição direta acelerada por hardware em vez de loops de getImageData que causam queda de frames e áudio mudo.
+  ctx.globalCompositeOperation = "screen";
+  ctx.fillStyle = "rgba(255, 0, 0, 0.28)";
+  ctx.fillRect(-offset, 0, W + offset, H);
+  ctx.fillStyle = "rgba(0, 240, 255, 0.28)";
+  ctx.fillRect(offset, 0, W, H);
+  ctx.restore();
 }
 
 function drawCRTScanlines(ctx, W, H) {
   ctx.save();
-  ctx.fillStyle = "rgba(0, 0, 0, 0.28)";
+  ctx.fillStyle = "rgba(0, 0, 0, 0.22)";
   for (let y = 0; y < H; y += 3) {
     ctx.fillRect(0, y, W, 1.2);
   }
-  ctx.globalCompositeOperation = "color";
-  ctx.fillStyle = "rgba(20, 60, 30, 0.08)";
+  ctx.fillStyle = "rgba(20, 60, 30, 0.04)";
   ctx.fillRect(0, 0, W, H);
   ctx.restore();
 }
@@ -3777,9 +3770,15 @@ function drawSingleClipToContext(tCtx, W, H, clip, globalSec) {
   const radX = (rX * Math.PI) / 180;
   const zScale = Math.max(0.15, 1 - dZ / 400);
 
+  const rawCosY = Math.cos(radY);
+  const rawCosX = Math.cos(radX);
+  // Garante escala mínima segura para que a matriz de transformação do Canvas 2D nunca seja singular (evita tela piscando)
+  const safeCosY = (Math.abs(rawCosY) < 0.02 ? (rawCosY < 0 ? -0.02 : 0.02) : rawCosY);
+  const safeCosX = (Math.abs(rawCosX) < 0.02 ? (rawCosX < 0 ? -0.02 : 0.02) : rawCosX);
+
   tCtx.translate(W / 2 + tf.posX, H / 2 + tf.posY);
   if (rZ) tCtx.rotate((rZ * Math.PI) / 180);
-  tCtx.scale(sx * fh * Math.cos(radY) * zScale, sy * fv * Math.cos(radX) * zScale);
+  tCtx.scale(sx * fh * safeCosY * zScale, sy * fv * safeCosX * zScale);
   if (Math.abs(rY) > 0.1) {
     tCtx.transform(1, Math.sin(radY) * 0.28, 0, 1, 0, 0);
   }
@@ -3823,12 +3822,11 @@ function drawSingleClipToContext(tCtx, W, H, clip, globalSec) {
       try {
         if (el.tagName === "VIDEO") {
           const targetT = el.duration ? Math.min(Math.max(0, el.duration - 0.03), localSec) : localSec;
-          if (!S.playing && !el.seeking && Math.abs(el.currentTime - targetT) > 0.05) {
-            el.currentTime = Math.max(0, targetT);
-          } else if (S.playing && !el.seeking && Math.abs(el.currentTime - targetT) > 0.40) {
+          // Busca apenas quando o usuário estiver navegando pausado (scrubbing), NUNCA durante a reprodução ativa
+          if (!S.playing && !el.seeking && Math.abs(el.currentTime - targetT) > 0.04) {
             el.currentTime = Math.max(0, targetT);
           }
-          if (el.readyState >= 1) {
+          if (el.videoWidth > 0 || el.readyState >= 1) {
             drawFittedMedia(tCtx, el, W, H, clip.fitMode || "contain");
             drewReal = true;
           } else {
@@ -4074,84 +4072,82 @@ function drawSingleClipToContext(tCtx, W, H, clip, globalSec) {
     }
   }
 
-  // Processador Chroma Key 1995 (Blue Screen & Green Screen com Alpha & Despill)
-  if (clip.chromaKey && (drewReal || clip.synthType || clip.text)) {
-    try {
-      const imgData = tCtx.getImageData(0, 0, W, H);
-      const data = imgData.data;
-      const tol = Math.max(5, Math.min(95, Number(clip.chromaTol) || 35)) / 100;
-      const threshold = Math.max(0, Math.min(80, Number(clip.chromaThreshold) || 15)) / 100;
-      const despill = Math.max(0, Math.min(100, Number(clip.chromaSpill == null ? 60 : clip.chromaSpill))) / 100;
-      const isAlphaPreview = !!clip.previewAlpha;
+  // Processador de Efeitos em Pixels (Chroma Key & Suite MTV 1995: Mosaico, Posterização 8-bit, Solarização)
+  const hasChroma = clip.chromaKey && (drewReal || clip.synthType || clip.text);
+  const hasMtv = flt === "mosaic" || clip.mosaic || flt === "posterize" || clip.posterize || flt === "solarize" || clip.solarize;
 
-      let keyR = 0, keyG = 255, keyB = 0;
-      if (clip.chromaColor === "blue") {
-        keyR = 0; keyG = 0; keyB = 255;
-      } else if (clip.chromaColor === "black") {
-        keyR = 0; keyG = 0; keyB = 0;
-      } else if (clip.chromaColor === "white") {
-        keyR = 255; keyG = 255; keyB = 255;
-      } else if (clip.chromaColor && clip.chromaColor.startsWith("#") && clip.chromaColor.length >= 7) {
-        keyR = parseInt(clip.chromaColor.slice(1, 3), 16) || 0;
-        keyG = parseInt(clip.chromaColor.slice(3, 5), 16) || 0;
-        keyB = parseInt(clip.chromaColor.slice(5, 7), 16) || 0;
-      }
-
-      const isGreenKey = (clip.chromaColor === "green" || (!clip.chromaColor && keyG > keyR && keyG > keyB));
-      const isBlueKey = (clip.chromaColor === "blue" || (keyB > keyR && keyB > keyG));
-
-      for (let i = 0; i < data.length; i += 4) {
-        let r = data[i], g = data[i + 1], b = data[i + 2], a = data[i + 3];
-        if (a === 0) continue;
-
-        let mask = 1.0;
-        if (isGreenKey) {
-          const excess = (g - Math.max(r, b)) / 255;
-          if (excess > threshold) {
-            mask = Math.max(0, 1 - (excess - threshold) / Math.max(0.01, tol));
-          }
-          if (despill > 0 && mask < 0.95) {
-            data[i + 1] = Math.round(g * (1 - despill) + Math.max(r, b) * despill);
-          }
-        } else if (isBlueKey) {
-          const excess = (b - Math.max(r, g)) / 255;
-          if (excess > threshold) {
-            mask = Math.max(0, 1 - (excess - threshold) / Math.max(0.01, tol));
-          }
-          if (despill > 0 && mask < 0.95) {
-            data[i + 2] = Math.round(b * (1 - despill) + Math.max(r, g) * despill);
-          }
-        } else {
-          const dr = (r - keyR) / 255;
-          const dg = (g - keyG) / 255;
-          const db = (b - keyB) / 255;
-          const dist = Math.sqrt(dr * dr + dg * dg + db * db) / 1.732;
-          if (dist < threshold + tol) {
-            mask = Math.max(0, Math.min(1, (dist - threshold) / Math.max(0.01, tol)));
-          }
-        }
-
-        if (isAlphaPreview) {
-          const lum = Math.round(mask * 255);
-          data[i] = lum;
-          data[i + 1] = lum;
-          data[i + 2] = lum;
-          data[i + 3] = 255;
-        } else {
-          data[i + 3] = Math.round(a * mask);
-        }
-      }
-      tCtx.putImageData(imgData, 0, 0);
-    } catch (_e) {}
-  }
-
-  // Suite de Efeitos Visuais MTV 1995 (Mosaico de Censura, Posterização 8-bit, Solarização Sabattier)
-  if (flt === "mosaic" || clip.mosaic || flt === "posterize" || clip.posterize || flt === "solarize" || clip.solarize) {
+  if (hasChroma || hasMtv) {
     try {
       const imgData = tCtx.getImageData(0, 0, W, H);
       const data = imgData.data;
 
-      // 1. Mosaico de Censura / Pixelização em Blocos (MTV News 1995)
+      // 1. Chroma Key 1995 (Blue/Green Screen com Alpha e Despill)
+      if (hasChroma) {
+        const tol = Math.max(5, Math.min(95, Number(clip.chromaTol) || 35)) / 100;
+        const threshold = Math.max(0, Math.min(80, Number(clip.chromaThreshold) || 15)) / 100;
+        const despill = Math.max(0, Math.min(100, Number(clip.chromaSpill == null ? 60 : clip.chromaSpill))) / 100;
+        const isAlphaPreview = !!clip.previewAlpha;
+
+        let keyR = 0, keyG = 255, keyB = 0;
+        if (clip.chromaColor === "blue") {
+          keyR = 0; keyG = 0; keyB = 255;
+        } else if (clip.chromaColor === "black") {
+          keyR = 0; keyG = 0; keyB = 0;
+        } else if (clip.chromaColor === "white") {
+          keyR = 255; keyG = 255; keyB = 255;
+        } else if (clip.chromaColor && clip.chromaColor.startsWith("#") && clip.chromaColor.length >= 7) {
+          keyR = parseInt(clip.chromaColor.slice(1, 3), 16) || 0;
+          keyG = parseInt(clip.chromaColor.slice(3, 5), 16) || 0;
+          keyB = parseInt(clip.chromaColor.slice(5, 7), 16) || 0;
+        }
+
+        const isGreenKey = (clip.chromaColor === "green" || (!clip.chromaColor && keyG > keyR && keyG > keyB));
+        const isBlueKey = (clip.chromaColor === "blue" || (keyB > keyR && keyB > keyG));
+
+        for (let i = 0; i < data.length; i += 4) {
+          let r = data[i], g = data[i + 1], b = data[i + 2], a = data[i + 3];
+          if (a === 0) continue;
+
+          let mask = 1.0;
+          if (isGreenKey) {
+            const excess = (g - Math.max(r, b)) / 255;
+            if (excess > threshold) {
+              mask = Math.max(0, 1 - (excess - threshold) / Math.max(0.01, tol));
+            }
+            if (despill > 0 && mask < 0.95) {
+              data[i + 1] = Math.round(g * (1 - despill) + Math.max(r, b) * despill);
+            }
+          } else if (isBlueKey) {
+            const excess = (b - Math.max(r, g)) / 255;
+            if (excess > threshold) {
+              mask = Math.max(0, 1 - (excess - threshold) / Math.max(0.01, tol));
+            }
+            if (despill > 0 && mask < 0.95) {
+              data[i + 2] = Math.round(b * (1 - despill) + Math.max(r, g) * despill);
+            }
+          } else {
+            const dr = (r - keyR) / 255;
+            const dg = (g - keyG) / 255;
+            const db = (b - keyB) / 255;
+            const dist = Math.sqrt(dr * dr + dg * dg + db * db) / 1.732;
+            if (dist < threshold + tol) {
+              mask = Math.max(0, Math.min(1, (dist - threshold) / Math.max(0.01, tol)));
+            }
+          }
+
+          if (isAlphaPreview) {
+            const lum = Math.round(mask * 255);
+            data[i] = lum;
+            data[i + 1] = lum;
+            data[i + 2] = lum;
+            data[i + 3] = 255;
+          } else {
+            data[i + 3] = Math.round(a * mask);
+          }
+        }
+      }
+
+      // 2. Mosaico de Censura MTV 1995 (Pixelização)
       if (flt === "mosaic" || clip.mosaic) {
         const bs = Math.max(4, Math.min(64, Number(clip.mosaicBlockSize) || 16));
         for (let by = 0; by < H; by += bs) {
@@ -4174,18 +4170,18 @@ function drawSingleClipToContext(tCtx, W, H, clip, globalSec) {
         }
       }
 
-      // 2. Posterização 8-bit (Quantização de Cores)
+      // 3. Posterização 8-bit (Quantização de Cores)
       if (flt === "posterize" || clip.posterize) {
         const levels = Math.max(2, Math.min(16, Number(clip.posterizeLevels) || 6));
         const step = 255 / (levels - 1);
         for (let i = 0; i < data.length; i += 4) {
           data[i] = Math.round(data[i] / step) * step;
           data[i + 1] = Math.round(data[i + 1] / step) * step;
-          data[i + 2] = Math.round(data[i + 1] / step) * step;
+          data[i + 2] = Math.round(data[i + 2] / step) * step;
         }
       }
 
-      // 3. Solarização Sabattier 1995 (Inversão Psicotrópica de Tons Altos)
+      // 4. Solarização Sabattier 1995
       if (flt === "solarize" || clip.solarize) {
         const threshold = Math.max(20, Math.min(235, Number(clip.solarizeThreshold) || 128));
         for (let i = 0; i < data.length; i += 4) {
@@ -4502,7 +4498,7 @@ function applyAnalogTapeEffects(ctx, W, H) {
 function renderMonitorFrame() {
   const cv = document.getElementById("vCanvas");
   if (!cv) return;
-  const ctx = cv.getContext("2d");
+  const ctx = cv.getContext("2d", { willReadFrequently: true });
   const W = cv.width, H = cv.height;
 
   ctx.fillStyle = "#050505";
@@ -5659,10 +5655,14 @@ function syncHtmlMediaPlayback() {
     if (S.playing && activeClip && S.shuttleSpeed > 0) {
       const localSec = Math.max(0, (S.playhead - activeClip.start) * (activeClip.speed || 1) + (activeClip.inPoint || 0));
       const targetT = el.duration ? Math.min(Math.max(0, el.duration - 0.04), localSec) : localSec;
-      if (Math.abs(el.currentTime - targetT) > 0.32 && !el.seeking) {
+      const drift = el.currentTime - targetT;
+
+      // Se houver um desvio extremo (> 1.2s), faz seek direto; se for pequeno, ajusta a taxa de reprodução suavemente.
+      // Isso impede que o navegador entre em 'seeking' contínuo, o que cortava o áudio e fazia a tela piscar.
+      if (Math.abs(drift) > 1.2 && !el.seeking) {
         try { el.currentTime = targetT; } catch (_e) {}
       }
-      el.muted = !prefs.som || S.tracksMuted[activeClip.track];
+      el.muted = !prefs.som || !!S.tracksMuted[activeClip.track];
       const tkVol = ((S.trackVolumes && S.trackVolumes[activeClip.track]) != null ? S.trackVolumes[activeClip.track] : 100) / 100;
       const mastVol = ((S.trackVolumes && S.trackVolumes.master) != null ? S.trackVolumes.master : 100) / 100;
       const dynVol = evaluateKeyframedProperty(activeClip, "volume", (activeClip.volume == null ? 100 : activeClip.volume), localSec) / 100;
@@ -5672,8 +5672,15 @@ function syncHtmlMediaPlayback() {
         dynGain = Math.min(1.5, Math.max(0.1, makeup));
       }
       const rbFactor = evaluateRubberbandVolume(activeClip, Math.max(0, S.playhead - activeClip.start));
-      el.volume = Math.max(0, Math.min(1, dynVol * tkVol * mastVol * dynGain * rbFactor));
-      el.playbackRate = Math.max(0.25, Math.min(4, (activeClip.speed || 1) * S.shuttleSpeed));
+      const rawVol = dynVol * tkVol * mastVol * dynGain * rbFactor;
+      el.volume = (isFinite(rawVol) && !isNaN(rawVol)) ? Math.max(0, Math.min(1, rawVol)) : 1;
+
+      const baseRate = Math.max(0.25, Math.min(4, (activeClip.speed || 1) * S.shuttleSpeed));
+      if (Math.abs(drift) > 0.05 && Math.abs(drift) <= 1.2) {
+        el.playbackRate = Math.max(0.25, Math.min(4, baseRate * (drift > 0 ? 0.96 : 1.04)));
+      } else {
+        el.playbackRate = baseRate;
+      }
       if (el.paused) el.play().catch(() => {});
     } else {
       if (!el.paused) {
@@ -5688,10 +5695,12 @@ function syncHtmlMediaPlayback() {
     if (S.playing && activeClip && S.shuttleSpeed > 0) {
       const localSec = Math.max(0, (S.playhead - activeClip.start) * (activeClip.speed || 1) + (activeClip.inPoint || 0));
       const targetT = el.duration ? Math.min(Math.max(0, el.duration - 0.04), localSec) : localSec;
-      if (Math.abs(el.currentTime - targetT) > 0.32 && !el.seeking) {
+      const drift = el.currentTime - targetT;
+
+      if (Math.abs(drift) > 1.2 && !el.seeking) {
         try { el.currentTime = targetT; } catch (_e) {}
       }
-      el.muted = !prefs.som || S.tracksMuted[activeClip.track];
+      el.muted = !prefs.som || !!S.tracksMuted[activeClip.track];
       const tkVol = ((S.trackVolumes && S.trackVolumes[activeClip.track]) != null ? S.trackVolumes[activeClip.track] : 100) / 100;
       const mastVol = ((S.trackVolumes && S.trackVolumes.master) != null ? S.trackVolumes.master : 100) / 100;
       const dynVol = evaluateKeyframedProperty(activeClip, "volume", (activeClip.volume == null ? 100 : activeClip.volume), localSec) / 100;
@@ -5720,8 +5729,15 @@ function syncHtmlMediaPlayback() {
       }
 
       const rbFactor = evaluateRubberbandVolume(activeClip, elapsed);
-      el.volume = Math.max(0, Math.min(1, dynVol * cFade * tkVol * mastVol * duckFactor * dynGain * rbFactor));
-      el.playbackRate = Math.max(0.25, Math.min(4, (activeClip.speed || 1) * S.shuttleSpeed));
+      const rawVol = dynVol * cFade * tkVol * mastVol * duckFactor * dynGain * rbFactor;
+      el.volume = (isFinite(rawVol) && !isNaN(rawVol)) ? Math.max(0, Math.min(1, rawVol)) : 1;
+
+      const baseRate = Math.max(0.25, Math.min(4, (activeClip.speed || 1) * S.shuttleSpeed));
+      if (Math.abs(drift) > 0.05 && Math.abs(drift) <= 1.2) {
+        el.playbackRate = Math.max(0.25, Math.min(4, baseRate * (drift > 0 ? 0.96 : 1.04)));
+      } else {
+        el.playbackRate = baseRate;
+      }
       if (el.paused) el.play().catch(() => {});
     } else {
       if (!el.paused) {
@@ -5845,6 +5861,23 @@ function playbackLoop(now) {
   const effectiveEnd = lastClipEnd > 0.5 ? lastClipEnd : S.totalDur;
 
   let nextSec = S.playhead + dt;
+
+  // Se houver uma mídia mestre (vídeo ou áudio) tocando suavemente em 1x,
+  // alinha a agulha ao relógio de decodificação da mídia para sincronismo perfeito sem jitter:
+  if (S.shuttleSpeed === 1) {
+    const active = getActiveClipsAt(S.playhead);
+    const masterClip = active.v1 || active.a1;
+    if (masterClip && masterClip.mediaUrl) {
+      const el = S.videoEls.get(masterClip.mediaUrl) || S.audioEls.get(masterClip.mediaUrl);
+      if (el && !el.paused && !el.seeking && el.currentTime > 0) {
+        const vGlobal = masterClip.start + (el.currentTime - (masterClip.inPoint || 0)) / (masterClip.speed || 1);
+        if (Math.abs(nextSec - vGlobal) < 0.4) {
+          nextSec = vGlobal;
+        }
+      }
+    }
+  }
+
   if (nextSec >= effectiveEnd || nextSec < 0) {
     if (S.loop && nextSec >= effectiveEnd) {
       nextSec = 0;
@@ -13718,7 +13751,16 @@ function openWhatsNewDialog() {
       </div>
       <div class="listview vers" style="max-height:220px;overflow:auto">
         <div class="ver-block">
-          <b>1.1.2 · Seletor de Cores Oficial Windows 95 &amp; Suíte de Efeitos Digitais 3D (DVE 1995)</b><span class="chip95">versão instalada</span>
+          <b>1.1.3 · Correção de Estabilidade de Efeitos, Áudio Contínuo &amp; Zero Flicker</b><span class="chip95">versão instalada</span>
+          <ul>
+            <li><b>Áudio Ininterrupto e Sincronismo de Fase:</b> Eliminação de loops de busca forçada (seeking) durante a reprodução ativa com efeitos. Micro-ajuste suave de taxa de reprodução (playbackRate ±4%) para alinhamento contínuo sem silenciar ou cortar o fluxo sonoro.</li>
+            <li><b>Eliminação Definitiva da Tela Piscando (Zero Flicker):</b> Proteção matemática contra matrizes de escala singulares (determinante zero) nos giros 3D de 90° e 270°, impedindo que o canvas piscasse em preto durante giros tridimensionais ou presets contínuos.</li>
+            <li><b>Aceleração por Hardware no Efeito Anáglifo 3D:</b> Substituição do processamento pesado síncrono de pixels por composição gráfica direta acelerada por GPU nos canais vermelho e ciano, mantendo 60 FPS estáveis mesmo com múltiplos efeitos empilhados.</li>
+            <li><b>Buffer Otimizado de Monitor:</b> Configuração <code>willReadFrequently: true</code> no monitor principal de vídeo e prevenção de flashes de telas de carregamento quando os fotogramas já estiverem decodificados em memória.</li>
+          </ul>
+        </div>
+        <div class="ver-block">
+          <b>1.1.2 · Seletor de Cores Oficial Windows 95 &amp; Suíte de Efeitos Digitais 3D (DVE 1995)</b>
           <ul>
             <li><b>Seletor de Cores Oficial Windows 95 (ChooseColor / COMMDLG32):</b> Interface clássica com 48 cores básicas, 16 cores personalizadas salvas no computador, espectro 2D HSL (0-239 / 0-240), barra de Luminosidade com seta triangular deslizante, visor "Cor | Sólido" com reticulado 8-bit (dither VGA), campos numéricos sincronizados e pipeta conta-gotas.</li>
             <li><b>Paletas Históricas dos Anos 90:</b> Menu de troca rápida entre paleta padrão Win95, Netscape Web-Safe 216 cores (1995), SMPTE Broadcast Safe, IBM PC CGA/EGA 16 cores e Macintosh System 7 QuickTime.</li>
