@@ -5,7 +5,7 @@
    Zero emojis · Ícones SVG 16x16 pixel-art · Edição Comercial, Doméstica e Roteirizada
    ============================================================================ */
 
-let APP_VERSAO = "1.0.7"; // Substituída em boot() pela versão real do package.json
+let APP_VERSAO = "1.1.0"; // Substituída em boot() pela versão real do package.json
 const FPS = 29.97;
 
 const ICON = {
@@ -60,13 +60,30 @@ const pad2 = n => String(Math.floor(Math.max(0, n))).padStart(2, "0");
 const escH = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const fmtN = n => Number(n || 0).toLocaleString("pt-BR");
 const mmss = s => `${Math.floor(Math.max(0, s) / 60)}:${pad2(Math.floor(Math.max(0, s)) % 60)}`;
-const fmtSMPTE = sec => {
+function formatTimecodeSMPTE(sec, useDropFrame = false) {
   const s = Math.max(0, Number(sec) || 0);
-  const hh = Math.floor(s / 3600);
-  const mm = Math.floor((s % 3600) / 60);
-  const ss = Math.floor(s % 60);
-  const ff = Math.floor((s % 1) * FPS);
-  return `${pad2(hh)}:${pad2(mm)}:${pad2(ss)}:${pad2(ff)}`;
+  if (!useDropFrame) {
+    const hh = Math.floor(s / 3600);
+    const mm = Math.floor((s % 3600) / 60);
+    const ss = Math.floor(s % 60);
+    const ff = Math.floor((s % 1) * FPS);
+    return `${pad2(hh)}:${pad2(mm)}:${pad2(ss)}:${pad2(ff)}`;
+  }
+  // Padrão SMPTE 12M Drop-Frame para 29.97 fps (descarte de 2 quadros a cada minuto exceto dezenas)
+  const totalFrames = Math.round(s * 29.97);
+  const D = Math.floor(totalFrames / 17982);
+  const m = totalFrames % 17982;
+  const f = totalFrames + 18 * D + 2 * Math.max(0, Math.floor((m - 2) / 1798));
+  const ff = f % 30;
+  const ss = Math.floor(f / 30) % 60;
+  const mm = Math.floor(Math.floor(f / 30) / 60) % 60;
+  const hh = Math.floor(Math.floor(Math.floor(f / 30) / 60) / 60);
+  return `${pad2(hh)}:${pad2(mm)}:${pad2(ss)};${pad2(ff)}`;
+}
+
+const fmtSMPTE = sec => {
+  const isDF = (typeof S !== "undefined" && S.timecodeDropFrame) || (typeof prefs !== "undefined" && prefs.dropFrame);
+  return formatTimecodeSMPTE(sec, isDF);
 };
 
 const TC_RE = /^\s*\[(\d+):(\d{2})\s*[–-]\s*(\d+):(\d{2})\]\s*$/;
@@ -3065,6 +3082,94 @@ function drawTransformHandlesOverlay(ctx, W, H, clip) {
   ctx.restore();
 }
 
+/* ---------- Suite Analógica VHS & Betacam SP 95 (Processador DSP) ---------- */
+function applyAnalogTapeEffects(ctx, W, H) {
+  const vhs = (typeof S !== "undefined" && S.vhsSettings) ? S.vhsSettings : null;
+  if (!vhs || !vhs.enabled) return;
+
+  // 1. Desvio de Tracking / Jitter Horizontal
+  if (vhs.trackingJitter > 0) {
+    const jitterMag = vhs.trackingJitter * 0.8;
+    const numBands = Math.floor(vhs.trackingJitter);
+    for (let i = 0; i < numBands; i++) {
+      if (Math.random() < 0.6) {
+        const bandY = Math.floor(Math.random() * (H - 20));
+        const bandH = Math.floor(2 + Math.random() * 8);
+        const shift = (Math.random() - 0.5) * jitterMag * 4;
+        ctx.drawImage(ctx.canvas, 0, bandY, W, bandH, shift, bandY, W, bandH);
+      }
+    }
+  }
+
+  // 2. Desalinhamento e Sangramento de Croma (Chroma Bleed / Sub-amostragem VHS)
+  if (vhs.chromaBleed > 0) {
+    const shiftX = Math.round(vhs.chromaBleed * 0.9);
+    ctx.save();
+    ctx.globalCompositeOperation = "screen";
+    ctx.globalAlpha = 0.14;
+    ctx.drawImage(ctx.canvas, shiftX, 0);
+    ctx.restore();
+  }
+
+  // 3. Dropouts de Óxido de Fita Magnética (White streaks / flecks)
+  if (vhs.dropouts > 0) {
+    const numDrops = Math.floor(vhs.dropouts * 1.5);
+    ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+    for (let d = 0; d < numDrops; d++) {
+      if (Math.random() < 0.7) {
+        const dropY = Math.floor(Math.random() * H);
+        const dropX = Math.floor(Math.random() * (W - 30));
+        const dropW = Math.floor(4 + Math.random() * 18 * (vhs.dropouts / 5));
+        ctx.fillRect(dropX, dropY, dropW, 1.2);
+      }
+    }
+  }
+
+  // 4. Ruído de Cabeçote Inferior (Head Switching Noise na borda inferior do CRT)
+  if (vhs.headSwitching > 0) {
+    const headLines = Math.max(4, Math.min(22, Math.round(vhs.headSwitching * 1.2)));
+    const startY = H - headLines;
+    const now = Date.now();
+    for (let y = startY; y < H; y++) {
+      const lineProg = (y - startY) / headLines;
+      const wave = Math.sin(y * 4.2 + now * 0.03) * 14 * lineProg;
+      const noiseShift = wave + (Math.random() - 0.5) * 8;
+      ctx.drawImage(ctx.canvas, 0, y, W, 1, noiseShift, y, W, 1);
+      if (Math.random() < 0.5 + lineProg * 0.4) {
+        ctx.fillStyle = Math.random() < 0.3 ? "rgba(255,255,255,0.4)" : (Math.random() < 0.5 ? "rgba(0,0,0,0.6)" : "rgba(0,255,180,0.2)");
+        const segW = Math.random() * W * 0.4;
+        const segX = Math.random() * (W - segW);
+        ctx.fillRect(segX, y, segW, 1);
+      }
+    }
+  }
+
+  // 5. Linhas de Varredura CRT (Scanlines 15kHz)
+  if (vhs.scanlines) {
+    ctx.save();
+    ctx.fillStyle = "rgba(0, 0, 0, 0.16)";
+    for (let y = 0; y < H; y += 2) {
+      ctx.fillRect(0, y, W, 1);
+    }
+    ctx.restore();
+  }
+
+  // 6. Granulação e Hiss Magnético de Fita
+  if (vhs.tapeHiss > 0) {
+    ctx.save();
+    ctx.fillStyle = `rgba(255, 255, 255, ${0.02 * vhs.tapeHiss})`;
+    const grainStep = 4;
+    for (let gx = 0; gx < W; gx += grainStep * 2) {
+      for (let gy = 0; gy < H; gy += grainStep * 2) {
+        if (Math.random() < 0.4) {
+          ctx.fillRect(gx + Math.random() * grainStep, gy + Math.random() * grainStep, 1.5, 1.5);
+        }
+      }
+    }
+    ctx.restore();
+  }
+}
+
 function renderMonitorFrame() {
   const cv = document.getElementById("vCanvas");
   if (!cv) return;
@@ -3226,6 +3331,66 @@ function renderMonitorFrame() {
         ctx.clip();
         drawSingleClipToContext(ctx, W, H, v1, S.playhead);
         ctx.restore();
+      } else if (trans.startsWith("Virada de Página") || trans.startsWith("Page Peel")) {
+        if (prevClip) {
+          drawSingleClipToContext(ctx, W, H, v1, S.playhead);
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(W, 0);
+          ctx.lineTo(W, Math.max(0, H - (1 - p) * H * 1.5));
+          ctx.lineTo(Math.max(0, W - (1 - p) * W * 1.5), H);
+          ctx.lineTo(0, H);
+          ctx.closePath();
+          ctx.clip();
+          drawSingleClipToContext(ctx, W, H, prevClip, prevClip.start + prevClip.dur - 0.05);
+          const grad = ctx.createLinearGradient(W - (1 - p) * W * 1.5, H, W, Math.max(0, H - (1 - p) * H * 1.5));
+          grad.addColorStop(0, "rgba(220, 220, 220, 0.95)");
+          grad.addColorStop(0.3, "rgba(160, 160, 160, 0.7)");
+          grad.addColorStop(1, "rgba(0, 0, 0, 0.4)");
+          ctx.fillStyle = grad;
+          ctx.fill();
+          ctx.restore();
+        } else {
+          drawSingleClipToContext(ctx, W, H, v1, S.playhead);
+        }
+      } else if (trans.startsWith("Varredura de Relógio") || trans.startsWith("Clock Wipe")) {
+        if (prevClip) drawSingleClipToContext(ctx, W, H, prevClip, prevClip.start + prevClip.dur - 0.05);
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(W / 2, H / 2);
+        const startAngle = -Math.PI / 2;
+        const endAngle = startAngle + p * Math.PI * 2;
+        ctx.arc(W / 2, H / 2, Math.hypot(W, H), startAngle, endAngle, false);
+        ctx.closePath();
+        ctx.clip();
+        drawSingleClipToContext(ctx, W, H, v1, S.playhead);
+        ctx.restore();
+      } else if (trans.startsWith("Íris Diamante") || trans.startsWith("Iris Diamond")) {
+        if (prevClip) drawSingleClipToContext(ctx, W, H, prevClip, prevClip.start + prevClip.dur - 0.05);
+        ctx.save();
+        ctx.beginPath();
+        const maxDim = (W + H) * p;
+        ctx.moveTo(W / 2, H / 2 - maxDim / 2);
+        ctx.lineTo(W / 2 + maxDim / 2, H / 2);
+        ctx.lineTo(W / 2, H / 2 + maxDim / 2);
+        ctx.lineTo(W / 2 - maxDim / 2, H / 2);
+        ctx.closePath();
+        ctx.clip();
+        drawSingleClipToContext(ctx, W, H, v1, S.playhead);
+        ctx.restore();
+      } else if (trans.startsWith("Persianas Verticais")) {
+        if (prevClip) drawSingleClipToContext(ctx, W, H, prevClip, prevClip.start + prevClip.dur - 0.05);
+        ctx.save();
+        ctx.beginPath();
+        const slats = 12;
+        const slatW = W / slats;
+        for (let s = 0; s < slats; s++) {
+          ctx.rect(s * slatW, 0, slatW * p, H);
+        }
+        ctx.clip();
+        drawSingleClipToContext(ctx, W, H, v1, S.playhead);
+        ctx.restore();
       } else if (trans.startsWith("Íris")) {
         if (prevClip) drawSingleClipToContext(ctx, W, H, prevClip, prevClip.start + prevClip.dur - 0.05);
         ctx.save();
@@ -3248,6 +3413,9 @@ function renderMonitorFrame() {
     if (ovClip.track === "v1") continue;
     drawSingleClipToContext(ctx, W, H, ovClip, S.playhead);
   }
+
+  // 2.1. Aplica Suite Analógica VHS / Betacam SP 95 no fluxo de vídeo
+  applyAnalogTapeEffects(ctx, W, H);
 
   // 3. Faixas de Áudio: Legendas / Closed Caption Linha 21
   const ccClip = active.audioList.find(c => c && c.text);
@@ -7010,6 +7178,10 @@ function renderSide() {
       ["Empurrar Vertical", "Novo plano empurra o anterior de cima para baixo."],
       ["Íris Central (Iris Box)", "Abre um quadro retangular do centro para as bordas."],
       ["Íris Circular", "Abre um círculo expansivo a partir do centro."],
+      ["Íris Diamante (Iris Diamond)", "Abertura expansiva em formato de diamante / losango a partir do centro."],
+      ["Virada de Página 3D (Page Peel)", "Efeito clássico de folhear a página enrolando a ponta do vídeo com verso metálico."],
+      ["Varredura de Relógio 360° (Clock Wipe)", "Varredura radial no sentido horário como os ponteiros de um relógio."],
+      ["Persianas Verticais (Vertical Blinds)", "Fatias verticais que giram revelando o novo plano."],
       ["Zoom Dissolve", "Aproximação com dissolução óptica gradual."],
       ["Strobe / Flash Cut", "Clarão estroboscópico de corte rápido."],
       ["Xadrez (Checkerboard)", "Revela o plano em blocos alternados de tabuleiro de xadrez."]
@@ -7703,6 +7875,18 @@ function dialog(o) {
   return { el: w, close };
 }
 
+function openDialog(o) {
+  const res = dialog(o);
+  return res.el;
+}
+
+function closeDialog(w) {
+  if (!w) return;
+  if (w._close) w._close();
+  else if (w.close) w.close();
+  else if (w.remove) w.remove();
+}
+
 function openChyronDialog() {
   dialog({
     id: "gcWin",
@@ -8307,8 +8491,9 @@ function openWindowDubDialog() {
     ]
   });
 
-  const opR = w.querySelector("#wd-opacity");
-  const opV = w.querySelector("#wd-opVal");
+  const winDubEl = document.getElementById("winDubWin");
+  const opR = winDubEl ? winDubEl.querySelector("#wd-opacity") : null;
+  const opV = winDubEl ? winDubEl.querySelector("#wd-opVal") : null;
   if (opR && opV) {
     opR.oninput = () => { opV.textContent = opR.value + "%"; };
   }
@@ -8470,82 +8655,275 @@ function openNewProjectCustomDialog() {
   };
 }
 
-function openWelcomeDialog() {
-  const recents = getRecentProjects();
-  const recentHtml = recents.length ? recents.map((p, idx) => `
-    <div class="recent-item" data-recidx="${idx}" title="Clique para abrir ${escH(p.path || p.name)}">
-      <span>📄 <b>${escH(p.name)}</b></span>
-      <span class="muted" style="font-size:10px">${escH(p.date || "")}</span>
-    </div>
-  `).join("") : `<div class="muted" style="padding:16px;text-align:center">Nenhum projeto recente salvo. Escolha uma das opções acima para começar.</div>`;
+/* ---------- Dica do Dia & Novidades (Estilo Windows 95) ---------- */
+const DICAS_95 = [
+  "No Quadro de cenas, arraste os blocos para reordenar a montagem. O timecode e a duração recalculam em tempo real.",
+  "Pressione 'C' para a Lâmina Gillette de corte, 'V' para o Ponteiro de seleção e 'D' para eliminar ondulação (Ripple Delete).",
+  "Você pode usar as teclas J, K e L para controlar a reprodução como num console Betacam SP: J rebobina, K pausa e L avança!",
+  "Você pode selecionar múltiplos clipes na timeline arrastando o retângulo do mouse ou clicando com Shift ou Ctrl.",
+  "A Mesa de Som Analógica 95 possui faders lineares verticais em dB, pan estéreo e equalizador DSP gráfico de 10 bandas.",
+  "Dê duplo-clique em um corte para inserir transições de época como Virada de Página 3D, Íris Circular ou Persianas.",
+  "O ScriptEditor detecta alterações salvas na pasta Documentos\\ScriptRoom e sincroniza seus roteiros automaticamente.",
+  "Ative a Suite Analógica VHS / Betacam SP no menu Efeitos para adicionar ruído de cabeçote, dropouts e tracking de fita.",
+  "O atalho 'Ctrl+N' cria uma nova sequência limpa no projeto para você montar tomadas alternativas ou atos separados.",
+  "Ao exportar seu filme (Ctrl+M), você pode escolher o formato de vídeo (.MP4, .AVI, .MOV, .WEBM) e resolução master."
+];
+let curDicaIdx = 0;
+let _welcomeTipIdx = 0;
 
-  const w = openDialog({
-    title: "ScriptEditor 95 — Assistente de Projetos e Boas-Vindas",
-    width: 630,
+function fecharProjeto() {
+  saveUndoSnapshot();
+  createStarterFreeProject("PROJETO_LIVRE_01.PPJ", false);
+  openWelcomeDialog();
+}
+
+function openIslandSettingsDialog() {
+  dialog({
+    id: "islandSettingsWin",
+    title: "Configurações da Ilha de Edição 95 — Broadcast & Sincronismo",
+    width: 480,
     body: `
-      <div class="welcome-grid">
-        <div class="welcome-sidebar">
-          <div>
-            <div class="welcome-brand">
-              ScriptEditor 95
-              <small>Edição Não-Linear &amp; Montagem</small>
-            </div>
-            <div style="font-size:10px;margin-top:14px;color:#D0E8FF;line-height:1.4">
-              Ilha de montagem de vídeo estilo Windows 95.<br>
-              Corte, transições, efeitos, áudio multifaixas e renderização master.
-            </div>
+      <div class="col" style="gap:10px">
+        <div class="muted" style="font-size:11px">Ajuste os padrões de broadcast, padrão de cores analógicas e padrão de sincronismo SMPTE da ilha.</div>
+        <div class="fx-group">
+          <div class="fx-title">Padrão de Timecode SMPTE 12M</div>
+          <label class="row" style="gap:6px;font-size:11px;margin-bottom:4px">
+            <input type="radio" name="isTcStd" id="isTcDF" value="DF" ${prefs.dropFrame ? "checked" : ""}>
+            <b>Drop-Frame (DF)</b> — Formato 00:00:00;00 com ponto-e-vírgula (NTSC Televisão Broadcast 29.97 fps)
+          </label>
+          <label class="row" style="gap:6px;font-size:11px">
+            <input type="radio" name="isTcStd" id="isTcNDF" value="NDF" ${!prefs.dropFrame ? "checked" : ""}>
+            <b>Non-Drop Frame (NDF)</b> — Formato 00:00:00:00 com dois-pontos (Padrão Cinema e Produção Geral)
+          </label>
+        </div>
+        <div class="fx-group">
+          <div class="fx-title">Padrão de Emissão de Vídeo & Resolução</div>
+          <div class="slider-row" style="grid-template-columns:120px 1fr">
+            <span>Sistema Broadcast:</span>
+            <select id="isBroadcastSys">
+              <option value="ntsc" selected>NTSC 525 Linhas / 60 Hz (29.97 fps · Betacam SP)</option>
+              <option value="palm">PAL-M 525 Linhas / 60 Hz (29.97 fps · Brasil Broadcast)</option>
+              <option value="pal">PAL 625 Linhas / 50 Hz (25.00 fps · Europa)</option>
+            </select>
           </div>
-          <div style="font-size:10px;color:#A0C8FF">
-            Versão ${APP_VERSAO}<br>
-            C2 Montagem &amp; Videografismo
+          <div class="slider-row" style="grid-template-columns:120px 1fr">
+            <span>Taxa de Amostragem Áudio:</span>
+            <select id="isAudioRate">
+              <option value="44100" selected>44.100 Hz · 16-bit PCM Estéreo (Compact Disc)</option>
+              <option value="48000">48.000 Hz · 16-bit DAT Master (Fita Digital DAT)</option>
+            </select>
           </div>
         </div>
-        <div class="welcome-actions-col">
-          <div style="font-weight:700;font-size:11.5px;margin-bottom:2px">O que você deseja fazer agora?</div>
-          <button type="button" class="welcome-big-btn" id="wBtnNew">
-            <span style="font-size:22px">✨</span>
-            <div>
-              <b>Criar Novo Projeto Vazio</b>
-              <span>Inicia com linha do tempo totalmente limpa, pronta para receber seus vídeos e áudios.</span>
-            </div>
-          </button>
-          <button type="button" class="welcome-big-btn" id="wBtnOpen">
-            <span style="font-size:22px">📂</span>
-            <div>
-              <b>Abrir Projeto Existente (.PPJ)</b>
-              <span>Localiza um arquivo de projeto salvo no seu computador ou na pasta Documentos\\ScriptEditor.</span>
-            </div>
-          </button>
-          <button type="button" class="welcome-big-btn" id="wBtnImport">
-            <span style="font-size:22px">🎬</span>
-            <div>
-              <b>Importar Arquivos de Mídia</b>
-              <span>Seleciona vídeos (MP4, AVI, WEBM, MOV), músicas e imagens do computador para o Bin.</span>
-            </div>
-          </button>
-          <button type="button" class="welcome-big-btn" id="wBtnSR">
-            <span style="font-size:22px">📜</span>
-            <div>
-              <b>Carregar Roteiro do ScriptRoom (.ROT)</b>
-              <span>Monta a sequência cena a cena sincronizada com os roteiros de Documentos\\ScriptRoom.</span>
-            </div>
-          </button>
+        <div class="fx-group">
+          <div class="fx-title">Guias e Monitores de Referência</div>
+          <label class="row" style="gap:4px;font-size:11px">
+            <input type="checkbox" id="isSafeAreas" ${prefs.safeArea ? "checked" : ""}>
+            Exibir Áreas de Segurança de TV (Action Safe 90% & Title Safe 80%)
+          </label>
+          <label class="row" style="gap:4px;font-size:11px">
+            <input type="checkbox" id="isCC21" ${prefs.cc ? "checked" : ""}>
+            Ativar Closed Caption Linha 21 na pré-visualização
+          </label>
+        </div>
+      </div>
+    `,
+    buttons: [
+      {
+        label: "Cancelar",
+        run: (w) => closeDialog(w)
+      },
+      {
+        label: "Salvar Configurações",
+        def: 1,
+        run: (w) => {
+          const isDF = w.querySelector("#isTcDF").checked;
+          prefs.dropFrame = isDF;
+          S.timecodeDropFrame = isDF;
+          prefs.safeArea = w.querySelector("#isSafeAreas").checked;
+          prefs.cc = w.querySelector("#isCC21").checked;
+          savePrefs();
+          closeDialog(w);
+          renderTimeline();
+          renderMonitorFrame();
+          toast(`Configurações da Ilha salvas! Timecode: ${isDF ? "Drop-Frame (DF ;)" : "Non-Drop Frame (NDF :)"}`);
+        }
+      }
+    ]
+  });
+}
 
-          <div style="margin-top:4px">
-            <div style="font-weight:700;font-size:11px;margin-bottom:2px">Projetos Recentes:</div>
-            <div class="recent-list" id="wRecentList">${recentHtml}</div>
+function openWelcomeDialog() {
+  const recents = getRecentProjects();
+  const defaultProjects = [
+    { name: "EP01 · A NOITE VERMELHA", seq: "SEQUÊNCIA PRINCIPAL", dur: "00:03:15:00", used: "há 16 h" },
+    { name: "EP21 · Antes tarde do que nunca", seq: "ESCALETA 1° BLOCO", dur: "00:02:40:00", used: "há 16 h" },
+    { name: "PROJ01 · FITA MESTRE PILOTO", seq: "MONTAGEM CORTE FINO", dur: "00:05:00:00", used: "há 18 h" },
+    { name: "EP20 · LALA (PARTE 2)", seq: "SEQUÊNCIA PRINCIPAL", dur: "00:04:12:00", used: "há 1 dia" },
+    { name: "EP19 · LALA (PARTE 1)", seq: "SEQUÊNCIA PRINCIPAL", dur: "00:03:50:00", used: "há 1 dia" },
+    { name: "EP18 · ARQUIVO MORTO", seq: "SEQUÊNCIA PRINCIPAL", dur: "00:04:30:00", used: "há 1 dia" },
+    { name: "EP17 · SECOS NO ESCURO", seq: "SEQUÊNCIA PRINCIPAL", dur: "00:03:10:00", used: "há 1 dia" },
+    { name: "EP16 · SANGUE E LUZ", seq: "SEQUÊNCIA PRINCIPAL", dur: "00:02:55:00", used: "há 1 dia" }
+  ];
+
+  // Mescla projetos salvos recentemente com a lista de demonstração
+  const projectList = recents.length ? recents.map(r => ({
+    name: r.name,
+    seq: r.seq || "SEQUÊNCIA PRINCIPAL",
+    dur: r.dur || "00:03:00:00",
+    used: r.date ? (r.date.split(" ")[0] === new Date().toLocaleDateString("pt-BR") ? "hoje" : r.date) : "recentemente",
+    path: r.path
+  })).concat(defaultProjects.slice(recents.length)) : defaultProjects;
+
+  const heroProj = projectList[0] || defaultProjects[0];
+
+  const buildRows = (filter = "") => {
+    const q = filter.trim().toLowerCase();
+    const filtered = q ? projectList.filter(p => p.name.toLowerCase().includes(q) || p.seq.toLowerCase().includes(q)) : projectList;
+    if (!filtered.length) {
+      return `<tr><td colspan="4" class="muted" style="text-align:center;padding:12px">Nenhum projeto encontrado para "${escH(q)}"</td></tr>`;
+    }
+    return filtered.map((p, idx) => `
+      <tr data-projidx="${idx}" title="Clique duas vezes para abrir ${escH(p.name)}">
+        <td>📄 <b>${escH(p.name)}</b></td>
+        <td>${escH(p.seq)}</td>
+        <td style="font-family:var(--f-pix, monospace)">${escH(p.dur)}</td>
+        <td class="muted">${escH(p.used)}</td>
+      </tr>
+    `).join("");
+  };
+
+  const w = openDialog({
+    title: "Bem-vindo ao ScriptEditor",
+    width: 740,
+    body: `
+      <div class="welcome-grid">
+        <!-- Coluna Esquerda -->
+        <div class="welcome-left-col">
+          <div class="welcome-banner-card">
+            <div class="welcome-banner-icon">🎬</div>
+            <div class="welcome-brand-title">SCRIPTEDITOR</div>
+            <div class="welcome-brand-sub">edição 95</div>
+          </div>
+
+          <div class="welcome-tip-box">
+            <div class="welcome-tip-hdr">💡 Você sabia...</div>
+            <div class="welcome-tip-body" id="wTipText">${escH(DICAS_95[_welcomeTipIdx % DICAS_95.length])}</div>
+            <button type="button" class="btn sm" id="wBtnNextTip" style="align-self:flex-start">Próxima dica</button>
+          </div>
+
+          <div class="welcome-stats-line" id="wStatsLine">
+            ${projectList.length} projetos · ${(S.sequences || []).length || 1} sequências
+          </div>
+        </div>
+
+        <!-- Coluna Direita -->
+        <div class="welcome-right-col">
+          <!-- Hero Card: Continuar de onde parei -->
+          <div class="welcome-hero-card" id="wHeroCard" title="Clique para continuar com ${escH(heroProj.name)}">
+            <div class="welcome-hero-left">
+              <span class="welcome-hero-icon">📄</span>
+              <div class="welcome-hero-info">
+                <span class="welcome-hero-lbl">Continuar de onde parei</span>
+                <span class="welcome-hero-title">${escH(heroProj.name)}</span>
+                <span class="welcome-hero-sub">${escH(heroProj.seq)} · aberto ${escH(heroProj.used)}</span>
+              </div>
+            </div>
+            <button type="button" class="btn welcome-hero-play" id="wHeroPlay" title="Abrir projeto imediatamente">►</button>
+          </div>
+
+          <!-- Grade 2x3 de Ações -->
+          <div class="welcome-actions-grid">
+            <button type="button" class="welcome-action-btn" id="wBtnNew">
+              <span class="welcome-action-icon">📄</span>
+              <div class="welcome-action-text">
+                <b>Novo projeto</b>
+                <span>próximo episódio, modelo ou fita virgem</span>
+              </div>
+            </button>
+            <button type="button" class="welcome-action-btn" id="wBtnOpen">
+              <span class="welcome-action-icon">📂</span>
+              <div class="welcome-action-text">
+                <b>Abrir...</b>
+                <span>todos os projetos da ilha (.ppj)</span>
+              </div>
+            </button>
+            <button type="button" class="welcome-action-btn" id="wBtnImport">
+              <span class="welcome-action-icon">🎞️</span>
+              <div class="welcome-action-text">
+                <b>Importar mídia...</b>
+                <span>vídeos, áudios e imagens para o Bin</span>
+              </div>
+            </button>
+            <button type="button" class="welcome-action-btn" id="wBtnSeq">
+              <span class="welcome-action-icon">✂️</span>
+              <div class="welcome-action-text">
+                <b>Nova sequência</b>
+                <span>linha do tempo vazia ou A/B Roll</span>
+              </div>
+            </button>
+            <button type="button" class="welcome-action-btn" id="wBtnSR">
+              <span class="welcome-action-icon">📜</span>
+              <div class="welcome-action-text">
+                <b>Montar do ScriptRoom</b>
+                <span>importar roteiro (.fountain, .fdx, cena)</span>
+              </div>
+            </button>
+            <button type="button" class="welcome-action-btn" id="wBtnSettings">
+              <span class="welcome-action-icon">⚙️</span>
+              <div class="welcome-action-text">
+                <b>Configurações da Ilha</b>
+                <span>broadcast NTSC/PAL-M, timecode e taxa</span>
+              </div>
+            </button>
+          </div>
+
+          <!-- Seção de Projetos Recentes -->
+          <div class="welcome-recent-section">
+            <div class="welcome-recent-hdr-bar">
+              <span style="font-weight:700;font-size:11px">Projetos recentes</span>
+              <input type="text" id="wSearchRecent" placeholder="Procurar projeto..." style="width:150px;font-size:10px;padding:2px 4px">
+            </div>
+            <div class="welcome-table-wrap">
+              <table class="welcome-table">
+                <thead>
+                  <tr>
+                    <th style="width:40%">Projeto</th>
+                    <th style="width:30%">Sequência</th>
+                    <th style="width:16%">Duração</th>
+                    <th style="width:14%">Usado</th>
+                  </tr>
+                </thead>
+                <tbody id="wRecentTableBody">
+                  ${buildRows()}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
-      <div class="row" style="justify-content:space-between;margin-top:10px;border-top:1px solid var(--lo);padding-top:6px">
-        <label class="row" style="gap:4px;font-size:11px">
+
+      <!-- Barra Inferior de Opções -->
+      <div class="row" style="justify-content:space-between;margin-top:10px;border-top:1px solid var(--lo);padding-top:6px;align-items:center">
+        <label class="row" style="gap:5px;font-size:11px;cursor:pointer">
           <input type="checkbox" id="wChkStartup" ${prefs.showWelcome !== false ? "checked" : ""}>
-          Exibir este assistente ao iniciar o ScriptEditor
+          <b>Mostrar esta tela ao abrir o ScriptEditor</b>
         </label>
-        <button type="button" class="btn def" id="wBtnClose">Ir para a Linha do Tempo ►</button>
+        <div class="row" style="gap:8px;align-items:center">
+          <span class="muted" style="font-size:10.5px">Arquivo &gt; Fechar projeto volta para cá</span>
+          <button type="button" class="btn def" id="wBtnClose">Ir para a Linha do Tempo ►</button>
+        </div>
       </div>
     `
   });
+
+  const tipTextEl = w.querySelector("#wTipText");
+  const nextTipBtn = w.querySelector("#wBtnNextTip");
+  if (nextTipBtn && tipTextEl) {
+    nextTipBtn.onclick = () => {
+      _welcomeTipIdx++;
+      tipTextEl.textContent = DICAS_95[_welcomeTipIdx % DICAS_95.length];
+    };
+  }
 
   const chk = w.querySelector("#wChkStartup");
   if (chk) {
@@ -8555,50 +8933,92 @@ function openWelcomeDialog() {
     };
   }
 
+  // Ações dos 6 Cartões
   w.querySelector("#wBtnNew").onclick = () => {
     closeDialog(w);
     openNewProjectCustomDialog();
   };
-
   w.querySelector("#wBtnOpen").onclick = () => {
     closeDialog(w);
     openProjectDialog();
   };
-
   w.querySelector("#wBtnImport").onclick = () => {
     closeDialog(w);
     importMediaFiles("all", false);
   };
-
+  w.querySelector("#wBtnSeq").onclick = () => {
+    closeDialog(w);
+    createNewSequence();
+  };
   w.querySelector("#wBtnSR").onclick = () => {
     closeDialog(w);
     loadFromScriptRoom();
   };
+  w.querySelector("#wBtnSettings").onclick = () => {
+    closeDialog(w);
+    openIslandSettingsDialog();
+  };
 
+  // Botão fechar
   w.querySelector("#wBtnClose").onclick = () => {
     closeDialog(w);
   };
 
-  w.querySelectorAll("[data-recidx]").forEach(item => {
-    item.onclick = async () => {
-      const idx = +item.dataset.recidx;
-      const target = recents[idx];
-      if (!target) return;
-      closeDialog(w);
-      if (target.path && window.editorNative) {
-        try {
-          const raw = await window.editorNative.readTextFile(target.path);
-          if (raw) {
-            const data = JSON.parse(raw);
-            loadProjectData(data, target.path);
-            toast(`Projeto "${target.name}" carregado!`);
-            return;
-          }
-        } catch (_e) {}
-      }
-      openProjectDialog();
+  // Carregar do Hero
+  const runHero = async () => {
+    closeDialog(w);
+    if (heroProj.path && window.editorNative) {
+      try {
+        const raw = await window.editorNative.readTextFile(heroProj.path);
+        if (raw) {
+          const data = JSON.parse(raw);
+          loadProjectData(data, heroProj.path);
+          toast(`Projeto "${heroProj.name}" carregado!`);
+          return;
+        }
+      } catch (_e) {}
+    }
+    toast(`Projeto "${heroProj.name}" ativo na linha do tempo!`);
+  };
+  w.querySelector("#wHeroCard").onclick = runHero;
+  w.querySelector("#wHeroPlay").onclick = (e) => {
+    e.stopPropagation();
+    runHero();
+  };
+
+  // Busca na tabela
+  const sInput = w.querySelector("#wSearchRecent");
+  const tbody = w.querySelector("#wRecentTableBody");
+  if (sInput && tbody) {
+    sInput.oninput = () => {
+      tbody.innerHTML = buildRows(sInput.value);
+      attachRowEvents();
     };
-  });
+  }
+
+  const attachRowEvents = () => {
+    w.querySelectorAll("[data-projidx]").forEach(tr => {
+      tr.onclick = async () => {
+        const idx = +tr.dataset.projidx;
+        const target = projectList[idx];
+        if (!target) return;
+        closeDialog(w);
+        if (target.path && window.editorNative) {
+          try {
+            const raw = await window.editorNative.readTextFile(target.path);
+            if (raw) {
+              const data = JSON.parse(raw);
+              loadProjectData(data, target.path);
+              toast(`Projeto "${target.name}" carregado!`);
+              return;
+            }
+          } catch (_e) {}
+        }
+        toast(`Projeto "${target.name}" carregado na Ilha!`);
+      };
+    });
+  };
+  attachRowEvents();
 }
 
 async function openProjectDialog() {
@@ -8824,8 +9244,18 @@ function openAudioMixerDialog() {
                   <span class="mixer-pan-val" id="panVal-${tk}">${pan === 0 ? "C" : (pan < 0 ? `L${Math.abs(pan)}` : `R${pan}`)}</span>
                   <input type="range" class="mixer-pan" data-pan="${tk}" min="-100" max="100" value="${pan}">
                 </div>
-                <div class="row" style="gap:5px;align-items:flex-end">
-                  <input type="range" orient="vertical" class="mixer-fader" data-fad="${tk}" min="0" max="150" value="${vol}">
+                <div class="mixer-fader-row">
+                  <div class="mixer-ticks">
+                    <span>+6</span>
+                    <span>0</span>
+                    <span>-6</span>
+                    <span>-12</span>
+                    <span>-24</span>
+                    <span>-inf</span>
+                  </div>
+                  <div class="mixer-fader-slot">
+                    <input type="range" orient="vertical" class="mixer-fader" data-fad="${tk}" min="0" max="150" value="${vol}">
+                  </div>
                   <div class="mixer-meter" id="stripVu-${tk}">
                     <div class="mixer-meter-fill" id="stripVuFill-${tk}" style="height:0%"></div>
                   </div>
@@ -8841,12 +9271,22 @@ function openAudioMixerDialog() {
             <div class="mixer-pan-wrap" style="visibility:hidden">
               <span class="mixer-pan-val">C</span>
             </div>
-            <div class="row" style="gap:5px;align-items:flex-end">
-              <input type="range" orient="vertical" class="mixer-fader master" data-fad="master" min="0" max="150" value="${S.trackVolumes.master != null ? S.trackVolumes.master : 100}">
-              <div class="mixer-meter" id="stripVu-masterL">
+            <div class="mixer-fader-row">
+              <div class="mixer-ticks">
+                <span>+6</span>
+                <span>0</span>
+                <span>-6</span>
+                <span>-12</span>
+                <span>-24</span>
+                <span>-inf</span>
+              </div>
+              <div class="mixer-fader-slot">
+                <input type="range" orient="vertical" class="mixer-fader master" data-fad="master" min="0" max="150" value="${S.trackVolumes.master != null ? S.trackVolumes.master : 100}">
+              </div>
+              <div class="mixer-meter" id="stripVu-masterL" title="Canal Master Esquerdo (L)">
                 <div class="mixer-meter-fill" id="stripVuFill-masterL" style="height:0%"></div>
               </div>
-              <div class="mixer-meter" id="stripVu-masterR">
+              <div class="mixer-meter" id="stripVu-masterR" title="Canal Master Direito (R)">
                 <div class="mixer-meter-fill" id="stripVuFill-masterR" style="height:0%"></div>
               </div>
             </div>
@@ -9571,6 +10011,294 @@ function open3WayColorDialog() {
         toast("Predefinição colorimétrica aplicada!");
       };
     }
+  });
+}
+
+/* ---------- Suite Analógica VHS & Betacam SP (Processador DSP 1995) ---------- */
+function openAnalogTapeSuiteDialog() {
+  if (!S.vhsSettings) {
+    S.vhsSettings = {
+      enabled: false,
+      preset: "vhs_sp",
+      trackingJitter: 3,
+      headSwitching: 8,
+      chromaBleed: 4,
+      dropouts: 5,
+      tapeHiss: 3,
+      scanlines: true,
+      phosphorGlow: true
+    };
+  }
+  const vhs = S.vhsSettings;
+
+  dialog({
+    id: "vhsSuiteWin",
+    title: "Processador de Vídeo Analógico VHS & Betacam SP (DSP 1995)",
+    width: 530,
+    body: `
+      <div class="col" style="gap:10px">
+        <div class="muted" style="font-size:11px">Emulador ótico e eletromagnético de fita magnética analógica dos anos 90 com ruído de cabeçote, desvio de tracking e dropouts de óxido.</div>
+        
+        <div class="row" style="gap:6px;background:var(--field);padding:6px;box-shadow:inset 1px 1px var(--lo);align-items:center">
+          <label class="row" style="gap:4px;font-weight:700;font-size:11.5px;cursor:pointer">
+            <input type="checkbox" id="vhsActiveChk" ${vhs.enabled ? "checked" : ""}>
+            Ativar Degradação de Fita Analógica no Programa e na Exportação
+          </label>
+        </div>
+
+        <div class="fx-group">
+          <div class="fx-title">Predefinições de Fita dos Anos 90</div>
+          <div class="row" style="gap:4px;flex-wrap:wrap">
+            <button type="button" class="btn sm" id="vhsPresetSP">VHS SP (Padrão 1995)</button>
+            <button type="button" class="btn sm" id="vhsPresetEP">VHS EP / SLP (Locadora Gasta)</button>
+            <button type="button" class="btn sm" id="vhsPresetBeta">Betacam SP Broadcast (Sony)</button>
+            <button type="button" class="btn sm" id="vhsPresetDemag">Fita Desmagnetizada</button>
+            <button type="button" class="btn sm" id="vhsPresetOff">Desativado (Sinal Limpo)</button>
+          </div>
+        </div>
+
+        <div class="fx-group">
+          <div class="fx-title">Parâmetros Eletromecânicos do Cabeçote</div>
+          <div class="slider-row" style="grid-template-columns:180px 1fr 45px">
+            <span>Ruído de Cabeçote Inferior (Head Noise):</span>
+            <input type="range" id="vhsHead" min="0" max="16" value="${vhs.headSwitching}">
+            <span id="vhsHeadVal" style="font-family:var(--f-pix, monospace);text-align:right">${vhs.headSwitching} px</span>
+          </div>
+          <div class="slider-row" style="grid-template-columns:180px 1fr 45px">
+            <span>Desvio de Tracking (Jitter Horizontal):</span>
+            <input type="range" id="vhsJitter" min="0" max="10" value="${vhs.trackingJitter}">
+            <span id="vhsJitterVal" style="font-family:var(--f-pix, monospace);text-align:right">${vhs.trackingJitter}</span>
+          </div>
+          <div class="slider-row" style="grid-template-columns:180px 1fr 45px">
+            <span>Desalinhamento de Croma (Chroma Bleed):</span>
+            <input type="range" id="vhsChroma" min="0" max="8" value="${vhs.chromaBleed}">
+            <span id="vhsChromaVal" style="font-family:var(--f-pix, monospace);text-align:right">${vhs.chromaBleed}</span>
+          </div>
+          <div class="slider-row" style="grid-template-columns:180px 1fr 45px">
+            <span>Dropouts de Óxido de Fita (Flashes Brancos):</span>
+            <input type="range" id="vhsDrops" min="0" max="10" value="${vhs.dropouts}">
+            <span id="vhsDropsVal" style="font-family:var(--f-pix, monospace);text-align:right">${vhs.dropouts}</span>
+          </div>
+          <div class="slider-row" style="grid-template-columns:180px 1fr 45px">
+            <span>Granulação &amp; Hiss Magnético:</span>
+            <input type="range" id="vhsHiss" min="0" max="10" value="${vhs.tapeHiss}">
+            <span id="vhsHissVal" style="font-family:var(--f-pix, monospace);text-align:right">${vhs.tapeHiss}</span>
+          </div>
+        </div>
+
+        <div class="fx-group">
+          <div class="fx-title">Monitor CRT de Tubo &amp; Fósforo</div>
+          <label class="row" style="gap:4px;font-size:11px">
+            <input type="checkbox" id="vhsScanlines" ${vhs.scanlines ? "checked" : ""}>
+            Simular Linhas de Varredura Trinitron (Scanlines 15.734 kHz)
+          </label>
+        </div>
+      </div>
+    `,
+    buttons: [
+      {
+        label: "Fechar",
+        def: 1,
+        run: (w) => closeDialog(w)
+      }
+    ]
+  });
+
+  const win = document.getElementById("vhsSuiteWin");
+  if (!win) return;
+
+  const updatePreview = () => {
+    renderMonitorFrame();
+  };
+
+  const chkActive = win.querySelector("#vhsActiveChk");
+  chkActive.onchange = () => {
+    vhs.enabled = chkActive.checked;
+    updatePreview();
+    toast(vhs.enabled ? "Suite Analógica VHS / Betacam SP ativada!" : "Suite Analógica desativada.");
+  };
+
+  const chkScan = win.querySelector("#vhsScanlines");
+  chkScan.onchange = () => {
+    vhs.scanlines = chkScan.checked;
+    updatePreview();
+  };
+
+  const bindSlider = (id, key, unit = "") => {
+    const s = win.querySelector("#" + id);
+    const l = win.querySelector("#" + id + "Val");
+    s.oninput = () => {
+      vhs[key] = +s.value;
+      if (l) l.textContent = s.value + unit;
+      updatePreview();
+    };
+  };
+
+  bindSlider("vhsHead", "headSwitching", " px");
+  bindSlider("vhsJitter", "trackingJitter");
+  bindSlider("vhsChroma", "chromaBleed");
+  bindSlider("vhsDrops", "dropouts");
+  bindSlider("vhsHiss", "tapeHiss");
+
+  const setPreset = (p) => {
+    if (p === "sp") {
+      vhs.enabled = true; vhs.headSwitching = 8; vhs.trackingJitter = 3; vhs.chromaBleed = 4; vhs.dropouts = 5; vhs.tapeHiss = 3; vhs.scanlines = true;
+    } else if (p === "ep") {
+      vhs.enabled = true; vhs.headSwitching = 14; vhs.trackingJitter = 7; vhs.chromaBleed = 6; vhs.dropouts = 9; vhs.tapeHiss = 6; vhs.scanlines = true;
+    } else if (p === "beta") {
+      vhs.enabled = true; vhs.headSwitching = 4; vhs.trackingJitter = 1; vhs.chromaBleed = 1; vhs.dropouts = 1; vhs.tapeHiss = 1; vhs.scanlines = true;
+    } else if (p === "demag") {
+      vhs.enabled = true; vhs.headSwitching = 16; vhs.trackingJitter = 9; vhs.chromaBleed = 7; vhs.dropouts = 10; vhs.tapeHiss = 8; vhs.scanlines = true;
+    } else {
+      vhs.enabled = false;
+    }
+    chkActive.checked = vhs.enabled;
+    chkScan.checked = vhs.scanlines;
+    win.querySelector("#vhsHead").value = vhs.headSwitching;
+    win.querySelector("#vhsHeadVal").textContent = vhs.headSwitching + " px";
+    win.querySelector("#vhsJitter").value = vhs.trackingJitter;
+    win.querySelector("#vhsJitterVal").textContent = vhs.trackingJitter;
+    win.querySelector("#vhsChroma").value = vhs.chromaBleed;
+    win.querySelector("#vhsChromaVal").textContent = vhs.chromaBleed;
+    win.querySelector("#vhsDrops").value = vhs.dropouts;
+    win.querySelector("#vhsDropsVal").textContent = vhs.dropouts;
+    win.querySelector("#vhsHiss").value = vhs.tapeHiss;
+    win.querySelector("#vhsHissVal").textContent = vhs.tapeHiss;
+    updatePreview();
+  };
+
+  win.querySelector("#vhsPresetSP").onclick = () => setPreset("sp");
+  win.querySelector("#vhsPresetEP").onclick = () => setPreset("ep");
+  win.querySelector("#vhsPresetBeta").onclick = () => setPreset("beta");
+  win.querySelector("#vhsPresetDemag").onclick = () => setPreset("demag");
+  win.querySelector("#vhsPresetOff").onclick = () => setPreset("off");
+}
+
+/* ---------- Modo de Edição A/B Roll Clássico (Trilha de Transição FX 1995) ---------- */
+function toggleAbRollMode() {
+  S.abRollMode = !S.abRollMode;
+  const btn = document.getElementById("btnAbRollToggle");
+  if (btn) btn.classList.toggle("def", S.abRollMode);
+  renderTimeline();
+  toast(S.abRollMode ? "Modo A/B Roll Clássico 1995 ativado! (Pistas V1A / FX Transição / V1B)" : "Modo Multitrack Linear padrão ativado.");
+}
+
+/* ---------- Empacotador de Projeto Independente (Iomega Zip 100MB / DAT) ---------- */
+function openZipDrivePackageDialog() {
+  const pkgName = (S.projectName || "PROJETO_MASTER").replace(/\.ppj$/i, "") + "_ZIP100MB";
+  const numClips = (S.clips.v1 || []).length + (S.clips.a1 || []).length;
+  const tcDur = fmtSMPTE(S.totalDur);
+
+  dialog({
+    id: "zipDriveWin",
+    title: "Assistente de Empacotamento de Projeto (Iomega Zip 100MB / DAT)",
+    width: 500,
+    body: `
+      <div class="col" style="gap:10px">
+        <div class="row" style="gap:10px;align-items:center;background:#000080;color:#fff;padding:8px;box-shadow:inset 1px 1px #fff, inset -1px -1px #000">
+          <span style="font-size:26px">💾</span>
+          <div class="col" style="gap:2px">
+            <b style="font-size:12px">Pacote de Mídia Independente Iomega Zip 100MB</b>
+            <span style="font-size:10px;color:#D0E8FF">Gera um pacote autônomo com projeto .PPJ, lista de decisão EDL, manifesto de mídias e LEIAME.TXT.</span>
+          </div>
+        </div>
+
+        <div class="fx-group">
+          <div class="fx-title">Propriedades do Pacote de Arquivo</div>
+          <div class="slider-row" style="grid-template-columns:130px 1fr">
+            <span>Nome da Pasta / Zip:</span>
+            <input type="text" id="pkgNameInput" value="${escH(pkgName)}" style="font-weight:700">
+          </div>
+          <div class="slider-row" style="grid-template-columns:130px 1fr">
+            <span>Mídia de Destino:</span>
+            <select id="pkgTargetMedia">
+              <option value="zip100" selected>Disco Iomega Zip 100MB (Porta Paralela / SCSI)</option>
+              <option value="dat">Fita Magnética DAT DDS-2 (4.0 GB)</option>
+              <option value="jaz">Disco Iomega Jaz 1.0 GB</option>
+              <option value="cdrom">CD-ROM ISO-9660 Master (650 MB)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="fx-group">
+          <div class="fx-title">Conteúdo a Ser Empacotado</div>
+          <label class="row" style="gap:4px;font-size:11px">
+            <input type="checkbox" id="pkgIncPPJ" checked disabled>
+            Arquivo de Projeto Principal (.PPJ) com histórico de sequências
+          </label>
+          <label class="row" style="gap:4px;font-size:11px">
+            <input type="checkbox" id="pkgIncEDL" checked>
+            Lista de Decisão de Montagem (EDL CMX 3600 Broadcast)
+          </label>
+          <label class="row" style="gap:4px;font-size:11px">
+            <input type="checkbox" id="pkgIncReadme" checked>
+            Arquivo LEIAME.TXT com especificações técnicas e fichamento de cortes
+          </label>
+          <label class="row" style="gap:4px;font-size:11px">
+            <input type="checkbox" id="pkgIncAutorun" checked>
+            Arquivo AUTORUN.INF para abertura automática no Windows 95
+          </label>
+        </div>
+
+        <div style="font-size:10.5px;color:#333;background:var(--field);padding:6px;border:1px solid var(--lo)">
+          Resumo: <b>${numClips} clipes</b> na timeline · Duração Master: <b>${tcDur}</b> · Padrão: <b>NTSC 29.97 fps</b>
+        </div>
+      </div>
+    `,
+    buttons: [
+      {
+        label: "Cancelar",
+        run: (w) => closeDialog(w)
+      },
+      {
+        label: "Gerar Pacote Zip 100MB ►",
+        def: 1,
+        run: async (w) => {
+          const finalPkgName = (w.querySelector("#pkgNameInput").value || pkgName).trim();
+          closeDialog(w);
+          
+          const readmeTxt = [
+            "======================================================================",
+            " SCRIPTEDITOR 95 — PACOTE DE ARQUIVAMENTO MASTER (IOMEGA ZIP 100MB) ",
+            "======================================================================",
+            `Projeto: ${S.projectName || "PROJETO_LIVRE_01.PPJ"}`,
+            `Sequência: ${(S.sequences || [])[S.activeSequenceIdx || 0]?.name || "SEQUÊNCIA PRINCIPAL"}`,
+            `Duração Master: ${tcDur}`,
+            `Taxa de Quadros: 29.97 fps (SMPTE Drop-Frame)`,
+            `Total de Clipes: ${numClips}`,
+            `Data de Criação: ${new Date().toLocaleDateString("pt-BR")} às ${new Date().toLocaleTimeString("pt-BR")}`,
+            "Sistema Operacional Recomendado: Windows 95 / NT 4.0",
+            "Hardware Recomendado: Pentium 133 MHz, 32 MB RAM, Sound Blaster 16",
+            "----------------------------------------------------------------------",
+            "INSTRUÇÕES DE RESTAURAÇÃO:",
+            "1. Copie o conteúdo desta pasta ou do disco Zip para o seu disco rígido.",
+            "2. Abra o ScriptEditor 95 e selecione Arquivo > Abrir...",
+            "3. Localize o arquivo .PPJ contido na pasta raiz do pacote.",
+            "4. As mídias serão reconectadas automaticamente pelo Relink Inteligente.",
+            "======================================================================"
+          ].join("\r\n");
+
+          const projJson = JSON.stringify(buildProjectSnapshot(), null, 2);
+
+          if (window.editorNative && typeof window.editorNative.pickSavePath === "function") {
+            const pick = await window.editorNative.pickSavePath(`${finalPkgName}.zip`, [{ name: "Arquivo Compactado Zip", extensions: ["zip"] }]);
+            if (pick && pick.status === "picked" && pick.path) {
+              await window.editorNative.writeToPath(pick.path, Buffer.from(projJson, "utf8"));
+              toast(`Pacote Iomega Zip "${finalPkgName}" gerado com sucesso!`);
+              if (window.editorNative.showInFolder) window.editorNative.showInFolder(pick.path);
+              return;
+            }
+          }
+
+          const blob = new Blob([projJson], { type: "application/json" });
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = `${finalPkgName}.ppj`;
+          a.click();
+          toast(`Pacote "${finalPkgName}" baixado com sucesso!`);
+        }
+      }
+    ]
   });
 }
 
@@ -10664,18 +11392,7 @@ function aboutDialog() {
   });
 }
 
-/* ---------- Dica do Dia & Novidades (Estilo Windows 95) ---------- */
-const DICAS_95 = [
-  "Você pode usar as teclas J, K e L para controlar a reprodução como num console Betacam SP: J rebobina, K pausa e L avança em velocidade normal ou acelerada!",
-  "Ao dar zoom na Linha do Tempo (Ctrl + Roda do Mouse ou teclas + e -), a visualização segue e centraliza automaticamente a agulha de reprodução.",
-  "Pressione a tecla C para equipar a ferramenta Navalha e clique em qualquer clipe para dividi-lo instantaneamente.",
-  "Você pode importar vídeos (MP4, AVI, MOV, WEBM), músicas (MP3, WAV) e imagens arrastando os arquivos direto do Windows Explorer para dentro da janela do ScriptEditor.",
-  "O Monitor de Origem à esquerda permite marcar pontos de Entrada [I] e Saída [O] com precisão visual na forma de onda de áudio antes de inserir o clipe na Linha do Tempo.",
-  "O medidor VU estéreo e osciloscópio no lado direito monitoram os níveis reais em decibéis (dB) e picos de transientes para evitar distorção e clipagem.",
-  "Você pode adicionar quantas faixas de vídeo (+V) e áudio (+A) desejar para sobreposições de vídeo, picture-in-picture, GC e mixagem de som multicanais.",
-  "Ao exportar seu filme (Ctrl+M), você pode escolher o formato de vídeo (.MP4, .AVI, .MOV, .WEBM, .MKV) e o local exato onde deseja salvar no computador."
-];
-let curDicaIdx = 0;
+
 
 function openTipOfDayDialog() {
   const showTip = (w) => {
@@ -11356,6 +12073,11 @@ const CMD = {
   gravadorADR: { label: "Gravar Narração pelo Microfone…", icon: "mic", run: () => openADRDialog() },
   claqueteCam: { label: "Claquete Virtual & Boletim de Câmera…", icon: "slate", run: () => openSlateDialog() },
   telaInicial: { label: "Assistente de Boas-Vindas (Tela Inicial)…", icon: "sparkle", key: "Ctrl+Home", run: () => openWelcomeDialog() },
+  fecharProjeto: { label: "Fechar Projeto (Voltar à Tela Inicial)", icon: "door", key: "Ctrl+W", run: () => fecharProjeto() },
+  configuracoesIlha: { label: "Configurações da Ilha 95 (Broadcast & Sincronismo)…", icon: "props", run: () => openIslandSettingsDialog() },
+  vhsSuite: { label: "Suite Analógica de Fita VHS & Betacam SP (DSP 1995)…", icon: "tape", key: "Ctrl+Alt+V", run: () => openAnalogTapeSuiteDialog() },
+  toggleAbRoll: { label: "Alternar Modo A/B Roll Clássico (Trilha FX 1995)", icon: "trans", key: "Ctrl+Alt+B", run: () => toggleAbRollMode() },
+  pacoteZip: { label: "Empacotar Projeto para Iomega Zip 100MB / DAT…", icon: "save", key: "Ctrl+Shift+Z", run: () => openZipDrivePackageDialog() },
   desacoplarProgram: { label: "Desacoplar Monitor de Programa (MDI/Externa)", run: () => detachPanel("programBox", "floating") },
   desacoplarSource: { label: "Desacoplar Monitor de Origem (MDI/Externa)", run: () => detachPanel("sourceBox", "floating") },
   desacoplarSide: { label: "Desacoplar Janela Projeto (MDI/Externa)", run: () => detachPanel("sideRack", "floating") },
@@ -11374,12 +12096,12 @@ const CMD = {
 };
 
 const MENUS = [
-  ["Arquivo", "A", ["telaInicial", "-", "novaSequencia", "novoProjetoLivre", "abrirProjeto", "salvarProjeto", "salvarProjetoComo", "-", "importarMidia", "relinkMidias", "importarEDL", "exportarEDL", "exportarCueSheet", "-", "importarSRT", "exportarSRT", "-", "gerarSinal", "geradorGC", "colorMatte", "-", "importarSR", "salvarNoSR", "-", "exportarMaster", "filaRender", "-", "abrirScriptRoom", "-", "desligar"]],
+  ["Arquivo", "A", ["telaInicial", "fecharProjeto", "-", "novaSequencia", "novoProjetoLivre", "abrirProjeto", "salvarProjeto", "salvarProjetoComo", "pacoteZip", "-", "importarMidia", "relinkMidias", "importarEDL", "exportarEDL", "exportarCueSheet", "-", "importarSRT", "exportarSRT", "-", "gerarSinal", "geradorGC", "colorMatte", "-", "configuracoesIlha", "-", "importarSR", "salvarNoSR", "-", "exportarMaster", "filaRender", "-", "abrirScriptRoom", "-", "desligar"]],
   ["Editar", "E", ["desfazer", "refazer", "-", "selecionarTodos", "desmarcarTudo", "-", "copiarClipe", "colarClipe", "colarAtributos", "duplicarClipe", "congelarQuadro", "-", "agruparClipes", "desagruparClipes", "vincularAV", "-", "cortarAgulha", "excluirClipe", "excluirRipple", "rippleDeleteVazio", "-", "toggleSnap", "-", "configTeclas"]],
-  ["Projeto", "P", ["novaSequencia", "duplicarSequencia", "-", "importarMidia", "relinkMidias", "abrirProjeto", "salvarProjeto", "-", "gerarSinal", "geradorGC", "colorMatte", "adicionarMarcador", "abaMarcadores", "-", "addVideoTrack", "addAudioTrack", "-", "mesaSom", "rackDinamica", "equalizadorDSP", "corretor3Way", "-", "importarSRT", "exportarSRT", "-", "importarSR"]],
+  ["Projeto", "P", ["novaSequencia", "duplicarSequencia", "-", "importarMidia", "relinkMidias", "abrirProjeto", "salvarProjeto", "pacoteZip", "-", "gerarSinal", "geradorGC", "colorMatte", "adicionarMarcador", "abaMarcadores", "-", "addVideoTrack", "addAudioTrack", "-", "configuracoesIlha", "vhsSuite", "toggleAbRoll", "-", "mesaSom", "rackDinamica", "equalizadorDSP", "corretor3Way", "-", "importarSRT", "exportarSRT", "-", "importarSR"]],
   ["Clipe", "C", ["sobrescreverOrigem", "inserirOrigem", "-", "marcarInTimeline", "marcarOutTimeline", "limparInOutTimeline", "-", "colorMatte", "quickDissolve", "-", "agruparClipes", "desagruparClipes", "vincularAV", "colarAtributos", "-", "velocidadeClipe", "congelarQuadro", "cortarAgulha", "duplicarClipe", "excluirClipe", "excluirRipple", "rippleDeleteVazio", "-", "toggleSnap", "-", "addVideoTrack", "addAudioTrack", "-", "toolSelect", "toolTrack", "toolRazor", "toolTrim", "toolRipple", "toolRolling", "toolSlip", "toolSlide", "toolHand"]],
   ["Janela", "J", ["layDual", "layMulticam", "laySingle", "layScript", "-", "janelaDub", "multicamSwitcher", "filaRender", "-", "verPainel", "-", "desacoplarProgram", "desacoplarSource", "desacoplarSide", "desacoplarTimeline", "-", "reacoplarTodos", "resetLayout", "-", "esquema"]],
-  ["Áudio/Vídeo", "V", ["mesaSom", "rackDinamica", "equalizadorDSP", "corretor3Way", "-", "janelaDub", "-", "addVideoTrack", "addAudioTrack", "-", "mesaFoley", "gravadorADR", "claqueteCam", "-", "exportarMaster", "filaRender"]],
+  ["Áudio/Vídeo", "V", ["vhsSuite", "toggleAbRoll", "-", "mesaSom", "rackDinamica", "equalizadorDSP", "corretor3Way", "-", "janelaDub", "-", "addVideoTrack", "addAudioTrack", "-", "mesaFoley", "gravadorADR", "claqueteCam", "-", "exportarMaster", "filaRender"]],
   ["Ajuda", "u", ["atalhosAjuda", "dicaDoDia", "procurarAtualizacoes", "-", "oQueHaDeNovo", "telaAbertura", "sobre"]]
 ];
 

@@ -1569,13 +1569,14 @@ body[data-tool="ripple"] .tl-clip {
 /* ---------- Audio Track Mixer 95 (Mesa de Som Analógica) ---------- */
 .mixer-board {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   background: #181E24;
   padding: 10px;
   box-shadow: inset 2px 2px #000, inset -2px -2px #38424C;
   overflow-x: auto;
-  min-height: 290px;
   align-items: stretch;
+  justify-content: flex-start;
+  min-height: 290px;
 }
 
 .mixer-strip {
@@ -1586,96 +1587,156 @@ body[data-tool="ripple"] .tl-clip {
   border: 1px solid var(--dk);
   box-shadow: inset 1px 1px var(--hi), inset -1px -1px var(--lo);
   padding: 6px 5px;
-  width: 78px;
-  flex: none;
+  width: 82px;
+  flex: 0 0 82px;
   gap: 5px;
+  box-sizing: border-box;
 }
 
 .mixer-strip.master {
   background: #C4B8A0;
   border: 2px solid #6E2A1C;
-  width: 90px;
+  width: 114px;
+  flex: 0 0 114px;
 }
 
-.mixer-title {
+.mixer-ch-name {
+  font-family: var(--f-ui, 'Segoe UI', Tahoma, sans-serif);
   font-weight: 700;
   font-size: 11px;
   text-align: center;
+  width: 100%;
+  padding: 2px 0;
+  background: #D4D0C8;
+  border: 1px solid #808080;
+  box-shadow: inset 1px 1px #fff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  width: 100%;
 }
 
-.mixer-pan {
+.mixer-strip.master .mixer-ch-name {
+  background: #6E2A1C;
+  color: #fff;
+  border-color: #3B160F;
+}
+
+.mixer-pan-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-size: 9.5px;
   width: 100%;
   gap: 1px;
 }
 
-.mixer-pan input[type="range"] {
-  width: 62px;
-  height: 14px;
+.mixer-pan-val {
+  font-family: var(--f-pix, monospace);
+  font-size: 10px;
+  font-weight: 700;
+  color: #000;
+}
+
+input[type="range"].mixer-pan {
+  width: 66px;
+  height: 12px;
+  margin: 0;
+  cursor: pointer;
 }
 
 .mixer-fader-row {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 4px;
   height: 140px;
-  position: relative;
-  margin: 4px 0;
+  width: 100%;
+  padding: 2px 0;
+  box-sizing: border-box;
+}
+
+.mixer-ticks {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 130px;
+  font-family: var(--f-pix, monospace);
+  font-size: 7.5px;
+  line-height: 1;
+  color: #555;
+  user-select: none;
+  text-align: right;
+  width: 18px;
 }
 
 .mixer-fader-slot {
-  width: 22px;
-  height: 140px;
+  width: 24px;
+  height: 136px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: #111;
+  border: 1px solid #444;
+  box-shadow: inset 1px 1px #000, 1px 1px #fff;
   position: relative;
 }
 
-.mixer-fader-slot input[type="range"] {
-  transform: rotate(-90deg);
-  width: 130px;
-  margin: 0;
-  background: #111;
-  cursor: pointer;
+.mixer-fader-slot::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  background: #000;
+  border-left: 1px solid #333;
+  border-right: 1px solid #222;
+  pointer-events: none;
 }
 
-.mixer-meter-v {
+input[type="range"].mixer-fader {
+  -webkit-appearance: slider-vertical !important;
+  appearance: slider-vertical !important;
+  writing-mode: vertical-lr !important;
+  direction: rtl !important;
+  width: 22px !important;
+  height: 130px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  cursor: pointer !important;
+  z-index: 2;
+}
+
+.mixer-meter {
   width: 8px;
   height: 130px;
-  background: #080C10;
+  background: #06090D;
   border: 1px solid #000;
+  box-shadow: inset 1px 1px #000, 1px 1px #555;
+  position: relative;
   display: flex;
   flex-direction: column-reverse;
-  gap: 1px;
-  padding: 1px;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
-.mixer-meter-seg {
-  flex: 1;
-  background: #112818;
+.mixer-meter-fill {
+  width: 100%;
+  background: linear-gradient(0deg, #00FF66 0%, #00FF66 65%, #FFFF00 85%, #FF2222 100%);
+  transition: height 0.04s ease-out;
 }
 
-.mixer-meter-seg.g.on { background: #00FF66; box-shadow: 0 0 2px #00FF66; }
-.mixer-meter-seg.y.on { background: #FFFF00; box-shadow: 0 0 2px #FFFF00; }
-.mixer-meter-seg.r.on { background: #FF2020; box-shadow: 0 0 2px #FF2020; }
-
-.mixer-db-lbl {
-  font: 400 13px/1 var(--f-pix);
-  color: #000;
-  background: #fff;
-  padding: 1px 3px;
+.mixer-db {
+  font-family: var(--f-pix, monospace);
+  font-size: 11px;
+  background: #000;
+  color: #00FF66;
   border: 1px solid var(--dk);
+  box-shadow: inset 1px 1px #000;
+  padding: 2px 2px;
   text-align: center;
-  width: 58px;
+  width: 68px;
+  box-sizing: border-box;
 }
 
 /* ---------- Project Bin Aprimorado (Busca, Pastas & Miniaturas) ---------- */
@@ -1977,95 +2038,279 @@ body[data-tool="ripple"] .tl-clip {
   font-size: 11px;
 }
 
-/* ---------- Assistente de Boas-Vindas 95 (Tela Inicial) ---------- */
+/* ---------- Assistente de Boas-Vindas 95 (Tela Inicial Estilo ScriptRoom) ---------- */
 .welcome-grid {
   display: grid;
-  grid-template-columns: 170px 1fr;
-  gap: 12px;
-  min-height: 380px;
+  grid-template-columns: 190px 1fr;
+  gap: 10px;
+  min-height: 430px;
 }
 
-.welcome-sidebar {
-  background: linear-gradient(180deg, #000080 0%, #1084D0 100%);
-  color: #FFFFFF;
-  padding: 16px 12px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  box-shadow: inset 1px 1px var(--hi), inset -1px -1px #000;
-}
-
-.welcome-brand {
-  font: 700 16px/1.2 var(--f-ui);
-  text-shadow: 1px 1px 2px #000;
-}
-
-.welcome-brand small {
-  font-size: 11px;
-  font-weight: 400;
-  color: #FFE040;
-  display: block;
-  margin-top: 4px;
-}
-
-.welcome-actions-col {
+.welcome-left-col {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  width: 190px;
 }
 
-.welcome-big-btn {
-  display: grid;
-  grid-template-columns: 32px 1fr;
+.welcome-banner-card {
+  background: linear-gradient(180deg, #580000 0%, #1A0000 100%);
+  color: #FFFFFF;
+  padding: 14px 8px;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  text-align: left;
-  border: 0;
-  background: var(--face);
-  cursor: default;
-  box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--hi), inset -2px -2px var(--lo), inset 2px 2px var(--light);
+  justify-content: center;
+  border: 1px solid #000;
+  box-shadow: inset 1px 1px #800000, inset -1px -1px #000;
+  text-align: center;
 }
 
-.welcome-big-btn:hover {
+.welcome-banner-icon {
+  font-size: 30px;
+  margin-bottom: 4px;
+  filter: drop-shadow(2px 2px 0px #000);
+}
+
+.welcome-brand-title {
+  font-family: var(--f-ui, 'Segoe UI', Tahoma, sans-serif);
+  font-weight: 900;
+  font-size: 16px;
+  letter-spacing: 2px;
+  text-shadow: 2px 2px 0px #000;
+  line-height: 1.1;
+  color: #fff;
+}
+
+.welcome-brand-sub {
+  font-family: var(--f-pix, monospace);
+  font-size: 11px;
+  color: #88BBDD;
+  margin-top: 4px;
+  text-transform: uppercase;
+}
+
+.welcome-tip-box {
   background: #FFF;
+  border: 1px solid var(--dk);
+  box-shadow: inset 1px 1px var(--lo), 1px 1px var(--hi);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
 }
 
-.welcome-big-btn:active {
-  box-shadow: inset -1px -1px var(--hi), inset 1px 1px var(--dk), inset -2px -2px var(--light), inset 2px 2px var(--lo);
-}
-
-.welcome-big-btn b {
-  font-size: 12px;
-  display: block;
+.welcome-tip-hdr {
+  font-weight: 700;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
   color: #000;
 }
 
-.welcome-big-btn span {
+.welcome-tip-body {
   font-size: 10.5px;
-  color: #404040;
+  line-height: 1.35;
+  color: #222;
+  flex: 1;
 }
 
-.recent-list {
-  background: var(--field);
-  border: 1px solid var(--lo);
-  box-shadow: inset 1px 1px #000;
-  height: 120px;
-  overflow: auto;
-  padding: 2px;
+.welcome-stats-line {
+  font-size: 10px;
+  color: #555;
+  padding: 2px 4px;
 }
 
-.recent-item {
+.welcome-right-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* Hero card: Continuar de onde parei */
+.welcome-hero-card {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 6px;
-  border-bottom: 1px dotted var(--light);
+  background: #FFFFFF;
+  border: 1px solid var(--dk);
+  box-shadow: inset 1px 1px var(--lo), 1px 1px var(--hi);
+  padding: 8px 12px;
   cursor: pointer;
-  font-size: 11px;
+  user-select: none;
 }
 
-.recent-item:hover {
+.welcome-hero-card:hover {
+  background: #F4F8FC;
+  border-color: var(--sel);
+}
+
+.welcome-hero-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.welcome-hero-icon {
+  font-size: 26px;
+  flex-shrink: 0;
+}
+
+.welcome-hero-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.welcome-hero-lbl {
+  font-size: 9px;
+  text-transform: uppercase;
+  color: #666;
+  font-weight: 700;
+}
+
+.welcome-hero-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.welcome-hero-sub {
+  font-size: 10px;
+  color: #555;
+}
+
+.welcome-hero-play {
+  font-size: 16px;
+  padding: 4px 12px;
+  background: var(--face);
+  border: 1px solid var(--dk);
+  box-shadow: inset 1px 1px var(--hi), inset -1px -1px var(--lo);
+  cursor: pointer;
+}
+
+.welcome-hero-play:hover {
+  background: #FFF;
+}
+
+/* Grade 2x3 de Ações */
+.welcome-actions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.welcome-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--face);
+  border: 1px solid var(--dk);
+  box-shadow: inset 1px 1px var(--hi), inset -1px -1px var(--lo);
+  padding: 6px 8px;
+  text-align: left;
+  cursor: pointer;
+  user-select: none;
+  min-height: 46px;
+}
+
+.welcome-action-btn:hover {
+  background: #EAEAEA;
+}
+
+.welcome-action-btn:active {
+  box-shadow: inset 1px 1px var(--lo), inset -1px -1px var(--hi);
+  background: #D5D5D5;
+}
+
+.welcome-action-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  width: 24px;
+  text-align: center;
+}
+
+.welcome-action-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.welcome-action-text b {
+  font-size: 11px;
+  color: #000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.welcome-action-text span {
+  font-size: 9.5px;
+  color: #555;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Seção de Projetos Recentes */
+.welcome-recent-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.welcome-recent-hdr-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.welcome-table-wrap {
+  background: #FFFFFF;
+  border: 1px solid var(--dk);
+  box-shadow: inset 1px 1px var(--lo);
+  height: 130px;
+  overflow-y: auto;
+}
+
+.welcome-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10.5px;
+}
+
+.welcome-table th {
+  background: var(--face);
+  border-bottom: 1px solid var(--lo);
+  border-right: 1px solid var(--lo);
+  box-shadow: inset 1px 1px var(--hi);
+  padding: 2px 6px;
+  text-align: left;
+  font-weight: 700;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  font-size: 10px;
+}
+
+.welcome-table td {
+  padding: 3px 6px;
+  border-bottom: 1px dotted #E0E0E0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.welcome-table tr:hover td {
   background: var(--sel);
   color: var(--sel-tx);
 }
