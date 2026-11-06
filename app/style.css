@@ -1536,3 +1536,239 @@ body[data-tool="razor"] .tl-clip {
 ::-webkit-scrollbar { width: 15px; height: 15px; }
 ::-webkit-scrollbar-track { background: repeating-conic-gradient(var(--face) 0 25%, var(--hi) 0 50%) 0 0 / 2px 2px; }
 ::-webkit-scrollbar-thumb { background: var(--face); box-shadow: inset -1px -1px var(--dk), inset 1px 1px var(--hi), inset -2px -2px var(--lo), inset 2px 2px var(--light); }
+
+/* ---------- Audio Track Mixer 95 (Mesa de Som Analógica) ---------- */
+.mixer-board {
+  display: flex;
+  gap: 8px;
+  background: #181E24;
+  padding: 10px;
+  box-shadow: inset 2px 2px #000, inset -2px -2px #38424C;
+  overflow-x: auto;
+  min-height: 290px;
+  align-items: stretch;
+}
+
+.mixer-strip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--face);
+  border: 1px solid var(--dk);
+  box-shadow: inset 1px 1px var(--hi), inset -1px -1px var(--lo);
+  padding: 6px 5px;
+  width: 78px;
+  flex: none;
+  gap: 5px;
+}
+
+.mixer-strip.master {
+  background: #C4B8A0;
+  border: 2px solid #6E2A1C;
+  width: 90px;
+}
+
+.mixer-title {
+  font-weight: 700;
+  font-size: 11px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.mixer-pan {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 9.5px;
+  width: 100%;
+  gap: 1px;
+}
+
+.mixer-pan input[type="range"] {
+  width: 62px;
+  height: 14px;
+}
+
+.mixer-fader-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 140px;
+  position: relative;
+  margin: 4px 0;
+}
+
+.mixer-fader-slot {
+  width: 22px;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.mixer-fader-slot input[type="range"] {
+  transform: rotate(-90deg);
+  width: 130px;
+  margin: 0;
+  background: #111;
+  cursor: pointer;
+}
+
+.mixer-meter-v {
+  width: 8px;
+  height: 130px;
+  background: #080C10;
+  border: 1px solid #000;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 1px;
+  padding: 1px;
+}
+
+.mixer-meter-seg {
+  flex: 1;
+  background: #112818;
+}
+
+.mixer-meter-seg.g.on { background: #00FF66; box-shadow: 0 0 2px #00FF66; }
+.mixer-meter-seg.y.on { background: #FFFF00; box-shadow: 0 0 2px #FFFF00; }
+.mixer-meter-seg.r.on { background: #FF2020; box-shadow: 0 0 2px #FF2020; }
+
+.mixer-db-lbl {
+  font: 400 13px/1 var(--f-pix);
+  color: #000;
+  background: #fff;
+  padding: 1px 3px;
+  border: 1px solid var(--dk);
+  text-align: center;
+  width: 58px;
+}
+
+/* ---------- Project Bin Aprimorado (Busca, Pastas & Miniaturas) ---------- */
+.bin-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 5px;
+}
+
+.bin-cat-tabs {
+  display: flex;
+  gap: 2px;
+  flex-wrap: wrap;
+}
+
+.bin-cat-tabs button {
+  border: 1px solid var(--dk);
+  background: var(--face);
+  box-shadow: inset 1px 1px var(--hi), inset -1px -1px var(--lo);
+  font-size: 10.5px;
+  padding: 2px 6px;
+  cursor: default;
+}
+
+.bin-cat-tabs button.active {
+  background: var(--sel);
+  color: var(--seltext);
+  font-weight: 700;
+}
+
+.bin-thumb-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 6px;
+  padding: 4px;
+  max-height: 380px;
+  overflow-y: auto;
+  background: var(--field);
+  box-shadow: inset 1px 1px var(--lo);
+}
+
+.bin-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--face);
+  border: 1px solid var(--dk);
+  box-shadow: inset 1px 1px var(--hi), inset -1px -1px var(--lo);
+  padding: 3px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 10px;
+}
+
+.bin-card:hover {
+  outline: 1px solid var(--sel);
+}
+
+.bin-card.sel {
+  outline: 2px solid #000080;
+  background: #E8E8FF;
+}
+
+.bin-card-thumb {
+  width: 100%;
+  height: 56px;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.bin-card-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.bin-card-dur {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  background: rgba(0,0,0,0.8);
+  color: #00FF66;
+  font-family: var(--f-pix);
+  font-size: 11px;
+  padding: 0 2px;
+}
+
+.bin-card-name {
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 700;
+}
+
+/* ---------- Keyframes (Quadros-Chave) no Painel FX ---------- */
+.kf-strip {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  flex-wrap: wrap;
+  background: var(--field);
+  padding: 4px;
+  box-shadow: inset 1px 1px var(--lo);
+  margin-top: 3px;
+}
+
+.kf-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: #FFF8C0;
+  border: 1px solid #B09000;
+  font-size: 10px;
+  padding: 1px 4px;
+  cursor: pointer;
+}
+
+.kf-tag:hover {
+  background: #FFE060;
+}

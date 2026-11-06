@@ -26,6 +26,8 @@
   <!-- Barra de Ferramentas Principal -->
   <div class="toolbar" id="typebar" role="toolbar" aria-label="Barra de ferramentas">
     <button class="tbtn" type="button" data-cmd="novoProjetoLivre" data-icon="new" title="Novo Projeto Livre em Branco (Ctrl+N)"></button>
+    <button class="tbtn" type="button" data-cmd="abrirProjeto" data-icon="open" title="Abrir Projeto do ScriptEditor .PPJ (Ctrl+O)"></button>
+    <button class="tbtn" type="button" data-cmd="salvarProjeto" data-icon="save" title="Salvar Projeto Atual (Ctrl+S)"></button>
     <button class="tbtn" type="button" data-cmd="importarMidia" data-icon="folder" title="Importar Vídeo, Áudio ou Imagem do Computador (Ctrl+I)"></button>
     <button class="tbtn" type="button" data-cmd="importarSR" data-icon="script" title="Carregar Roteiro do ScriptRoom (Opcional)"></button>
     <button class="tbtn" type="button" data-cmd="exportarMaster" data-icon="save" title="Exportar Vídeo Finalizado / Filme Master (Ctrl+M)"></button>
@@ -34,9 +36,9 @@
     <button class="tbtn" type="button" data-cmd="refazer" data-icon="redo" title="Refazer (Ctrl+Y)"></button>
     <span class="tsep"></span>
     <button class="tbtn" type="button" data-cmd="cortarAgulha" data-icon="cut" title="Cortar Clipe na Agulha (Ctrl+K)"></button>
-    <button class="tbtn" type="button" data-cmd="geradorGC" data-icon="tv" title="Criar Cartela de Texto / Letreiro (Title Designer)"></button>
+    <button class="tbtn" type="button" data-cmd="geradorGC" data-icon="tv" title="Criar Cartela de Texto / Letreiro Animado (Title Designer)"></button>
     <button class="tbtn" type="button" data-cmd="gerarSinal" data-icon="film" title="Gerar Barras SMPTE / Contagem Regressiva / Fundo Colorido"></button>
-    <button class="tbtn" type="button" data-cmd="mesaFoley" data-icon="foley" title="Sintetizador de Efeitos Sonoros (Sound Blaster 16)"></button>
+    <button class="tbtn" type="button" data-cmd="mesaSom" data-icon="foley" title="Mesa de Som Analógica 16-Bit / Audio Track Mixer (Ctrl+Alt+M)"></button>
     <button class="tbtn" type="button" data-cmd="gravadorADR" data-icon="mic" title="Gravar Narração / Voz pelo Microfone"></button>
     <span class="tsep"></span>
     <label class="tlbl" for="layoutSel">Monitores:</label>
@@ -193,11 +195,19 @@
           <span class="tsep"></span>
           <button type="button" class="btn sm def" data-cmd="addVideoTrack" title="Adicionar nova faixa de vídeo/imagem acima (+V)">+ Faixa Vídeo</button>
           <button type="button" class="btn sm def" data-cmd="addAudioTrack" title="Adicionar nova faixa de áudio/música abaixo (+A)">+ Faixa Áudio</button>
+          <button type="button" class="btn sm" data-cmd="mesaSom" title="Mesa de Som Analógica / Audio Track Mixer 95 (Ctrl+Alt+M)">Mesa de Som…</button>
           <button type="button" class="btn sm" id="btnExpandTl" title="Expandir ou recolher altura da Linha do Tempo para ver mais faixas">Altura ▲</button>
         </div>
 
         <div class="row" style="gap:5px">
           <label class="row" style="gap:2px" title="Atração magnética de cortes e agulha (Snap)"><input type="checkbox" id="chkSnap" checked> Ímã (Snap)</label>
+          <label class="row" style="gap:2px" title="Qualidade da Pré-visualização e Desempenho no Scrubbing">Prévia:
+            <select id="previewResSel" style="height:20px">
+              <option value="1" selected>1/1 Total</option>
+              <option value="2">1/2 Rápido</option>
+              <option value="4">1/4 Betacam</option>
+            </select>
+          </label>
           <label class="row" style="gap:3px">Filtro Master:
             <select id="filterSel" style="height:20px">
               <option value="none">Sinal Original Limpo</option>

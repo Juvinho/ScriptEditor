@@ -5,7 +5,7 @@
    Zero emojis · Ícones SVG 16x16 pixel-art · Edição Comercial, Doméstica e Roteirizada
    ============================================================================ */
 
-let APP_VERSAO = "1.0.0"; // Substituída em boot() pela versão real do package.json
+let APP_VERSAO = "1.0.1"; // Substituída em boot() pela versão real do package.json
 const FPS = 29.97;
 
 const ICON = {
@@ -98,6 +98,8 @@ const DEFAULT_KEYMAP = {
   prevCut: "ArrowUp",
   nextCut: "ArrowDown",
   importMedia: "Ctrl+I",
+  openProject: "Ctrl+O",
+  saveProject: "Ctrl+S",
   exportMovie: "Ctrl+M",
   copyClip: "Ctrl+C",
   pasteClip: "Ctrl+V",
@@ -130,8 +132,10 @@ const KEYMAP_LABELS = [
   ["nextCut", "Pular para Próximo Corte"],
   ["copyClip", "Copiar Clipe Selecionado"],
   ["pasteClip", "Colar Clipe na Agulha"],
+  ["openProject", "Abrir Projeto (.PPJ)"],
+  ["saveProject", "Salvar Projeto (.PPJ)"],
   ["importMedia", "Importar Mídia do Computador"],
-  ["exportMovie", "Exportar Filme Master (.WEBM / .EDL)"],
+  ["exportMovie", "Exportar Filme Master (.MP4 / .WEBM)"],
   ["undo", "Desfazer Última Edição"],
   ["redo", "Refazer Edição"]
 ];
@@ -181,7 +185,8 @@ const prefs = Object.assign({
   cc: true,
   snap: true,
   transformOverlay: true,
-  tlZoom: 10
+  tlZoom: 10,
+  previewRes: 1 // 1 = 1/1 Total | 2 = 1/2 Rápido | 4 = 1/4 Betacam 1995
 }, (() => {
   try { return JSON.parse(localStorage.getItem(LS_PREF) || "{}"); } catch (_e) { return {}; }
 })());
@@ -192,6 +197,8 @@ function savePrefs() {
 
 const S = {
   projectName: "PROJETO_LIVRE_01.PPJ",
+  projectFilePath: null,
+  isDirty: false,
   isStarterDemo: true,   // Fica false assim que o usuário importa ou edita sua primeira mídia
   srFolder: "Documentos > ScriptRoom",
   eps: {},
@@ -224,6 +231,8 @@ const S = {
   tracksMuted: { v3: false, v2: false, v1: false, a1: false, a2: false, a3: false },
   tracksLocked: { v3: false, v2: false, v1: false, a1: false, a2: false, a3: false },
   tracksSolo: { a1: false, a2: false, a3: false },
+  trackVolumes: { a1: 100, a2: 85, a3: 100, master: 100 },
+  trackPans: { a1: 0, a2: 0, a3: 0 },
   markers: [
     { id: "mk_1", time: 6.0, label: "Início VT" },
     { id: "mk_2", time: 16.0, label: "Oferta" }
@@ -234,8 +243,11 @@ const S = {
   clipboardClip: null,
   recordingKeyAction: null,
 
-  // Cesto de Mídia (Project Bin)
+  // Cesto de Mídia (Project Bin) com Abas, Busca e Modos de Exibição
   mediaBin: [],
+  binFilter: "all",      // all | video | audio | image | synth
+  binSearch: "",
+  binView: "list",       // list | grid
   adrTakes: [],
   undoStack: [],
   redoStack: [],
@@ -269,7 +281,11 @@ function ensureTrackExists(tk) {
   if (!S.clips[tk]) S.clips[tk] = [];
   if (S.tracksMuted[tk] == null) S.tracksMuted[tk] = false;
   if (S.tracksLocked[tk] == null) S.tracksLocked[tk] = false;
-  if (isAudioTrack(tk) && S.tracksSolo[tk] == null) S.tracksSolo[tk] = false;
+  if (isAudioTrack(tk)) {
+    if (S.tracksSolo[tk] == null) S.tracksSolo[tk] = false;
+    if (S.trackVolumes[tk] == null) S.trackVolumes[tk] = 100;
+    if (S.trackPans[tk] == null) S.trackPans[tk] = 0;
+  }
   if (isVideoTrack(tk) && !S.videoTracks.includes(tk)) S.videoTracks.unshift(tk);
   if (isAudioTrack(tk) && !S.audioTracks.includes(tk)) S.audioTracks.push(tk);
 }
@@ -351,6 +367,9 @@ function saveUndoSnapshot() {
     videoTracks: S.videoTracks,
     audioTracks: S.audioTracks,
     clips: S.clips,
+    markers: S.markers,
+    trackVolumes: S.trackVolumes,
+    trackPans: S.trackPans,
     selectedClipId: S.selectedClipId,
     selectedClipTrack: S.selectedClipTrack
   });
@@ -358,6 +377,7 @@ function saveUndoSnapshot() {
   S.undoStack.push(snap);
   if (S.undoStack.length > 40) S.undoStack.shift();
   S.redoStack = [];
+  S.isDirty = true;
 }
 
 function undoEdit() {
@@ -369,6 +389,9 @@ function undoEdit() {
     videoTracks: S.videoTracks,
     audioTracks: S.audioTracks,
     clips: S.clips,
+    markers: S.markers,
+    trackVolumes: S.trackVolumes,
+    trackPans: S.trackPans,
     selectedClipId: S.selectedClipId,
     selectedClipTrack: S.selectedClipTrack
   });
@@ -376,6 +399,9 @@ function undoEdit() {
   const prev = JSON.parse(S.undoStack.pop());
   if (prev.videoTracks) S.videoTracks = prev.videoTracks;
   if (prev.audioTracks) S.audioTracks = prev.audioTracks;
+  if (prev.trackVolumes) S.trackVolumes = prev.trackVolumes;
+  if (prev.trackPans) S.trackPans = prev.trackPans;
+  if (prev.markers) S.markers = prev.markers;
   S.clips = prev.clips;
   S.selectedClipId = prev.selectedClipId;
   S.selectedClipTrack = prev.selectedClipTrack;
@@ -393,6 +419,9 @@ function redoEdit() {
     videoTracks: S.videoTracks,
     audioTracks: S.audioTracks,
     clips: S.clips,
+    markers: S.markers,
+    trackVolumes: S.trackVolumes,
+    trackPans: S.trackPans,
     selectedClipId: S.selectedClipId,
     selectedClipTrack: S.selectedClipTrack
   });
@@ -400,6 +429,9 @@ function redoEdit() {
   const next = JSON.parse(S.redoStack.pop());
   if (next.videoTracks) S.videoTracks = next.videoTracks;
   if (next.audioTracks) S.audioTracks = next.audioTracks;
+  if (next.trackVolumes) S.trackVolumes = next.trackVolumes;
+  if (next.trackPans) S.trackPans = next.trackPans;
+  if (next.markers) S.markers = next.markers;
   S.clips = next.clips;
   S.selectedClipId = next.selectedClipId;
   S.selectedClipTrack = next.selectedClipTrack;
@@ -1250,14 +1282,43 @@ offCanvas.width = 640;
 offCanvas.height = 480;
 const offCtx = offCanvas.getContext("2d");
 
+/* ---------- Motor de Interpolação de Keyframes (Quadros-Chave com Curva Hermite S) ---------- */
+function evaluateKeyframedProperty(clip, prop, defaultVal, localSec) {
+  if (!clip) return defaultVal;
+  const kfs = (clip.keyframes && clip.keyframes[prop]) ? clip.keyframes[prop] : null;
+  if (!kfs || !kfs.length) {
+    return clip[prop] != null ? Number(clip[prop]) : defaultVal;
+  }
+  if (kfs.length === 1) return Number(kfs[0].value);
+  const sorted = [...kfs].sort((a, b) => a.time - b.time);
+  if (localSec <= sorted[0].time) return Number(sorted[0].value);
+  if (localSec >= sorted[sorted.length - 1].time) return Number(sorted[sorted.length - 1].value);
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const k0 = sorted[i], k1 = sorted[i + 1];
+    if (localSec >= k0.time && localSec <= k1.time) {
+      const span = k1.time - k0.time;
+      if (span <= 0.0001) return Number(k0.value);
+      let t = (localSec - k0.time) / span;
+      if (k0.ease !== "linear") {
+        // Interpolação Suave S-Curve (Hermite Smoothstep)
+        t = t * t * (3 - 2 * t);
+      }
+      return Number(k0.value) + (Number(k1.value) - Number(k0.value)) * t;
+    }
+  }
+  return defaultVal;
+}
+
 function getClipTransformAt(clip, globalSec) {
+  const localSec = Math.max(0, (globalSec - clip.start) * (clip.speed || 1) + (clip.inPoint || 0));
   const baseSX = clip.scaleX != null ? Number(clip.scaleX) : (clip.scale != null ? Number(clip.scale) : 100);
   const baseSY = clip.scaleY != null ? Number(clip.scaleY) : (clip.scale != null ? Number(clip.scale) : 100);
-  let scaleX = baseSX;
-  let scaleY = baseSY;
-  let posX = Number(clip.posX) || 0;
-  let posY = Number(clip.posY) || 0;
-  let rotation = Number(clip.rotation) || 0;
+
+  let scaleX = evaluateKeyframedProperty(clip, "scaleX", baseSX, localSec);
+  let scaleY = evaluateKeyframedProperty(clip, "scaleY", baseSY, localSec);
+  let posX = evaluateKeyframedProperty(clip, "posX", Number(clip.posX) || 0, localSec);
+  let posY = evaluateKeyframedProperty(clip, "posY", Number(clip.posY) || 0, localSec);
+  let rotation = evaluateKeyframedProperty(clip, "rotation", Number(clip.rotation) || 0, localSec);
 
   const dur = Math.max(0.1, Number(clip.dur) || 5);
   const prog = Math.max(0, Math.min(1, (globalSec - clip.start) / dur));
@@ -1290,9 +1351,26 @@ function drawSingleClipToContext(tCtx, W, H, clip, globalSec) {
 
   tCtx.save();
 
-  // Transformações Geométricas / DVE (Posição X/Y, Escala L/A independentes, Rotação, Flip H/V, Opacidade)
-  const alpha = Math.max(0, Math.min(1, (clip.opacity == null ? 100 : clip.opacity) / 100));
-  tCtx.globalAlpha = alpha;
+  // Opacidade com interpolação de Keyframes + Fades Suaves (Fade In / Fade Out)
+  const baseOp = evaluateKeyframedProperty(clip, "opacity", (clip.opacity == null ? 100 : clip.opacity), localSec);
+  let alpha = Math.max(0, Math.min(1, baseOp / 100));
+  const dur = Math.max(0.1, Number(clip.dur) || 1);
+  const elapsed = globalSec - clip.start;
+  const remain = (clip.start + dur) - globalSec;
+  const fIn = Math.max(0, Number(clip.fadeIn) || 0);
+  const fOut = Math.max(0, Number(clip.fadeOut) || 0);
+  if (fIn > 0 && elapsed >= 0 && elapsed < fIn) {
+    alpha *= Math.sin(Math.min(1, elapsed / fIn) * Math.PI / 2);
+  }
+  if (fOut > 0 && remain >= 0 && remain < fOut) {
+    alpha *= Math.sin(Math.min(1, remain / fOut) * Math.PI / 2);
+  }
+  tCtx.globalAlpha = Math.max(0, Math.min(1, alpha));
+
+  // Modos de Mesclagem de Camadas (Blend Modes 1995: Multiplicar, Tela, Sobrepor, Adicionar, Diferença, Luz Direta)
+  if (clip.blendMode && clip.blendMode !== "normal" && clip.blendMode !== "source-over") {
+    tCtx.globalCompositeOperation = clip.blendMode;
+  }
 
   const tf = getClipTransformAt(clip, globalSec);
   const sx = tf.scaleX / 100;
@@ -1316,7 +1394,7 @@ function drawSingleClipToContext(tCtx, W, H, clip, globalSec) {
     tCtx.clip();
   }
 
-  // Filtros CSS rápidos de Brilho, Contraste, Saturação, Sépia, P&B, Negativo
+  // Filtros de Brilho, Contraste, Saturação
   const bVal = 100 + (Number(clip.brightness) || 0);
   const cVal = 100 + (Number(clip.contrast) || 0);
   const sVal = clip.saturation == null ? 100 : Number(clip.saturation);
@@ -1362,19 +1440,124 @@ function drawSingleClipToContext(tCtx, W, H, clip, globalSec) {
 
   if (!drewReal) {
     if (clip.text && isVideoTrack(clip.track)) {
-      // Cartela Transparente / Letreiro nas Faixas de Vídeo (V2, V3, V4...)
-      tCtx.fillStyle = "rgba(0, 0, 0, 0.78)";
-      tCtx.fillRect(48, H / 2 - 44, W - 96, 88);
-      tCtx.strokeStyle = "#FFE040";
-      tCtx.lineWidth = 2;
-      tCtx.strokeRect(52, H / 2 - 40, W - 104, 80);
-      tCtx.fillStyle = "#FFFFFF";
-      tCtx.font = "bold 22px 'Courier New', monospace";
-      tCtx.textAlign = "center";
-      wrapCanvasText(tCtx, clip.text, W / 2, H / 2 - 6, W - 120, 26);
+      // Títulos e Letreiros Animados (Chyron: Estático, Letreiro Rotativo/Crawl, Créditos Rolantes/Roll, Piscante)
+      const chy = clip.chyronType || "static";
+      const fontFace = clip.fontFace || "'Courier New', monospace";
+      const fontSize = Math.max(12, Number(clip.fontSize) || 22);
+      const fontColor = clip.fontColor || "#FFFFFF";
+      const boxColor = clip.boxColor || "rgba(0, 0, 0, 0.78)";
+
+      if (chy === "crawl") {
+        const barH = Math.max(38, fontSize + 16);
+        const barY = H - barH - 24;
+        tCtx.fillStyle = boxColor;
+        tCtx.fillRect(0, barY, W, barH);
+        tCtx.strokeStyle = "#FFE040";
+        tCtx.lineWidth = 1.5;
+        tCtx.beginPath();
+        tCtx.moveTo(0, barY); tCtx.lineTo(W, barY);
+        tCtx.moveTo(0, barY + barH); tCtx.lineTo(W, barY + barH);
+        tCtx.stroke();
+
+        tCtx.save();
+        tCtx.beginPath();
+        tCtx.rect(0, barY, W, barH);
+        tCtx.clip();
+
+        tCtx.font = `bold ${fontSize}px ${fontFace}`;
+        const txtW = tCtx.measureText(clip.text).width;
+        const prog = dur > 0 ? (globalSec - clip.start) / dur : 0;
+        const crawlX = W - prog * (W + txtW + 60);
+
+        tCtx.fillStyle = fontColor;
+        tCtx.textAlign = "left";
+        tCtx.fillText(clip.text, crawlX, barY + barH / 2 + fontSize * 0.35);
+        tCtx.restore();
+      } else if (chy === "roll") {
+        tCtx.save();
+        tCtx.font = `bold ${fontSize}px ${fontFace}`;
+        tCtx.fillStyle = fontColor;
+        tCtx.textAlign = "center";
+        const lines = clip.text.split("\n");
+        const lineH = fontSize * 1.35;
+        const totalH = lines.length * lineH;
+        const prog = dur > 0 ? (globalSec - clip.start) / dur : 0;
+        const startY = H + 20;
+        const curY = startY - prog * (H + totalH + 40);
+
+        lines.forEach((line, li) => {
+          const ly = curY + li * lineH;
+          if (ly >= -30 && ly <= H + 30) {
+            tCtx.fillText(line, W / 2, ly);
+          }
+        });
+        tCtx.restore();
+      } else if (chy === "blink") {
+        const isBlinkOn = Math.floor(localSec * 2.8) % 2 === 0;
+        if (isBlinkOn) {
+          tCtx.fillStyle = boxColor;
+          tCtx.fillRect(48, H / 2 - 44, W - 96, 88);
+          tCtx.strokeStyle = "#FFE040";
+          tCtx.lineWidth = 2;
+          tCtx.strokeRect(52, H / 2 - 40, W - 104, 80);
+          tCtx.fillStyle = fontColor;
+          tCtx.font = `bold ${fontSize}px ${fontFace}`;
+          tCtx.textAlign = "center";
+          wrapCanvasText(tCtx, clip.text, W / 2, H / 2 - 6, W - 120, 26);
+        }
+      } else {
+        tCtx.fillStyle = boxColor;
+        tCtx.fillRect(48, H / 2 - 44, W - 96, 88);
+        tCtx.strokeStyle = "#FFE040";
+        tCtx.lineWidth = 2;
+        tCtx.strokeRect(52, H / 2 - 40, W - 104, 80);
+        tCtx.fillStyle = fontColor;
+        tCtx.font = `bold ${fontSize}px ${fontFace}`;
+        tCtx.textAlign = "center";
+        wrapCanvasText(tCtx, clip.text, W / 2, H / 2 - 6, W - 120, 26);
+      }
     } else {
       drawSynthGenerator(tCtx, W, H, clip.synthType || "scene", localSec, clip.title);
     }
+  }
+
+  tCtx.filter = "none";
+
+  // Correção de Cor: Temperatura Kelvin (Quente/Frio) & Tonalidade (Tint Verde/Magenta)
+  const tempVal = Number(clip.temp) || 0;
+  if (tempVal !== 0) {
+    tCtx.save();
+    tCtx.globalCompositeOperation = "color";
+    tCtx.fillStyle = tempVal > 0 ? `rgba(255, 170, 45, ${Math.min(0.55, Math.abs(tempVal) / 160)})` : `rgba(45, 170, 255, ${Math.min(0.55, Math.abs(tempVal) / 160)})`;
+    tCtx.fillRect(0, 0, W, H);
+    tCtx.restore();
+  }
+  const tintVal = Number(clip.tint) || 0;
+  if (tintVal !== 0) {
+    tCtx.save();
+    tCtx.globalCompositeOperation = "color";
+    tCtx.fillStyle = tintVal > 0 ? `rgba(255, 60, 200, ${Math.min(0.55, Math.abs(tintVal) / 160)})` : `rgba(60, 255, 100, ${Math.min(0.55, Math.abs(tintVal) / 160)})`;
+    tCtx.fillRect(0, 0, W, H);
+    tCtx.restore();
+  }
+
+  // Chroma Key (Green Screen / Blue Screen)
+  if (clip.chromaKey && drewReal) {
+    try {
+      const imgData = tCtx.getImageData(0, 0, W, H);
+      const data = imgData.data;
+      const tol = Math.max(10, Math.min(100, Number(clip.chromaTol) || 35)) * 2.5;
+      const targetIsGreen = (clip.chromaColor || "green") === "green";
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i], g = data[i + 1], b = data[i + 2];
+        if (targetIsGreen) {
+          if (g > 80 && g - r > tol * 0.4 && g - b > tol * 0.4) data[i + 3] = 0;
+        } else {
+          if (b > 80 && b - r > tol * 0.4 && b - g > tol * 0.4) data[i + 3] = 0;
+        }
+      }
+      tCtx.putImageData(imgData, 0, 0);
+    } catch (_e) {}
   }
 
   tCtx.filter = "none";
@@ -1867,48 +2050,72 @@ function buildClipWaveSvg(clip, widthPx, isVideo = false) {
 
 function getClipAudioSampleAt(clip, globalSec) {
   if (!clip || clip.disabled) return { l: 0, r: 0 };
-  const vol = Math.max(0, (clip.volume == null ? 100 : Number(clip.volume)) / 100);
+  const localSec = Math.max(0, (globalSec - clip.start) * (clip.speed || 1) + (clip.inPoint || 0));
+
+  // Volume do clipe com suporte a Keyframes
+  const dynClipVol = evaluateKeyframedProperty(clip, "volume", (clip.volume == null ? 100 : Number(clip.volume)), localSec);
+  let vol = Math.max(0, dynClipVol / 100);
   if (vol <= 0.001) return { l: 0, r: 0 };
 
-  const localSec = Math.max(0, (globalSec - clip.start) * (clip.speed || 1) + (clip.inPoint || 0));
+  // Esmaecimento Suave Cosseno (Anti-estalo / De-click nos pontos de corte)
+  const dur = Math.max(0.1, Number(clip.dur) || 1);
+  const elapsed = globalSec - clip.start;
+  const remain = (clip.start + dur) - globalSec;
+  const fIn = Math.max(0, Number(clip.fadeIn) || 0);
+  const fOut = Math.max(0, Number(clip.fadeOut) || 0);
+  if (fIn > 0 && elapsed >= 0 && elapsed < fIn) {
+    vol *= Math.sin(Math.min(1, elapsed / fIn) * Math.PI / 2);
+  }
+  if (fOut > 0 && remain >= 0 && remain < fOut) {
+    vol *= Math.sin(Math.min(1, remain / fOut) * Math.PI / 2);
+  }
+
+  // Faders da Mesa de Som Analógica 95 (Volume da Faixa + Volume Master)
+  const tkVol = ((S.trackVolumes && S.trackVolumes[clip.track]) != null ? S.trackVolumes[clip.track] : 100) / 100;
+  const mastVol = ((S.trackVolumes && S.trackVolumes.master) != null ? S.trackVolumes.master : 100) / 100;
+  vol *= (tkVol * mastVol);
+
+  // Panorâmico Estéreo (Pan Knob L/R)
+  const pan = ((S.trackPans && S.trackPans[clip.track]) != null ? S.trackPans[clip.track] : 0);
+  const panL = pan > 0 ? (100 - pan) / 100 : 1;
+  const panR = pan < 0 ? (100 + pan) / 100 : 1;
+
   if (clip.mediaUrl && S.audioPeaks.has(clip.mediaUrl)) {
     const pk = S.audioPeaks.get(clip.mediaUrl);
     if (!pk.peaksMono || !pk.peaksMono.length) return { l: 0, r: 0 };
     const centerBin = Math.floor(localSec * pk.rate);
     let maxL = 0, maxR = 0;
-    // Janela curta de 40ms ao redor da agulha para leitura fiel de picos e transientes
     for (let b = centerBin - 1; b <= centerBin + 1; b++) {
       if (b >= 0 && b < pk.peaksMono.length) {
         if (pk.peaksL[b] > maxL) maxL = pk.peaksL[b];
         if (pk.peaksR[b] > maxR) maxR = pk.peaksR[b];
       }
     }
-    return { l: Math.min(1, maxL * vol), r: Math.min(1, maxR * vol) };
+    return { l: Math.min(1, maxL * vol * panL), r: Math.min(1, maxR * vol * panR) };
   }
 
   // Clipes sintéticos (Bip de Contagem Regressiva, Foley ou Locução de Roteiro)
   if (clip.synthType === "leader") {
     const inBeep = (localSec % 1) < 0.09;
-    return inBeep ? { l: 0.82 * vol, r: 0.82 * vol } : { l: 0, r: 0 };
+    return inBeep ? { l: 0.82 * vol * panL, r: 0.82 * vol * panR } : { l: 0, r: 0 };
   }
   if (clip.sfxPreset === "acorde") {
     const env = Math.max(0.15, 0.48 + Math.sin(localSec * 6.2) * 0.16) * vol;
-    return { l: env, r: env * 0.94 };
+    return { l: env * panL, r: env * 0.94 * panR };
   }
   if (clip.sfxPreset) {
     const dt = globalSec - clip.start;
     if (dt >= 0 && dt < 0.65) {
       const env = Math.exp(-dt * 3.5) * 0.85 * vol;
-      return { l: env, r: env };
+      return { l: env * panL, r: env * panR };
     }
     return { l: 0, r: 0 };
   }
   if (clip.speaker || (isAudioTrack(clip.track) && clip.text)) {
-    // Cadência silábica determinística com pausas reais para diálogos do roteiro
     const syll = Math.sin(localSec * 15.5) * Math.cos(localSec * 4.3);
     const gate = Math.sin(localSec * 2.7) > -0.25 ? 1 : 0.05;
     const env = Math.max(0, Math.abs(syll) * gate * 0.72 * vol);
-    return { l: env, r: env * 0.96 };
+    return { l: env * panL, r: env * 0.96 * panR };
   }
   return { l: 0, r: 0 };
 }
@@ -2092,7 +2299,10 @@ function syncHtmlMediaPlayback() {
         try { el.currentTime = targetT; } catch (_e) {}
       }
       el.muted = !prefs.som || S.tracksMuted[activeClip.track];
-      el.volume = Math.max(0, Math.min(1, ((activeClip.volume == null ? 100 : activeClip.volume) / 100)));
+      const tkVol = ((S.trackVolumes && S.trackVolumes[activeClip.track]) != null ? S.trackVolumes[activeClip.track] : 100) / 100;
+      const mastVol = ((S.trackVolumes && S.trackVolumes.master) != null ? S.trackVolumes.master : 100) / 100;
+      const dynVol = evaluateKeyframedProperty(activeClip, "volume", (activeClip.volume == null ? 100 : activeClip.volume), localSec) / 100;
+      el.volume = Math.max(0, Math.min(1, dynVol * tkVol * mastVol));
       el.playbackRate = Math.max(0.25, Math.min(4, (activeClip.speed || 1) * S.shuttleSpeed));
       if (el.paused) el.play().catch(() => {});
     } else {
@@ -2112,7 +2322,21 @@ function syncHtmlMediaPlayback() {
         try { el.currentTime = targetT; } catch (_e) {}
       }
       el.muted = !prefs.som || S.tracksMuted[activeClip.track];
-      el.volume = Math.max(0, Math.min(1, ((activeClip.volume == null ? 100 : activeClip.volume) / 100)));
+      const tkVol = ((S.trackVolumes && S.trackVolumes[activeClip.track]) != null ? S.trackVolumes[activeClip.track] : 100) / 100;
+      const mastVol = ((S.trackVolumes && S.trackVolumes.master) != null ? S.trackVolumes.master : 100) / 100;
+      const dynVol = evaluateKeyframedProperty(activeClip, "volume", (activeClip.volume == null ? 100 : activeClip.volume), localSec) / 100;
+
+      // Anti-estalo nas bordas do clipe
+      const dur = Math.max(0.1, Number(activeClip.dur) || 1);
+      const elapsed = S.playhead - activeClip.start;
+      const remain = (activeClip.start + dur) - S.playhead;
+      const fIn = Math.max(0, Number(activeClip.fadeIn) || 0);
+      const fOut = Math.max(0, Number(activeClip.fadeOut) || 0);
+      let cFade = 1;
+      if (fIn > 0 && elapsed >= 0 && elapsed < fIn) cFade *= Math.sin(Math.min(1, elapsed / fIn) * Math.PI / 2);
+      if (fOut > 0 && remain >= 0 && remain < fOut) cFade *= Math.sin(Math.min(1, remain / fOut) * Math.PI / 2);
+
+      el.volume = Math.max(0, Math.min(1, dynVol * cFade * tkVol * mastVol));
       el.playbackRate = Math.max(0.25, Math.min(4, (activeClip.speed || 1) * S.shuttleSpeed));
       if (el.paused) el.play().catch(() => {});
     } else {
@@ -3214,16 +3438,46 @@ function renderSide() {
   if (S.sideTab === "bin") {
     const vTarget = (S.targetVideoTrack || "v1").toUpperCase();
     const aTarget = (S.targetAudioTrack || "a1").toUpperCase();
+
+    // Filtra itens do cesto por pesquisa e por categoria
+    const filteredBin = S.mediaBin.filter(m => {
+      if (S.binFilter === "video" && m.kind !== "video") return false;
+      if (S.binFilter === "audio" && m.kind !== "audio") return false;
+      if (S.binFilter === "image" && m.kind !== "image") return false;
+      if (S.binFilter === "synth" && m.kind !== "synth") return false;
+      if (S.binSearch) {
+        const q = S.binSearch.toLowerCase();
+        return String(m.name || "").toLowerCase().includes(q) || String(m.res || "").toLowerCase().includes(q);
+      }
+      return true;
+    });
+
     box.innerHTML = `
-      <div class="col" style="height:100%">
+      <div class="col" style="height:100%;gap:4px">
         <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:3px">
-          <b>Janela Projeto (${S.mediaBin.length} itens)</b>
+          <b>Janela Projeto (${filteredBin.length}/${S.mediaBin.length})</b>
           <div class="row" style="gap:3px">
             <button type="button" class="btn sm def" data-cmd="importarMidia">+ Importar (Ctrl+I)</button>
-            <button type="button" class="btn sm" id="btnAddAllBin" title="Colocar todos os itens importados em sequência na faixa alvo">+ Colocar Todos</button>
+            <button type="button" class="btn sm" id="btnAddAllBin" title="Colocar itens em sequência na faixa alvo">+ Colocar Todos</button>
             <button type="button" class="btn sm" data-cmd="gerarSinal">+ Sinal</button>
           </div>
         </div>
+
+        <!-- Barra de Busca e Alternância de Visualização (Miniaturas / Lista) -->
+        <div class="bin-toolbar">
+          <input type="text" id="binSearchInput" class="bin-search" placeholder="Procurar mídia no cesto…" value="${escH(S.binSearch)}">
+          <button type="button" class="btn sm" id="btnToggleBinView" title="Alternar entre Miniaturas e Lista">${S.binView === "grid" ? "Lista" : "Miniaturas"}</button>
+        </div>
+
+        <!-- Abas de Filtro por Categoria -->
+        <div class="bin-cat-tabs">
+          <button type="button" class="bin-cat-tab${S.binFilter === "all" ? " sel" : ""}" data-bf="all">Todos</button>
+          <button type="button" class="bin-cat-tab${S.binFilter === "video" ? " sel" : ""}" data-bf="video">Vídeos</button>
+          <button type="button" class="bin-cat-tab${S.binFilter === "audio" ? " sel" : ""}" data-bf="audio">Áudios</button>
+          <button type="button" class="bin-cat-tab${S.binFilter === "image" ? " sel" : ""}" data-bf="image">Imagens</button>
+          <button type="button" class="bin-cat-tab${S.binFilter === "synth" ? " sel" : ""}" data-bf="synth">Sintéticos</button>
+        </div>
+
         <div class="row" style="justify-content:space-between;background:var(--field);padding:3px 5px;box-shadow:inset 1px 1px var(--lo);font-size:10.5px">
           <label class="row" style="gap:3px">Vídeo Alvo:
             <select id="binTargetVid" style="height:19px;font-size:10.5px">
@@ -3238,26 +3492,76 @@ function renderSide() {
           <button type="button" class="btn sm" data-cmd="addVideoTrack" title="Criar nova faixa de vídeo">+V</button>
           <button type="button" class="btn sm" data-cmd="addAudioTrack" title="Criar nova faixa de áudio">+A</button>
         </div>
-        <div class="muted" style="font-size:10.5px">Clique em <b>[+ ${vTarget}/${aTarget}]</b> para colocar em sequência na faixa alvo, ou em <b>[+ Camada]</b> para empilhar numa nova faixa livre na agulha.</div>
-        <div class="bin-list" style="flex:1">
-          ${S.mediaBin.map((m, idx) => {
-            const isSel = S.srcItem && S.srcItem.id === m.id;
-            const badge = m.kind === "audio" ? "WAV" : (m.kind === "image" ? "IMG" : (m.kind === "synth" ? "GEN" : "VID"));
-            const tLabel = m.kind === "audio" ? aTarget : vTarget;
-            return `<div class="bin-item${isSel ? " sel" : ""}" data-binidx="${idx}" draggable="true">
-              <div class="bin-thumb">${badge}</div>
-              <div style="min-width:0">
-                <div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escH(m.name)}</div>
-                <div class="muted" style="font-size:10px">${escH(m.res || "Mídia")} · ${mmss(m.dur || 10)}</div>
-              </div>
-              <div class="col" style="gap:2px">
-                <button type="button" class="btn sm" data-addv1="${idx}" title="Adicionar em sequência na faixa alvo (${tLabel})">+ ${tLabel}</button>
-                <button type="button" class="btn sm" data-addv2="${idx}" title="Empilhar numa camada/faixa livre na posição da agulha">+ Camada</button>
-              </div>
-            </div>`;
-          }).join("")}
-        </div>
+
+        <!-- Conteúdo do Cesto: Modo Grade de Miniaturas OU Lista Detalhada -->
+        ${S.binView === "grid" ? `
+          <div class="bin-thumb-grid" style="flex:1">
+            ${filteredBin.map((m) => {
+              const realIdx = S.mediaBin.indexOf(m);
+              const isSel = S.srcItem && S.srcItem.id === m.id;
+              const badge = m.kind === "audio" ? "WAV" : (m.kind === "image" ? "IMG" : (m.kind === "synth" ? "GEN" : "VID"));
+              const thumbHtml = m.thumb ? `<img class="bin-card-thumb" src="${m.thumb}" alt="thumb">` : `<div class="bin-card-thumb" style="display:flex;align-items:center;justify-content:center;background:#000;color:#FFE040;font-weight:bold;font-size:10px">${badge}</div>`;
+              return `
+                <div class="bin-card${isSel ? " sel" : ""}" data-binidx="${realIdx}" draggable="true">
+                  ${thumbHtml}
+                  <div class="bin-card-title">${escH(m.name)}</div>
+                  <div class="bin-card-meta">${mmss(m.dur || 10)}</div>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        ` : `
+          <div class="bin-list" style="flex:1">
+            ${filteredBin.map((m) => {
+              const realIdx = S.mediaBin.indexOf(m);
+              const isSel = S.srcItem && S.srcItem.id === m.id;
+              const badge = m.kind === "audio" ? "WAV" : (m.kind === "image" ? "IMG" : (m.kind === "synth" ? "GEN" : "VID"));
+              const tLabel = m.kind === "audio" ? aTarget : vTarget;
+              const thumbBox = m.thumb ? `<img class="bin-thumb" src="${m.thumb}" style="object-fit:cover" alt="thumb">` : `<div class="bin-thumb">${badge}</div>`;
+              return `<div class="bin-item${isSel ? " sel" : ""}" data-binidx="${realIdx}" draggable="true">
+                ${thumbBox}
+                <div style="min-width:0;flex:1">
+                  <div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escH(m.name)}</div>
+                  <div class="muted" style="font-size:10px">${escH(m.res || "Mídia")} · ${mmss(m.dur || 10)}</div>
+                </div>
+                <div class="col" style="gap:2px">
+                  <button type="button" class="btn sm" data-addv1="${realIdx}" title="Adicionar em sequência na faixa alvo (${tLabel})">+ ${tLabel}</button>
+                  <button type="button" class="btn sm" data-addv2="${realIdx}" title="Empilhar numa camada/faixa livre na posição da agulha">+ Camada</button>
+                </div>
+              </div>`;
+            }).join("")}
+          </div>
+        `}
       </div>`;
+
+    // Eventos de Busca e Filtro de Categoria
+    const searchInp = box.querySelector("#binSearchInput");
+    if (searchInp) {
+      searchInp.oninput = (e) => {
+        S.binSearch = e.target.value;
+        renderSide();
+        const freshInp = box.querySelector("#binSearchInput");
+        if (freshInp) {
+          freshInp.focus();
+          freshInp.selectionStart = freshInp.selectionEnd = freshInp.value.length;
+        }
+      };
+    }
+
+    const btnToggleView = box.querySelector("#btnToggleBinView");
+    if (btnToggleView) {
+      btnToggleView.onclick = () => {
+        S.binView = S.binView === "grid" ? "list" : "grid";
+        renderSide();
+      };
+    }
+
+    box.querySelectorAll("[data-bf]").forEach(btn => {
+      btn.onclick = () => {
+        S.binFilter = btn.dataset.bf;
+        renderSide();
+      };
+    });
 
     const selVid = box.querySelector("#binTargetVid");
     if (selVid) {
@@ -3278,8 +3582,8 @@ function renderSide() {
     const btnAll = box.querySelector("#btnAddAllBin");
     if (btnAll) {
       btnAll.onclick = () => {
-        const items = S.mediaBin.filter(m => m.kind !== "synth" || S.mediaBin.length <= 4);
-        if (!items.length) { toast("Importe mídias primeiro."); return; }
+        const items = filteredBin.filter(m => m.kind !== "synth" || filteredBin.length <= 4);
+        if (!items.length) { toast("Nenhuma mídia corresponde aos filtros."); return; }
         saveUndoSnapshot();
         items.forEach(it => {
           loadIntoSourceMonitor(it);
@@ -3328,7 +3632,7 @@ function renderSide() {
   if (S.sideTab === "fx") {
     const clip = getSelectedClip();
     if (!clip) {
-      box.innerHTML = `<div class="col"><div class="muted" style="padding:14px;text-align:center;background:var(--field);box-shadow:inset 1px 1px var(--lo)">Clique em qualquer clipe na Linha do Tempo ou no Monitor de Programa para redimensionar, recortar (Crop), girar, mudar velocidade e aplicar filtros.</div></div>`;
+      box.innerHTML = `<div class="col"><div class="muted" style="padding:14px;text-align:center;background:var(--field);box-shadow:inset 1px 1px var(--lo)">Clique em qualquer clipe na Linha do Tempo ou no Monitor de Programa para redimensionar, recortar (Crop), girar, animar keyframes, mudar velocidade e aplicar filtros.</div></div>`;
       return;
     }
 
@@ -3409,6 +3713,103 @@ function renderSide() {
               <button type="button" class="btn sm" id="fx-pip">PiP Canto</button>
               <button type="button" class="btn sm" id="fx-reset">Resetar</button>
             </div>
+          </div>
+        </div>
+
+        <!-- Fades Suaves (Fade In / Fade Out) -->
+        <div class="fx-group">
+          <b class="lgd">Esmaecimento Suave (Fade In / Fade Out)</b>
+          <div class="col" style="gap:3px;margin-top:3px">
+            <div class="slider-row">
+              <span>Fade In (s):</span>
+              <input type="range" id="fx-fadein" min="0" max="5" step="0.1" value="${clip.fadeIn || 0}">
+              <span class="val" id="fx-fadein-v">${clip.fadeIn || 0}s</span>
+            </div>
+            <div class="slider-row">
+              <span>Fade Out (s):</span>
+              <input type="range" id="fx-fadeout" min="0" max="5" step="0.1" value="${clip.fadeOut || 0}">
+              <span class="val" id="fx-fadeout-v">${clip.fadeOut || 0}s</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modos de Mesclagem, Temperatura & Correção de Cor -->
+        <div class="fx-group">
+          <b class="lgd">Mesclagem &amp; Cor Profissional</b>
+          <div class="col" style="gap:3px;margin-top:3px">
+            <div class="slider-row">
+              <span>Mesclagem:</span>
+              <select id="fx-blend" style="grid-column:2/4">
+                <option value="normal"${(!clip.blendMode || clip.blendMode === "normal") ? " selected" : ""}>Normal (Opaco)</option>
+                <option value="multiply"${clip.blendMode === "multiply" ? " selected" : ""}>Multiplicar (Multiply)</option>
+                <option value="screen"${clip.blendMode === "screen" ? " selected" : ""}>Tela (Screen)</option>
+                <option value="overlay"${clip.blendMode === "overlay" ? " selected" : ""}>Sobrepor (Overlay)</option>
+                <option value="lighter"${clip.blendMode === "lighter" ? " selected" : ""}>Adicionar (Lighter)</option>
+                <option value="difference"${clip.blendMode === "difference" ? " selected" : ""}>Diferença (Inversão)</option>
+                <option value="hard-light"${clip.blendMode === "hard-light" ? " selected" : ""}>Luz Direta (Hard-Light)</option>
+              </select>
+            </div>
+            <div class="slider-row">
+              <span>Temperatura:</span>
+              <input type="range" id="fx-temp" min="-100" max="100" value="${clip.temp || 0}">
+              <span class="val" id="fx-temp-v">${(clip.temp || 0) > 0 ? `+${clip.temp} K` : `${clip.temp || 0} K`}</span>
+            </div>
+            <div class="slider-row">
+              <span>Tonalidade (Tint):</span>
+              <input type="range" id="fx-tint" min="-100" max="100" value="${clip.tint || 0}">
+              <span class="val" id="fx-tint-v">${clip.tint || 0}</span>
+            </div>
+            <div class="row" style="gap:4px;align-items:center;margin-top:2px">
+              <label class="row"><input type="checkbox" id="fx-chroma"${clip.chromaKey ? " checked" : ""}> Chroma Key</label>
+              <select id="fx-chroma-color" style="height:19px;font-size:10px">
+                <option value="green"${(!clip.chromaColor || clip.chromaColor === "green") ? " selected" : ""}>Verde</option>
+                <option value="blue"${clip.chromaColor === "blue" ? " selected" : ""}>Azul</option>
+              </select>
+              <input type="range" id="fx-chroma-tol" min="15" max="80" value="${clip.chromaTol || 35}" style="width:60px" title="Tolerância de cor">
+            </div>
+          </div>
+        </div>
+
+        <!-- Título Animado / Chyron (se o clipe contiver texto) -->
+        ${clip.text ? `
+          <div class="fx-group">
+            <b class="lgd">Animação de Título / Chyron 95</b>
+            <div class="col" style="gap:3px;margin-top:3px">
+              <div class="slider-row">
+                <span>Estilo:</span>
+                <select id="fx-chyron" style="grid-column:2/4">
+                  <option value="static"${(!clip.chyronType || clip.chyronType === "static") ? " selected" : ""}>Estático (Cartela Fixa)</option>
+                  <option value="crawl"${clip.chyronType === "crawl" ? " selected" : ""}>Letreiro Rotativo (Crawl Horizontal)</option>
+                  <option value="roll"${clip.chyronType === "roll" ? " selected" : ""}>Créditos Rolantes (Roll Vertical)</option>
+                  <option value="blink"${clip.chyronType === "blink" ? " selected" : ""}>Piscante 1995 (Blink)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        ` : ""}
+
+        <!-- Quadros-Chave / Animação de Propriedades (Keyframing Premiere 4.2) -->
+        <div class="fx-group">
+          <b class="lgd">Quadros-Chave (Keyframes Premiere)</b>
+          <div class="col" style="gap:4px;margin-top:3px">
+            <div class="row" style="justify-content:space-between;align-items:center">
+              <select id="kf-prop-sel" style="flex:1;height:21px;font-size:11px">
+                <option value="opacity">Opacidade (opacity)</option>
+                <option value="scaleX">Escala Largura (scaleX)</option>
+                <option value="scaleY">Escala Altura (scaleY)</option>
+                <option value="posX">Posição X (posX)</option>
+                <option value="posY">Posição Y (posY)</option>
+                <option value="rotation">Rotação (rotation)</option>
+                <option value="volume">Volume de Áudio (volume)</option>
+              </select>
+            </div>
+            <div class="row" style="justify-content:space-between;gap:2px">
+              <button type="button" class="btn sm" id="kf-prev" title="Pular para keyframe anterior">&lt; Anterior</button>
+              <button type="button" class="btn sm def" id="kf-add" title="Marcar ou atualizar keyframe no tempo da agulha">◇ Marcar Keyframe</button>
+              <button type="button" class="btn sm" id="kf-next" title="Pular para próximo keyframe">Próximo &gt;</button>
+              <button type="button" class="btn sm" id="kf-del" title="Excluir keyframe no tempo atual">✕ Excluir</button>
+            </div>
+            <div class="kf-strip" id="kf-strip-box"></div>
           </div>
         </div>
 
@@ -3546,6 +3947,10 @@ function renderSide() {
     };
 
     bindRange("fx-vol", "volume", "%");
+    bindRange("fx-fadein", "fadeIn", "s");
+    bindRange("fx-fadeout", "fadeOut", "s");
+    bindRange("fx-temp", "temp", " K");
+    bindRange("fx-tint", "tint", "");
     bindRange("fx-bri", "brightness", "");
     bindRange("fx-con", "contrast", "");
     bindRange("fx-sat", "saturation", "%");
@@ -3557,6 +3962,122 @@ function renderSide() {
     bindRange("fx-cr", "cropRight", "%");
     bindRange("fx-ct", "cropTop", "%");
     bindRange("fx-cb", "cropBottom", "%");
+
+    const blendSel = box.querySelector("#fx-blend");
+    if (blendSel) {
+      blendSel.onchange = (e) => { clip.blendMode = e.target.value; renderMonitorFrame(); };
+    }
+    const chromaChk = box.querySelector("#fx-chroma");
+    if (chromaChk) {
+      chromaChk.onchange = (e) => { clip.chromaKey = e.target.checked; renderMonitorFrame(); };
+    }
+    const chromaCol = box.querySelector("#fx-chroma-color");
+    if (chromaCol) {
+      chromaCol.onchange = (e) => { clip.chromaColor = e.target.value; renderMonitorFrame(); };
+    }
+    const chromaTol = box.querySelector("#fx-chroma-tol");
+    if (chromaTol) {
+      chromaTol.oninput = (e) => { clip.chromaTol = +e.target.value; renderMonitorFrame(); };
+    }
+    const chyronSel = box.querySelector("#fx-chyron");
+    if (chyronSel) {
+      chyronSel.onchange = (e) => { clip.chyronType = e.target.value; renderMonitorFrame(); };
+    }
+
+    // Gerenciador de Quadros-Chave (Keyframing Engine)
+    const kfPropSel = box.querySelector("#kf-prop-sel");
+    const kfStripBox = box.querySelector("#kf-strip-box");
+    const renderKfStrip = () => {
+      if (!kfStripBox || !kfPropSel) return;
+      const prop = kfPropSel.value;
+      const list = (clip.keyframes && clip.keyframes[prop]) ? clip.keyframes[prop] : [];
+      if (!list.length) {
+        kfStripBox.innerHTML = '<span class="muted" style="font-size:10px">Nenhum keyframe nesta propriedade. Clique em [◇ Marcar Keyframe].</span>';
+        return;
+      }
+      kfStripBox.innerHTML = list.map(k => `
+        <span class="kf-tag" data-kt="${k.time}" title="Clique para ir até este keyframe">
+          ${k.time.toFixed(1)}s: <b>${Math.round(k.value)}</b>
+        </span>
+      `).join("");
+      kfStripBox.querySelectorAll("[data-kt]").forEach(tag => {
+        tag.onclick = () => {
+          const kt = +tag.dataset.kt;
+          setPlayhead(clip.start + kt / (clip.speed || 1), false);
+        };
+      });
+    };
+    renderKfStrip();
+
+    if (kfPropSel) kfPropSel.onchange = renderKfStrip;
+
+    const bKfAdd = box.querySelector("#kf-add");
+    if (bKfAdd) {
+      bKfAdd.onclick = () => {
+        const prop = kfPropSel.value;
+        const localSec = Math.max(0, Math.min(clip.dur, (S.playhead - clip.start) * (clip.speed || 1) + (clip.inPoint || 0)));
+        let curVal = 0;
+        if (prop === "opacity") curVal = clip.opacity == null ? 100 : Number(clip.opacity);
+        else if (prop === "scaleX") curVal = clip.scaleX != null ? Number(clip.scaleX) : 100;
+        else if (prop === "scaleY") curVal = clip.scaleY != null ? Number(clip.scaleY) : 100;
+        else if (prop === "posX") curVal = Number(clip.posX) || 0;
+        else if (prop === "posY") curVal = Number(clip.posY) || 0;
+        else if (prop === "rotation") curVal = Number(clip.rotation) || 0;
+        else if (prop === "volume") curVal = clip.volume == null ? 100 : Number(clip.volume);
+
+        saveUndoSnapshot();
+        if (!clip.keyframes) clip.keyframes = {};
+        if (!clip.keyframes[prop]) clip.keyframes[prop] = [];
+        const existing = clip.keyframes[prop].find(k => Math.abs(k.time - localSec) < 0.05);
+        if (existing) {
+          existing.value = curVal;
+        } else {
+          clip.keyframes[prop].push({ time: Number(localSec.toFixed(2)), value: curVal, ease: "smooth" });
+          clip.keyframes[prop].sort((a, b) => a.time - b.time);
+        }
+        renderKfStrip();
+        renderMonitorFrame();
+        toast(`Keyframe de ${prop} (${Math.round(curVal)}) marcado em ${localSec.toFixed(2)}s!`);
+      };
+    }
+
+    const bKfDel = box.querySelector("#kf-del");
+    if (bKfDel) {
+      bKfDel.onclick = () => {
+        const prop = kfPropSel.value;
+        if (!clip.keyframes || !clip.keyframes[prop] || !clip.keyframes[prop].length) return;
+        const localSec = Math.max(0, Math.min(clip.dur, (S.playhead - clip.start) * (clip.speed || 1) + (clip.inPoint || 0)));
+        saveUndoSnapshot();
+        clip.keyframes[prop] = clip.keyframes[prop].filter(k => Math.abs(k.time - localSec) >= 0.08);
+        renderKfStrip();
+        renderMonitorFrame();
+        toast(`Keyframe removido.`);
+      };
+    }
+
+    const bKfPrev = box.querySelector("#kf-prev");
+    if (bKfPrev) {
+      bKfPrev.onclick = () => {
+        const prop = kfPropSel.value;
+        const list = (clip.keyframes && clip.keyframes[prop]) ? clip.keyframes[prop] : [];
+        if (!list.length) return;
+        const localSec = (S.playhead - clip.start) * (clip.speed || 1) + (clip.inPoint || 0);
+        const prev = [...list].reverse().find(k => k.time < localSec - 0.05);
+        if (prev) setPlayhead(clip.start + prev.time / (clip.speed || 1), false);
+      };
+    }
+
+    const bKfNext = box.querySelector("#kf-next");
+    if (bKfNext) {
+      bKfNext.onclick = () => {
+        const prop = kfPropSel.value;
+        const list = (clip.keyframes && clip.keyframes[prop]) ? clip.keyframes[prop] : [];
+        if (!list.length) return;
+        const localSec = (S.playhead - clip.start) * (clip.speed || 1) + (clip.inPoint || 0);
+        const next = list.find(k => k.time > localSec + 0.05);
+        if (next) setPlayhead(clip.start + next.time / (clip.speed || 1), false);
+      };
+    }
 
     box.querySelector("#fx-fit").onchange = (e) => {
       clip.fitMode = e.target.value;
@@ -3611,7 +4132,8 @@ function renderSide() {
         brightness: 0, contrast: 0, saturation: 100, opacity: 100,
         scale: 100, scaleX: 100, scaleY: 100, uniformScale: true, fitMode: "contain",
         posX: 0, posY: 0, rotation: 0, cropTop: 0, cropBottom: 0, cropLeft: 0, cropRight: 0,
-        motionPreset: "none", flipH: false, flipV: false, filter: "none", speed: 1
+        motionPreset: "none", flipH: false, flipV: false, filter: "none", speed: 1,
+        fadeIn: 0, fadeOut: 0, temp: 0, tint: 0, blendMode: "normal", chromaKey: false, keyframes: {}
       });
       renderSide(); renderMonitorFrame();
     };
@@ -4026,6 +4548,15 @@ function registerImportedFileObject(fileInfo, autoInsert = false) {
     S.videoEls.set(item.url, v);
 
     v.addEventListener("loadeddata", () => {
+      if (!item.thumb && v.videoWidth) {
+        try {
+          const tc = document.createElement("canvas");
+          tc.width = 64; tc.height = 48;
+          tc.getContext("2d").drawImage(v, 0, 0, 64, 48);
+          item.thumb = tc.toDataURL("image/jpeg", 0.7);
+          renderSide();
+        } catch (_e) {}
+      }
       renderMonitorFrame();
       renderSourceFrame();
     });
@@ -4053,6 +4584,12 @@ function registerImportedFileObject(fileInfo, autoInsert = false) {
     img.onload = () => {
       item.dur = 6;
       item.res = `${img.naturalWidth || 640}x${img.naturalHeight || 480} · Imagem`;
+      try {
+        const tc = document.createElement("canvas");
+        tc.width = 64; tc.height = 48;
+        tc.getContext("2d").drawImage(img, 0, 0, 64, 48);
+        item.thumb = tc.toDataURL("image/jpeg", 0.7);
+      } catch (_e) {}
       renderMonitorFrame();
       renderSourceFrame();
       renderSide();
@@ -4425,6 +4962,537 @@ function openSlateDialog() {
       { label: "Fechar" }
     ]
   });
+}
+
+/* ---------- Modelo de Projeto Não-Destrutivo (.PPJ), Salvamento, Autosave & Crash Recovery ---------- */
+function buildProjectSnapshot() {
+  return {
+    format: "ScriptEditor95-PPJ",
+    version: APP_VERSAO,
+    projectName: S.projectName,
+    savedAt: new Date().toISOString(),
+    totalDur: S.totalDur,
+    playhead: S.playhead,
+    targetVideoTrack: S.targetVideoTrack,
+    targetAudioTrack: S.targetAudioTrack,
+    videoTracks: S.videoTracks,
+    audioTracks: S.audioTracks,
+    tracksMuted: S.tracksMuted,
+    tracksLocked: S.tracksLocked,
+    tracksSolo: S.tracksSolo,
+    trackVolumes: S.trackVolumes,
+    trackPans: S.trackPans,
+    markers: S.markers,
+    clips: S.clips,
+    mediaBin: S.mediaBin.map(m => ({
+      id: m.id,
+      name: m.name,
+      url: m.url,
+      path: m.path,
+      kind: m.kind,
+      dur: m.dur,
+      res: m.res
+    }))
+  };
+}
+
+async function saveCurrentProject(asNew = false) {
+  const data = buildProjectSnapshot();
+  const jsonStr = JSON.stringify(data, null, 2);
+
+  if (window.editorNative && typeof window.editorNative.pickProjectSavePath === "function") {
+    let targetPath = S.projectFilePath;
+    if (!targetPath || asNew) {
+      const defaultName = S.projectName.toUpperCase().endsWith(".PPJ") ? S.projectName : `${S.projectName}.PPJ`;
+      targetPath = await window.editorNative.pickProjectSavePath(defaultName);
+      if (!targetPath) return; // cancelou
+    }
+    const ok = await window.editorNative.writeToPath(targetPath, jsonStr);
+    if (ok) {
+      S.projectFilePath = targetPath;
+      S.projectName = targetPath.split(/[/\\]/).pop().toUpperCase();
+      S.isDirty = false;
+      updateStatusBar();
+      toast(`Projeto salvo em ${S.projectName} com sucesso!`);
+    } else {
+      toast("Erro ao gravar arquivo de projeto no disco.");
+    }
+  } else {
+    // Fallback Web / LocalStorage
+    localStorage.setItem("varguelia.scripteditor.currentProject", jsonStr);
+    S.isDirty = false;
+    toast(`Projeto ${S.projectName} salvo localmente.`);
+  }
+}
+
+async function openProjectDialog() {
+  if (window.editorNative && typeof window.editorNative.pickProjectFile === "function") {
+    const filePath = await window.editorNative.pickProjectFile();
+    if (!filePath) return;
+    const content = await window.editorNative.readTextFile(filePath);
+    if (!content) {
+      toast("Não foi possível ler o arquivo selecionado.");
+      return;
+    }
+    try {
+      const proj = JSON.parse(content);
+      loadProjectData(proj, filePath);
+    } catch (e) {
+      toast("Arquivo .PPJ corrompido ou formato inválido: " + e.message);
+    }
+  } else {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".ppj,.json";
+    input.onchange = e => {
+      const f = e.target.files[0];
+      if (!f) return;
+      const r = new FileReader();
+      r.onload = ev => {
+        try {
+          const proj = JSON.parse(ev.target.result);
+          loadProjectData(proj, f.name);
+        } catch (err) {
+          toast("Erro ao abrir projeto: " + err.message);
+        }
+      };
+      r.readAsText(f);
+    };
+    input.click();
+  }
+}
+
+function loadProjectData(proj, filePath = null) {
+  if (!proj || !proj.clips) {
+    toast("Projeto inválido ou vazio.");
+    return;
+  }
+  saveUndoSnapshot();
+  if (filePath) {
+    S.projectFilePath = filePath;
+    S.projectName = filePath.split(/[/\\]/).pop().toUpperCase();
+  } else if (proj.projectName) {
+    S.projectName = proj.projectName;
+  }
+  S.isStarterDemo = false;
+  if (proj.videoTracks) S.videoTracks = proj.videoTracks;
+  if (proj.audioTracks) S.audioTracks = proj.audioTracks;
+  if (proj.targetVideoTrack) S.targetVideoTrack = proj.targetVideoTrack;
+  if (proj.targetAudioTrack) S.targetAudioTrack = proj.targetAudioTrack;
+  if (proj.tracksMuted) S.tracksMuted = proj.tracksMuted;
+  if (proj.tracksLocked) S.tracksLocked = proj.tracksLocked;
+  if (proj.tracksSolo) S.tracksSolo = proj.tracksSolo;
+  if (proj.trackVolumes) S.trackVolumes = proj.trackVolumes;
+  if (proj.trackPans) S.trackPans = proj.trackPans;
+  if (proj.markers) S.markers = proj.markers;
+  S.clips = proj.clips;
+  if (Array.isArray(proj.mediaBin)) {
+    S.mediaBin = proj.mediaBin;
+    S.mediaBin.forEach(m => {
+      if (m.url && !S.videoEls.has(m.url) && !S.audioEls.has(m.url)) {
+        registerImportedFileObject({ name: m.name, url: m.url, path: m.path, kind: m.kind }, false);
+      }
+    });
+  }
+  S.playhead = Number(proj.playhead) || 0;
+  S.isDirty = false;
+  recalcSequenceDuration();
+  renderAll();
+  toast(`Projeto ${S.projectName} carregado com sucesso!`);
+}
+
+function autoSaveProject() {
+  try {
+    const data = buildProjectSnapshot();
+    const jsonStr = JSON.stringify(data);
+    localStorage.setItem("varguelia.scripteditor.autosave", jsonStr);
+    localStorage.setItem("varguelia.scripteditor.autosave_time", String(Date.now()));
+    if (window.editorNative && typeof window.editorNative.write === "function") {
+      window.editorNative.write("projetos", "_autosave_se95.ppj", jsonStr);
+    }
+  } catch (_e) {}
+}
+
+function checkCrashRecovery() {
+  const unclean = localStorage.getItem("varguelia.scripteditor.session_unclean");
+  const autosave = localStorage.getItem("varguelia.scripteditor.autosave");
+  const autoTime = localStorage.getItem("varguelia.scripteditor.autosave_time");
+
+  localStorage.setItem("varguelia.scripteditor.session_unclean", "1");
+
+  if (unclean === "1" && autosave) {
+    try {
+      const proj = JSON.parse(autosave);
+      const dataStr = autoTime ? new Date(+autoTime).toLocaleTimeString("pt-BR") : "sessão anterior";
+      dialog({
+        id: "crashRecoveryWin",
+        title: "Recuperação de Falha / Queda de Energia",
+        width: 480,
+        body: `
+          <div class="row" style="gap:12px;align-items:center;margin-bottom:8px">
+            <svg viewBox="0 0 16 16" width="36" height="36" aria-hidden="true">${ICON.bulb}</svg>
+            <div>
+              <b style="font-size:12.5px">O ScriptEditor 95 não foi encerrado corretamente.</b><br>
+              <span class="muted">Existe um salvamento automático (Autosave) gravado às ${dataStr}.</span>
+            </div>
+          </div>
+          <div style="background:var(--field);padding:8px;box-shadow:inset 1px 1px var(--lo);font-size:11px">
+            Projeto recuperável: <b>${escH(proj.projectName || "PROJETO_LIVRE.PPJ")}</b><br>
+            Faixas de Vídeo: ${proj.videoTracks ? proj.videoTracks.length : 3} · Faixas de Áudio: ${proj.audioTracks ? proj.audioTracks.length : 3}
+          </div>
+        `,
+        buttons: [
+          {
+            label: "Recuperar Projeto",
+            def: 1,
+            run: () => {
+              loadProjectData(proj, proj.projectFilePath || null);
+              toast("Projeto recuperado do salvamento automático com sucesso!");
+            }
+          },
+          {
+            label: "Descartar e Iniciar Novo",
+            run: () => {
+              localStorage.removeItem("varguelia.scripteditor.autosave");
+              toast("Salvamento automático descartado.");
+            }
+          }
+        ]
+      });
+    } catch (_e) {}
+  }
+}
+
+/* ---------- Mesa de Som Analógica 95 (Mixer Multi-Pistas, Faders, Pan & Normalização) ---------- */
+function openAudioMixerDialog() {
+  const allAudio = [...S.audioTracks];
+  let vuInterval = null;
+
+  dialog({
+    id: "mixerWin",
+    title: "Mesa de Som Analógica 95 - Mixagem Multi-Pistas & Normalização",
+    width: 660,
+    body: `
+      <div class="col" style="gap:8px">
+        <div class="row" style="justify-content:space-between;align-items:center;background:var(--field);padding:4px 8px;box-shadow:inset 1px 1px var(--lo);font-size:11px">
+          <span><b>Console Estéreo 16-bit</b> · Faders lineares, Panorâmico (Pan) e Níveis em Decibéis (dB)</span>
+          <button type="button" class="btn sm" id="btnNormMixer" title="Ajusta o ganho geral da sequência para -0.1 dBFS">Normalizar Picos (-0.1 dB)</button>
+        </div>
+        <div class="mixer-board">
+          ${allAudio.map(tk => {
+            const vol = S.trackVolumes[tk] != null ? S.trackVolumes[tk] : 100;
+            const pan = S.trackPans[tk] != null ? S.trackPans[tk] : 0;
+            const isMute = S.tracksMuted[tk];
+            const isSolo = S.tracksSolo[tk];
+            const dbVal = vol <= 0 ? "-inf" : (20 * Math.log10(vol / 100)).toFixed(1);
+            return `
+              <div class="mixer-strip" data-strip="${tk}">
+                <div class="mixer-ch-name">${tk.toUpperCase()}</div>
+                <div class="row" style="gap:2px">
+                  <button type="button" class="btn sm mixer-btn-m${isMute ? " active" : ""}" data-m="${tk}" title="Mudo">M</button>
+                  <button type="button" class="btn sm mixer-btn-s${isSolo ? " active" : ""}" data-s="${tk}" title="Solo">S</button>
+                </div>
+                <div class="mixer-pan-wrap">
+                  <span class="mixer-pan-val" id="panVal-${tk}">${pan === 0 ? "C" : (pan < 0 ? `L${Math.abs(pan)}` : `R${pan}`)}</span>
+                  <input type="range" class="mixer-pan" data-pan="${tk}" min="-100" max="100" value="${pan}">
+                </div>
+                <div class="row" style="gap:5px;align-items:flex-end">
+                  <input type="range" orient="vertical" class="mixer-fader" data-fad="${tk}" min="0" max="150" value="${vol}">
+                  <div class="mixer-meter" id="stripVu-${tk}">
+                    <div class="mixer-meter-fill" id="stripVuFill-${tk}" style="height:0%"></div>
+                  </div>
+                </div>
+                <div class="mixer-db" id="dbVal-${tk}">${dbVal} dB</div>
+              </div>
+            `;
+          }).join("")}
+
+          <!-- Canal Master -->
+          <div class="mixer-strip master" data-strip="master">
+            <div class="mixer-ch-name">MASTER</div>
+            <div class="mixer-pan-wrap" style="visibility:hidden">
+              <span class="mixer-pan-val">C</span>
+            </div>
+            <div class="row" style="gap:5px;align-items:flex-end">
+              <input type="range" orient="vertical" class="mixer-fader master" data-fad="master" min="0" max="150" value="${S.trackVolumes.master != null ? S.trackVolumes.master : 100}">
+              <div class="mixer-meter" id="stripVu-masterL">
+                <div class="mixer-meter-fill" id="stripVuFill-masterL" style="height:0%"></div>
+              </div>
+              <div class="mixer-meter" id="stripVu-masterR">
+                <div class="mixer-meter-fill" id="stripVuFill-masterR" style="height:0%"></div>
+              </div>
+            </div>
+            <div class="mixer-db" id="dbVal-master">${(S.trackVolumes.master == null || S.trackVolumes.master === 0) ? "-inf" : (20 * Math.log10(S.trackVolumes.master / 100)).toFixed(1)} dB</div>
+          </div>
+        </div>
+      </div>
+    `,
+    buttons: [
+      {
+        label: "Fechar",
+        def: 1,
+        run: () => {
+          if (vuInterval) clearInterval(vuInterval);
+        }
+      }
+    ]
+  });
+
+  const winEl = document.getElementById("mixerWin");
+  if (!winEl) return;
+
+  // Eventos de Faders
+  winEl.querySelectorAll("[data-fad]").forEach(f => {
+    f.oninput = () => {
+      const tk = f.dataset.fad;
+      const v = +f.value;
+      S.trackVolumes[tk] = v;
+      const dbEl = winEl.querySelector("#dbVal-" + tk);
+      if (dbEl) {
+        dbEl.textContent = v <= 0 ? "-inf dB" : (20 * Math.log10(v / 100)).toFixed(1) + " dB";
+      }
+      syncHtmlMediaPlayback();
+      updateVUMeterFromTimeline();
+    };
+  });
+
+  // Eventos de Pan
+  winEl.querySelectorAll("[data-pan]").forEach(p => {
+    p.oninput = () => {
+      const tk = p.dataset.pan;
+      const v = +p.value;
+      S.trackPans[tk] = v;
+      const panEl = winEl.querySelector("#panVal-" + tk);
+      if (panEl) {
+        panEl.textContent = v === 0 ? "C" : (v < 0 ? `L${Math.abs(v)}` : `R${v}`);
+      }
+      syncHtmlMediaPlayback();
+      updateVUMeterFromTimeline();
+    };
+  });
+
+  // Eventos de Mute / Solo
+  winEl.querySelectorAll("[data-m]").forEach(b => {
+    b.onclick = () => {
+      const tk = b.dataset.m;
+      S.tracksMuted[tk] = !S.tracksMuted[tk];
+      b.classList.toggle("active", S.tracksMuted[tk]);
+      syncHtmlMediaPlayback();
+      renderTimeline();
+    };
+  });
+  winEl.querySelectorAll("[data-s]").forEach(b => {
+    b.onclick = () => {
+      const tk = b.dataset.s;
+      S.tracksSolo[tk] = !S.tracksSolo[tk];
+      b.classList.toggle("active", S.tracksSolo[tk]);
+      syncHtmlMediaPlayback();
+      renderTimeline();
+    };
+  });
+
+  // Botão Normalizar Picos (-0.1 dB)
+  const bNorm = winEl.querySelector("#btnNormMixer");
+  if (bNorm) {
+    bNorm.onclick = () => {
+      normalizeProjectAudioPeaks();
+      allAudio.forEach(tk => {
+        const f = winEl.querySelector(`[data-fad="${tk}"]`);
+        if (f) f.value = S.trackVolumes[tk];
+        const dbEl = winEl.querySelector("#dbVal-" + tk);
+        if (dbEl) dbEl.textContent = (20 * Math.log10(S.trackVolumes[tk] / 100)).toFixed(1) + " dB";
+      });
+      const mf = winEl.querySelector('[data-fad="master"]');
+      if (mf) mf.value = S.trackVolumes.master;
+      const mDb = winEl.querySelector("#dbVal-master");
+      if (mDb) mDb.textContent = (20 * Math.log10(S.trackVolumes.master / 100)).toFixed(1) + " dB";
+    };
+  }
+
+  // Loop de Medidores VU no Mixer
+  vuInterval = setInterval(() => {
+    if (!document.getElementById("mixerWin")) {
+      clearInterval(vuInterval);
+      return;
+    }
+    const levels = computeAudioLevelsAt(S.playhead);
+    const mL = winEl.querySelector("#stripVuFill-masterL");
+    const mR = winEl.querySelector("#stripVuFill-masterR");
+    if (mL) mL.style.height = `${Math.round(amplitudeToMeterNorm(levels.l) * 100)}%`;
+    if (mR) mR.style.height = `${Math.round(amplitudeToMeterNorm(levels.r) * 100)}%`;
+
+    allAudio.forEach(tk => {
+      const activeClips = (S.clips[tk] || []).filter(c => !c.disabled && S.playhead >= c.start && S.playhead < c.start + c.dur);
+      let tAmp = 0;
+      activeClips.forEach(c => {
+        const s = getClipAudioSampleAt(c, S.playhead);
+        tAmp = Math.max(tAmp, s.l, s.r);
+      });
+      const fillEl = winEl.querySelector("#stripVuFill-" + tk);
+      if (fillEl) fillEl.style.height = `${Math.round(amplitudeToMeterNorm(tAmp) * 100)}%`;
+    });
+  }, 40);
+}
+
+function normalizeProjectAudioPeaks() {
+  let maxAmp = 0;
+  const step = 0.04;
+  for (let t = 0; t < S.totalDur; t += step) {
+    const { l, r } = computeAudioLevelsAt(t);
+    const peak = Math.max(l, r);
+    if (peak > maxAmp) maxAmp = peak;
+  }
+
+  if (maxAmp <= 0.01) {
+    toast("Nenhum áudio detectado na Linha do Tempo para normalizar.");
+    return;
+  }
+
+  const targetLinear = 0.9886;
+  const ratio = targetLinear / maxAmp;
+  const gainDb = 20 * Math.log10(ratio);
+
+  saveUndoSnapshot();
+  const newMaster = Math.max(10, Math.min(150, Math.round(((S.trackVolumes.master || 100) * ratio))));
+  S.trackVolumes.master = newMaster;
+  syncHtmlMediaPlayback();
+  updateVUMeterFromTimeline();
+  toast(`Picos normalizados para -0.1 dB! Ganho aplicado: ${gainDb >= 0 ? "+" : ""}${gainDb.toFixed(1)} dB (Master: ${newMaster}%)`);
+}
+
+/* ---------- Importação e Exportação de Legendas Padrão (.SRT) ---------- */
+function parseSrtTime(tStr) {
+  const p = String(tStr || "").trim().replace(",", ".").split(":");
+  if (p.length < 3) return 0;
+  const h = parseFloat(p[0]) || 0;
+  const m = parseFloat(p[1]) || 0;
+  const s = parseFloat(p[2]) || 0;
+  return h * 3600 + m * 60 + s;
+}
+
+function formatSrtTime(sec) {
+  const s = Math.max(0, Number(sec) || 0);
+  const hh = Math.floor(s / 3600);
+  const mm = Math.floor((s % 3600) / 60);
+  const ss = Math.floor(s % 60);
+  const ms = Math.floor((s % 1) * 1000);
+  return `${pad2(hh)}:${pad2(mm)}:${pad2(ss)},${String(ms).padStart(3, "0")}`;
+}
+
+async function importSrtSubtitles() {
+  let srtContent = null;
+  if (window.editorNative && typeof window.editorNative.pickSrtFile === "function") {
+    const srtPath = await window.editorNative.pickSrtFile();
+    if (!srtPath) return;
+    srtContent = await window.editorNative.readTextFile(srtPath);
+  }
+
+  if (!srtContent) {
+    toast("Nenhum arquivo SRT selecionado.");
+    return;
+  }
+
+  const blocks = srtContent.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split(/\n\s*\n/);
+  const parsed = [];
+
+  for (const block of blocks) {
+    const lines = block.trim().split("\n");
+    if (lines.length < 2) continue;
+    let timeLineIdx = -1;
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].includes("-->")) {
+        timeLineIdx = i;
+        break;
+      }
+    }
+    if (timeLineIdx === -1) continue;
+    const [t0Str, t1Str] = lines[timeLineIdx].split("-->");
+    const t0 = parseSrtTime(t0Str);
+    const t1 = parseSrtTime(t1Str);
+    const dur = Math.max(0.4, Number((t1 - t0).toFixed(2)));
+    const text = lines.slice(timeLineIdx + 1).join(" ").trim();
+    if (text) {
+      parsed.push({ start: Number(t0.toFixed(2)), dur, text });
+    }
+  }
+
+  if (!parsed.length) {
+    toast("Nenhuma legenda válida encontrada no arquivo SRT.");
+    return;
+  }
+
+  saveUndoSnapshot();
+  const targetTk = S.videoTracks.includes("v2") ? "v2" : (S.targetVideoTrack || "v1");
+  ensureTrackExists(targetTk);
+
+  parsed.forEach(sub => {
+    const c = {
+      id: uid("srt_"),
+      track: targetTk,
+      title: sub.text.slice(0, 20),
+      text: sub.text,
+      start: sub.start,
+      dur: sub.dur,
+      inPoint: 0,
+      scaleX: 100,
+      scaleY: 100,
+      posX: 0,
+      posY: 130,
+      opacity: 100,
+      chyronType: "static",
+      fontSize: 20,
+      fontColor: "#FFFF00",
+      boxColor: "rgba(0, 0, 0, 0.82)"
+    };
+    S.clips[targetTk].push(c);
+  });
+
+  resolveTrackOverlaps(targetTk);
+  recalcSequenceDuration();
+  renderAll();
+  toast(`${parsed.length} legendas importadas na faixa ${targetTk.toUpperCase()}!`);
+}
+
+async function exportSrtSubtitles() {
+  const subClips = [];
+  getAllTrackIds().forEach(tk => {
+    (S.clips[tk] || []).forEach(c => {
+      if (!c.disabled && (c.text || c.speaker)) {
+        subClips.push(c);
+      }
+    });
+  });
+
+  if (!subClips.length) {
+    toast("Não há clipes com texto ou legendas na Linha do Tempo para exportar.");
+    return;
+  }
+
+  subClips.sort((a, b) => a.start - b.start);
+  let srtText = "";
+  subClips.forEach((c, idx) => {
+    const num = idx + 1;
+    const tStart = formatSrtTime(c.start);
+    const tEnd = formatSrtTime(c.start + c.dur);
+    const lineText = c.speaker ? `${c.speaker}: ${c.text}` : c.text;
+    srtText += `${num}\n${tStart} --> ${tEnd}\n${lineText}\n\n`;
+  });
+
+  if (window.editorNative && typeof window.editorNative.pickProjectSavePath === "function") {
+    const savePath = await window.editorNative.pickProjectSavePath("LEGENDAS_SCRIPTEDITOR.SRT");
+    if (!savePath) return;
+    const ok = await window.editorNative.writeToPath(savePath, srtText);
+    if (ok) toast(`Arquivo SRT exportado com sucesso em ${savePath.split(/[/\\]/).pop()}!`);
+    else toast("Erro ao gravar arquivo SRT.");
+  } else {
+    const blob = new Blob([srtText], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "LEGENDAS_SCRIPTEDITOR.SRT";
+    a.click();
+    toast("Download do arquivo SRT iniciado!");
+  }
 }
 
 function pickSupportedMediaMime(fmt) {
@@ -4939,12 +6007,21 @@ function aboutDialog() {
       <b style="margin-top:4px">Recursos da Edição 95 (Moldes Adobe Premiere 4.2)</b>
       <div class="listview vers" style="max-height:175px">
         <div class="ver-block">
-          <b>1.0.0 · Editor Não-Linear Multifaixas (Com ou Sem Roteiro)</b><span class="chip95">você está nesta</span>
+          <b>1.0.1 · Núcleo Profissional Não-Linear &amp; Mesa de Som Analógica</b><span class="chip95">você está nesta</span>
           <ul>
-            <li>Múltiplas Faixas de Vídeo (V1, V2, V3, V4…) e de Áudio (A1, A2, A3, A4…) com expansão ilimitada</li>
-            <li>Monitores Duplos em Primeiro Plano: Monitor de Origem (com marcação IN/OUT) e Monitor de Programa Master</li>
-            <li>Importação direta de muitos vídeos (.MP4, .WEBM, .AVI, .MOV), áudios (.WAV, .MP3) e imagens por diálogo ou Arrastar e Soltar</li>
-            <li>Ferramentas Seleção (V), Navalha (C), Trim de Bordas (T), Transições Reais, Efeitos DVE/Cor e Atalhos J/K/L</li>
+            <li>Modelo de Projeto (.PPJ), Salvamento Automático (Autosave 60s) e Recuperação de Falhas</li>
+            <li>Sistema de Keyframes com interpolação Hermite suave para Opacidade, Posição, Escala, Rotação e Volume</li>
+            <li>Mesa de Som Analógica 95 com Faders individuais, VU por canal, Pan, Mute/Solo e Normalização de Picos (-0.1 dB)</li>
+            <li>Modos de Mesclagem (Multiplicar, Tela, Sobrepor, Adicionar, Diferença), Temperatura Kelvin, Tint e Chroma Key</li>
+            <li>Títulos Animados Chyron (Letreiro Rotativo/Crawl, Créditos Rolantes/Roll e Piscante) e Suporte a Legendas SRT</li>
+            <li>Cesto de Mídia (Project Bin) com busca instantânea, abas de categoria, Miniaturas e Lista Detalhada</li>
+          </ul>
+        </div>
+        <div class="ver-block">
+          <b>1.0.0 · Editor Não-Linear Multifaixas (Com ou Sem Roteiro)</b>
+          <ul>
+            <li>Múltiplas Faixas de Vídeo (V1..Vn) e Áudio (A1..An), Monitores Duplos e Medidores VU em Decibéis</li>
+            <li>Exportação multiformato (MP4, AVI, MOV, WEBM, MKV) com escolha de pasta e qualidade</li>
           </ul>
         </div>
       </div>
@@ -5031,7 +6108,21 @@ function openWhatsNewDialog() {
       </div>
       <div class="listview vers" style="max-height:220px;overflow:auto">
         <div class="ver-block">
-          <b>1.0.0 · Edição Não-Linear Multifaixas e Áudio de Alta Fidelidade</b><span class="chip95">versão instalada</span>
+          <b>1.0.1 · A Grande Atualização de Recursos do ScriptEditor</b><span class="chip95">versão instalada</span>
+          <ul>
+            <li><b>Projetos Não-Destrutivos (.PPJ):</b> Salve (Ctrl+S) e abra (Ctrl+O) projetos completos preservando timecodes e faixas.</li>
+            <li><b>Salvamento Automático &amp; Recuperação:</b> Autosave a cada 60s e detecção com recuperação automática contra quedas de energia.</li>
+            <li><b>Motor de Keyframes (Quadros-Chave):</b> Animação com curva S (Hermite) para Opacidade, Posição X/Y, Escala, Rotação e Volume.</li>
+            <li><b>Mesa de Som Analógica 95:</b> Faders deslizantes (-inf a +6 dB), Pan L/R, Mute/Solo, medição VU por canal e Normalização de Picos para -0.1 dBFS.</li>
+            <li><b>Cortes Sem Estalos (De-click):</b> Curvas de esmaecimento cosseno (Fade In e Fade Out) automáticas e ajustáveis.</li>
+            <li><b>Mesclagem e Cor Profissional:</b> Modos Multiply, Screen, Overlay, Lighter, Difference, correção de Temperatura Kelvin, Tint e Chroma Key.</li>
+            <li><b>Títulos Animados &amp; Legendas SRT:</b> Letreiro Rotativo (Crawl), Créditos Rolantes (Roll), Piscante, e importação/exportação de arquivos .SRT.</li>
+            <li><b>Cesto de Mídia com Miniaturas Reais:</b> Busca instantânea, abas de categoria (Vídeos, Áudios, Imagens, Sintéticos) e alternância Miniaturas/Lista.</li>
+            <li><b>Modos de Resolução de Prévia:</b> Opções 1/1 Total, 1/2 Rápido e 1/4 Betacam para scrubbing e reprodução ultra fluidos.</li>
+          </ul>
+        </div>
+        <div class="ver-block">
+          <b>1.0.0 · Edição Não-Linear Multifaixas e Áudio de Alta Fidelidade</b>
           <ul>
             <li>Central de Atualizações integrada com pesquisa e transferência via servidor de rede</li>
             <li>Zoom da Linha do Tempo com acompanhamento e foco automático na agulha de reprodução</li>
@@ -5333,7 +6424,13 @@ function renderAll() {
 
 const CMD = {
   novoProjetoLivre: { label: "Novo Projeto Livre (Comercial / Doméstico)", icon: "new", key: "Ctrl+N", run: () => { createStarterFreeProject(); toast("Novo projeto livre iniciado!"); } },
+  abrirProjeto: { label: "Abrir Projeto (.PPJ)…", icon: "open", key: "Ctrl+O", run: () => openProjectDialog() },
+  salvarProjeto: { label: "Salvar Projeto (.PPJ)", icon: "save", key: "Ctrl+S", run: () => saveCurrentProject(false) },
+  salvarProjetoComo: { label: "Salvar Projeto Como…", icon: "save", key: "Ctrl+Shift+S", run: () => saveCurrentProject(true) },
   importarMidia: { label: "Importar Vídeo, Áudio ou Imagem…", icon: "folder", key: "Ctrl+I", run: () => importMediaFiles("all", true) },
+  importarSRT: { label: "Importar Legendas (.SRT)…", icon: "tv", run: () => importSrtSubtitles() },
+  exportarSRT: { label: "Exportar Legendas (.SRT)…", icon: "tv", run: () => exportSrtSubtitles() },
+  mesaSom: { label: "Mesa de Som Analógica 95…", icon: "speaker", run: () => openAudioMixerDialog() },
   gerarSinal: { label: "Novo Sinal / Contagem Regressiva / Barras…", icon: "film", run: () => openGeneratorDialog() },
   geradorGC: { label: "Novo Letreiro / Cartela (Title Designer)…", icon: "tv", run: () => openChyronDialog() },
   addVideoTrack: { label: "Adicionar Nova Faixa de Vídeo (+V)", icon: "film", run: () => addVideoTrack() },
@@ -5346,7 +6443,7 @@ const CMD = {
     if (cur()) buildTimelineFromScript(cur());
     toast("Roteiro do ScriptRoom carregado na Linha do Tempo!");
   }},
-  salvarNoSR: { label: "Sincronizar Roteiro no ScriptRoom", icon: "save", key: "Ctrl+S", run: () => saveCurrentToScriptRoom() },
+  salvarNoSR: { label: "Sincronizar Roteiro no ScriptRoom", icon: "save", run: () => saveCurrentToScriptRoom() },
   exportarMaster: { label: "Exportar Filme Master (.MP4 / .AVI / .MOV / .WEBM)…", icon: "save", key: "Ctrl+M", run: () => openExportDialog() },
   abrirScriptRoom: { label: "Abrir o aplicativo ScriptRoom", icon: "clapper", run: () => { if (window.editorNative) window.editorNative.launchScriptRoom(); } },
   desligar: { label: "Sair do ScriptEditor", icon: "power", run: () => { if (window.editorNative) window.editorNative.close(); } },
@@ -5389,12 +6486,12 @@ const CMD = {
 };
 
 const MENUS = [
-  ["Arquivo", "A", ["novoProjetoLivre", "importarMidia", "gerarSinal", "geradorGC", "-", "importarSR", "salvarNoSR", "-", "exportarMaster", "-", "abrirScriptRoom", "-", "desligar"]],
+  ["Arquivo", "A", ["novoProjetoLivre", "abrirProjeto", "salvarProjeto", "salvarProjetoComo", "-", "importarMidia", "importarSRT", "exportarSRT", "-", "gerarSinal", "geradorGC", "-", "importarSR", "salvarNoSR", "-", "exportarMaster", "-", "abrirScriptRoom", "-", "desligar"]],
   ["Editar", "E", ["desfazer", "refazer", "-", "copiarClipe", "colarClipe", "duplicarClipe", "-", "cortarAgulha", "excluirClipe", "excluirRipple", "-", "configTeclas"]],
-  ["Projeto", "P", ["importarMidia", "gerarSinal", "geradorGC", "adicionarMarcador", "-", "addVideoTrack", "addAudioTrack", "-", "importarSR"]],
+  ["Projeto", "P", ["importarMidia", "abrirProjeto", "salvarProjeto", "-", "gerarSinal", "geradorGC", "adicionarMarcador", "-", "addVideoTrack", "addAudioTrack", "-", "mesaSom", "-", "importarSRT", "exportarSRT", "-", "importarSR"]],
   ["Clipe", "C", ["velocidadeClipe", "cortarAgulha", "duplicarClipe", "excluirClipe", "excluirRipple", "-", "addVideoTrack", "addAudioTrack", "-", "toolSelect", "toolTrack", "toolRazor", "toolTrim", "toolHand"]],
   ["Janela", "J", ["layDual", "laySingle", "layScript", "-", "verPainel", "-", "esquema"]],
-  ["Áudio/Vídeo", "V", ["addVideoTrack", "addAudioTrack", "-", "mesaFoley", "gravadorADR", "claqueteCam", "-", "exportarMaster"]],
+  ["Áudio/Vídeo", "V", ["mesaSom", "addVideoTrack", "addAudioTrack", "-", "mesaFoley", "gravadorADR", "claqueteCam", "-", "exportarMaster"]],
   ["Ajuda", "u", ["atalhosAjuda", "dicaDoDia", "procurarAtualizacoes", "-", "oQueHaDeNovo", "telaAbertura", "sobre"]]
 ];
 
@@ -5667,7 +6764,20 @@ async function boot() {
     ruler.addEventListener("pointermove", mv); ruler.addEventListener("pointerup", up);
   });
 
-  // Seletores Superiores
+  // Seletores Superiores e Toolbar da Linha do Tempo
+  const prSel = document.getElementById("previewResSel");
+  if (prSel) {
+    prSel.value = String(prefs.previewRes || 1);
+    prSel.onchange = e => {
+      prefs.previewRes = Number(e.target.value) || 1;
+      savePrefs();
+      renderMonitorFrame();
+      toast(`Resolução de prévia alterada para 1/${prefs.previewRes}!`);
+    };
+  }
+  const bMesa = document.getElementById("btnMesaSom");
+  if (bMesa) bMesa.onclick = () => openAudioMixerDialog();
+
   const chkSnapEl = document.getElementById("chkSnap");
   if (chkSnapEl) {
     chkSnapEl.checked = prefs.snap !== false;
@@ -5754,7 +6864,8 @@ async function boot() {
     else if (match("exportMovie")) { e.preventDefault(); openExportDialog(); }
     else if (match("undo")) { e.preventDefault(); undoEdit(); }
     else if (match("redo")) { e.preventDefault(); redoEdit(); }
-    else if (combo.toLowerCase() === "ctrl+s") { e.preventDefault(); saveCurrentToScriptRoom(); }
+    else if (match("openProject") || combo.toLowerCase() === "ctrl+o") { e.preventDefault(); openProjectDialog(); }
+    else if (match("saveProject") || combo.toLowerCase() === "ctrl+s") { e.preventDefault(); saveCurrentProject(); }
     else if (combo.toLowerCase() === "ctrl+n") { e.preventDefault(); createStarterFreeProject(); }
     else if (match("playPause")) { e.preventDefault(); togglePlay(1); }
     else if (match("shuttlePause")) { e.preventDefault(); if (S.playing) togglePlay(S.shuttleSpeed); }
@@ -5783,6 +6894,14 @@ async function boot() {
     else if (e.key === "+" || e.key === "=") { e.preventDefault(); setTimelineZoom((Number(prefs.tlZoom) || 10) + 2, true); }
     else if (e.key === "-" || e.key === "_") { e.preventDefault(); setTimelineZoom((Number(prefs.tlZoom) || 10) - 2, true); }
     else if (e.key === "Home") { e.preventDefault(); setPlayhead(0, false); }
+  });
+
+  // Salvamento Automático (Autosave a cada 60s) e Recuperação de Quedas de Energia
+  setInterval(autoSaveProject, 60000);
+  setTimeout(checkCrashRecovery, 800);
+
+  window.addEventListener("beforeunload", () => {
+    localStorage.setItem("varguelia.scripteditor.session_unclean", "0");
   });
 
   await loadFromScriptRoom(true);

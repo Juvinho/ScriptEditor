@@ -231,6 +231,66 @@ ipcMain.handle("script:pickFile", async (e) => {
   };
 });
 
+/* ---------- IPC: Manipulação de Projetos (.PPJ) e Legendas (.SRT) ---------- */
+ipcMain.handle("project:pickFile", async (e) => {
+  const dono = BrowserWindow.fromWebContents(e.sender) || win;
+  const r = await dialog.showOpenDialog(dono, {
+    title: "Abrir Projeto do ScriptEditor (.PPJ, .JSON)",
+    defaultPath: path.join(DATA_EDITOR, "projetos"),
+    properties: ["openFile"],
+    filters: [
+      { name: "Projetos ScriptEditor / Premiere (.PPJ, .JSON)", extensions: ["ppj", "json"] },
+      { name: "Todos os Arquivos", extensions: ["*"] }
+    ]
+  });
+  if (r.canceled || !r.filePaths.length) return null;
+  const fp = r.filePaths[0];
+  return {
+    name: path.basename(fp),
+    path: fp,
+    content: fs.readFileSync(fp, "utf8")
+  };
+});
+
+ipcMain.handle("project:pickSavePath", async (e, nomePadrao) => {
+  const dono = BrowserWindow.fromWebContents(e.sender) || win;
+  const safeName = String(nomePadrao || "PROJETO_01.PPJ").replace(/[\\/:*?"<>|]/g, "_");
+  const r = await dialog.showSaveDialog(dono, {
+    title: "Salvar Projeto Como (ScriptEditor 95)",
+    defaultPath: path.join(DATA_EDITOR, "projetos", safeName),
+    filters: [
+      { name: "Projeto ScriptEditor (.PPJ)", extensions: ["ppj"] },
+      { name: "Projeto JSON (.JSON)", extensions: ["json"] }
+    ]
+  });
+  if (r.canceled || !r.filePath) return null;
+  return r.filePath;
+});
+
+ipcMain.handle("file:readText", async (_e, filePath) => {
+  if (!filePath || !fs.existsSync(filePath)) return null;
+  return fs.readFileSync(filePath, "utf8");
+});
+
+ipcMain.handle("srt:pickFile", async (e) => {
+  const dono = BrowserWindow.fromWebContents(e.sender) || win;
+  const r = await dialog.showOpenDialog(dono, {
+    title: "Importar Legendas SubRip (.SRT)",
+    properties: ["openFile"],
+    filters: [
+      { name: "Arquivos de Legendas SubRip (.SRT)", extensions: ["srt"] },
+      { name: "Arquivos de Texto (.TXT)", extensions: ["txt"] }
+    ]
+  });
+  if (r.canceled || !r.filePaths.length) return null;
+  const fp = r.filePaths[0];
+  return {
+    name: path.basename(fp),
+    path: fp,
+    content: fs.readFileSync(fp, "utf8")
+  };
+});
+
 ipcMain.handle("file:saveAs", async (e, nomePadrao, bytes, filtros) => {
   const dono = BrowserWindow.fromWebContents(e.sender) || win;
   const safeName = String(nomePadrao || "EXPORTACAO_MASTER").replace(/[\\/:*?"<>|]/g, "_");

@@ -18,6 +18,10 @@ contextBridge.exposeInMainWorld("editorNative", {
   // Importação e Exportação de Mídias e Cortes
   pickMedia: (tipo) => ipcRenderer.invoke("media:pick", tipo),
   pickScriptFile: () => ipcRenderer.invoke("script:pickFile"),
+  pickProjectFile: () => ipcRenderer.invoke("project:pickFile"),
+  pickProjectSavePath: (nome) => ipcRenderer.invoke("project:pickSavePath", nome),
+  readTextFile: (filePath) => ipcRenderer.invoke("file:readText", filePath),
+  pickSrtFile: () => ipcRenderer.invoke("srt:pickFile"),
   saveAs: (nome, bytes, filtros) => ipcRenderer.invoke("file:saveAs", nome, bytes, filtros),
   getDefaultExportDir: () => ipcRenderer.invoke("file:getDefaultExportDir"),
   pickSavePath: (nome, filtros, caminhoAtual) => ipcRenderer.invoke("file:pickSavePath", nome, filtros, caminhoAtual),
