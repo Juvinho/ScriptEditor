@@ -82,13 +82,15 @@ run(`git push origin ${tag}`);
 
 // 6. Publica Release no GitHub via gh CLI com o instalador anexado
 console.log(`Criando Release ${tag} no GitHub...`);
-const notes = `### ScriptEditor ${version} · Edição 95 — Multi-Sequências, Ripple Delete no Vazio e Salvamento Profissional\n\n` +
-  `- **Múltiplas Timelines / Sequências no Mesmo Projeto (Ctrl+N):** Crie e gerencie várias sequências de montagem no mesmo arquivo .PPJ através de abas clássicas 3D no topo da régua e pastas no Cesto de Mídia (Bin)\n` +
-  `- **Seleção de Espaço Vazio & Eliminar Ondulação (Ripple Delete):** Clique em qualquer buraco entre clipes na timeline para selecioná-lo em hachura amarela e aperte Delete ou use o botão direito para fechar o espaço instantaneamente\n` +
-  `- **Fluxo Padrão de Salvamento de Projetos (.PPJ):** Salvamento direto e ágil no arquivo com Ctrl+S, Salvar Como com Ctrl+Shift+S, indicador de alterações não salvas (*) na barra de título e download real no navegador\n` +
-  `- **Ímã Magnético de Snapping (Tecla S):** Encaixe automático e magnético com linhas guias verticais nas bordas de clipes, cortes de outras faixas, playhead e marcadores\n` +
-  `- **Edição Rápida de 3 Pontos (Monitor de Origem):** Tecla . (Ponto) para Sobrescrever (Overwrite) e Tecla , (Vírgula) para Inserir com Ondulação (Insert)\n` +
-  `- **Área de Trabalho & Pontos IN/OUT na Linha do Tempo (Teclas I e O):** Delimitação de trechos de exportação e reprodução em loop na régua principal`;
+const notes = `### ScriptEditor ${version} · Edição 95 — Seleção Múltipla, Agrupamento e Edição em Bloco\n\n` +
+  `- **Seleção Múltipla de Clipes (Marquee / Lasso):** Arraste o mouse em área desocupada para desenhar uma caixa elástica e selecionar vários clipes simultaneamente em qualquer faixa\n` +
+  `- **Seleção Aditiva (Shift + Clique & Ctrl + Clique):** Adicione ou remova clipes da seleção com teclas modificadoras e selecione faixas inteiras com duplo-clique no cabeçalho ou Ctrl+A\n` +
+  `- **Movimentação e Exclusão em Bloco:** Arraste qualquer clipe selecionado para mover todos juntos com precisão magnética, exclua em massa com Delete ou faça Ripple Delete em bloco com Shift+Delete\n` +
+  `- **Agrupamento de Clipes (Ctrl+G / Ctrl+Shift+G):** Vincule clipes em grupos permanentes com identificador visual [GRP] para andarem e serem manipulados sempre em conjunto\n` +
+  `- **Vínculo Áudio e Vídeo (Ctrl+L):** Vincule faixas de áudio e vídeo mantendo a sincronia e alertando desvios temporais em vermelho\n` +
+  `- **Colar Atributos Seletivo (Ctrl+Alt+V):** Transfira efeitos, escalas, posições, volumes ou velocidades de um clipe para múltiplos clipes selecionados\n` +
+  `- **Gerador de Matte de Cor Broadcast (Color Matte):** Crie cartelas de cor sólida (Preto broadcast, Branco, Chroma Blue/Green ou personalizada) diretamente no projeto\n` +
+  `- **Transição Rápida no Corte (Ctrl+D):** Aplique dissolvência cruzada (Cross Dissolve) instantânea entre cortes na agulha`;
 
 const releaseCheck = runSilent(`gh release view ${tag} --json tagName`);
 if (!releaseCheck) {

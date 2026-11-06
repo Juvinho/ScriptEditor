@@ -5,7 +5,7 @@
    Zero emojis · Ícones SVG 16x16 pixel-art · Edição Comercial, Doméstica e Roteirizada
    ============================================================================ */
 
-let APP_VERSAO = "1.0.6"; // Substituída em boot() pela versão real do package.json
+let APP_VERSAO = "1.0.7"; // Substituída em boot() pela versão real do package.json
 const FPS = 29.97;
 
 const ICON = {
@@ -40,7 +40,8 @@ const ICON = {
   info: '<circle cx="8" cy="8" r="6.5" fill="#fff" stroke="#800000" stroke-width="1.4"/><rect x="7.2" y="7" width="1.6" height="5" fill="#800000"/><rect x="7.2" y="4" width="1.6" height="1.6" fill="#800000"/>',
   power: '<circle cx="8" cy="9" r="5.5" fill="none" stroke="#000" stroke-width="1.6"/><path d="M8 1.5v7" stroke="#C00000" stroke-width="2"/>',
   seq: '<rect x="1.5" y="3.5" width="13" height="9" fill="#182838" stroke="#000"/><circle cx="5" cy="8" r="2.2" fill="#fff" stroke="#000"/><circle cx="11" cy="8" r="2.2" fill="#fff" stroke="#000"/><path d="M4 3.5v9M12 3.5v9" stroke="#FFE040"/><rect x="6.5" y="5.5" width="3" height="5" fill="#FFE040"/>',
-  magnet: '<path d="M3 3v6a5 5 0 0 0 10 0V3h-3v6a2 2 0 0 1-4 0V3z" fill="#C00000" stroke="#000"/><rect x="3" y="2" width="3" height="3" fill="#C0C0C0" stroke="#000"/><rect x="10" y="2" width="3" height="3" fill="#C0C0C0" stroke="#000"/>'
+  magnet: '<path d="M3 3v6a5 5 0 0 0 10 0V3h-3v6a2 2 0 0 1-4 0V3z" fill="#C00000" stroke="#000"/><rect x="3" y="2" width="3" height="3" fill="#C0C0C0" stroke="#000"/><rect x="10" y="2" width="3" height="3" fill="#C0C0C0" stroke="#000"/>',
+  group: '<rect x="1.5" y="3.5" width="6" height="6" fill="#000080" stroke="#000"/><rect x="8.5" y="6.5" width="6" height="6" fill="#C00000" stroke="#000"/><path d="M7.5 6.5h2v3h-2z" fill="#FFE040"/>'
 };
 
 const icon = (n, s = 16) => `<svg viewBox="0 0 16 16" width="${s}" height="${s}" aria-hidden="true" focusable="false">${ICON[n] || ICON.editor}</svg>`;
@@ -117,7 +118,14 @@ const DEFAULT_KEYMAP = {
   pasteClip: "Ctrl+V",
   undo: "Ctrl+Z",
   redo: "Ctrl+Y",
-  congelarQuadro: "Shift+F"
+  congelarQuadro: "Shift+F",
+  selectAll: "Ctrl+A",
+  groupClips: "Ctrl+G",
+  ungroupClips: "Ctrl+Shift+G",
+  linkClips: "Ctrl+L",
+  pasteAttributes: "Ctrl+Alt+V",
+  colorMatte: "Shift+M",
+  quickCrossDissolve: "Ctrl+D"
 };
 
 const KEYMAP_LABELS = [
@@ -137,6 +145,13 @@ const KEYMAP_LABELS = [
   ["splitClip", "Dividir Clipe na Agulha (Split)"],
   ["duplicateClip", "Duplicar Clipe Selecionado"],
   ["congelarQuadro", "Congelar Fotograma na Agulha (Freeze Frame)"],
+  ["selectAll", "Selecionar Todos os Clipes da Timeline"],
+  ["groupClips", "Agrupar Clipes Selecionados (Group)"],
+  ["ungroupClips", "Desagrupar Clipes Selecionados (Ungroup)"],
+  ["linkClips", "Vincular / Desvincular Áudio e Vídeo (Link A/V)"],
+  ["pasteAttributes", "Colar Atributos nos Clipes Selecionados"],
+  ["colorMatte", "Gerador de Matte de Cor Sólida 1995"],
+  ["quickCrossDissolve", "Transição Rápida Cross Dissolve (1.0s)"],
   ["addMarker", "Inserir Marcador na Agulha"],
   ["markIn", "Marcar Entrada (IN) no Monitor ou Timeline"],
   ["markOut", "Marcar Saída (OUT) no Monitor ou Timeline"],
@@ -296,7 +311,9 @@ const S = {
   clips: { v3: [], v2: [], v1: [], a1: [], a2: [], a3: [] },
   selectedClipId: null,
   selectedClipTrack: null,
+  selectedClipIds: [],
   clipboardClip: null,
+  clipboardClips: null,
   recordingKeyAction: null,
 
   // Cesto de Mídia (Project Bin) com Abas, Busca e Modos de Exibição
@@ -520,6 +537,7 @@ function loadSequenceIntoState(seqId) {
   S.trackPans = Object.assign({}, seq.trackPans || {});
   S.selectedClipId = null;
   S.selectedClipTrack = null;
+  S.selectedClipIds = [];
   S.selectedGap = null;
   S.undoStack = [];
   S.redoStack = [];
@@ -529,18 +547,40 @@ function loadSequenceIntoState(seqId) {
 }
 
 function createNewSequence(customName = null) {
+  if (customName !== null && typeof customName === "string" && customName.trim()) {
+    return createNewSequenceDirect(customName);
+  }
+  openNewSequenceDialog();
+}
+
+function createNewSequenceDirect(name = null, numV = 3, numA = 3) {
   ensureSequencesInitialized();
   syncActiveSequenceToState();
   const defName = `Sequência ${S.sequences.length + 1}`;
-  const name = customName !== null ? customName : prompt("Nome da Nova Sequência / Linha do Tempo:", defName);
-  if (!name || !name.trim()) return null;
+  const finalName = (name && name.trim()) ? name.trim() : defName;
   const newId = uid("seq_");
+
+  const vTracks = [];
+  const clipsObj = {};
+  for (let i = numV; i >= 1; i--) {
+    const tkId = `v${i}`;
+    vTracks.push(tkId);
+    clipsObj[tkId] = [];
+  }
+
+  const aTracks = [];
+  for (let j = 1; j <= numA; j++) {
+    const tkId = `a${j}`;
+    aTracks.push(tkId);
+    clipsObj[tkId] = [];
+  }
+
   const newSeq = {
     id: newId,
-    name: name.trim(),
-    videoTracks: ["v3", "v2", "v1"],
-    audioTracks: ["a1", "a2", "a3"],
-    clips: { v3: [], v2: [], v1: [], a1: [], a2: [], a3: [] },
+    name: finalName,
+    videoTracks: vTracks,
+    audioTracks: aTracks,
+    clips: clipsObj,
     markers: [],
     totalDur: 30,
     playhead: 0,
@@ -548,17 +588,69 @@ function createNewSequence(customName = null) {
     tlOut: null,
     targetVideoTrack: "v1",
     targetAudioTrack: "a1",
-    tracksMuted: { v3: false, v2: false, v1: false, a1: false, a2: false, a3: false },
-    tracksLocked: { v3: false, v2: false, v1: false, a1: false, a2: false, a3: false },
-    tracksSolo: { a1: false, a2: false, a3: false },
-    trackVolumes: { a1: 100, a2: 85, a3: 100, master: 100 },
-    trackPans: { a1: 0, a2: 0, a3: 0 }
+    tracksMuted: {},
+    tracksLocked: {},
+    tracksSolo: {},
+    trackVolumes: { master: 100 },
+    trackPans: {}
   };
+  vTracks.forEach(k => { newSeq.tracksMuted[k] = false; newSeq.tracksLocked[k] = false; });
+  aTracks.forEach(k => {
+    newSeq.tracksMuted[k] = false;
+    newSeq.tracksLocked[k] = false;
+    newSeq.tracksSolo[k] = false;
+    newSeq.trackVolumes[k] = 100;
+    newSeq.trackPans[k] = 0;
+  });
+
   S.sequences.push(newSeq);
   S.isDirty = true;
   loadSequenceIntoState(newId);
   toast(`Nova Sequência "${newSeq.name}" criada!`);
   return newSeq;
+}
+
+function openNewSequenceDialog() {
+  ensureSequencesInitialized();
+  const defName = `Sequência ${S.sequences.length + 1}`;
+  dialog({
+    id: "newSeqWin",
+    title: "Nova Sequência / Linha do Tempo",
+    width: 380,
+    body: `
+      <div class="col" style="gap:8px">
+        <label class="fld"><span>Nome da Nova Linha do Tempo:</span>
+          <input type="text" id="seq-name-input" value="${escH(defName)}" style="font-weight:bold">
+        </label>
+        <div class="row" style="gap:8px">
+          <label class="fld" style="flex:1"><span>Faixas de Vídeo (V):</span>
+            <input type="number" id="seq-vtracks" value="3" min="1" max="16">
+          </label>
+          <label class="fld" style="flex:1"><span>Faixas de Áudio (A):</span>
+            <input type="number" id="seq-atracks" value="3" min="1" max="16">
+          </label>
+        </div>
+      </div>
+    `,
+    buttons: [
+      {
+        label: "OK",
+        def: 1,
+        run: (w) => {
+          const nameInput = w.querySelector("#seq-name-input");
+          const name = (nameInput?.value || defName).trim() || defName;
+          const numV = Math.max(1, Math.min(16, parseInt(w.querySelector("#seq-vtracks")?.value, 10) || 3));
+          const numA = Math.max(1, Math.min(16, parseInt(w.querySelector("#seq-atracks")?.value, 10) || 3));
+          createNewSequenceDirect(name, numV, numA);
+        }
+      },
+      { label: "Cancelar" }
+    ]
+  });
+  setTimeout(() => {
+    const inp = document.getElementById("seq-name-input");
+    if (inp) { inp.focus(); inp.select(); }
+  }, 50);
 }
 
 function duplicateActiveSequence() {
@@ -586,29 +678,69 @@ function closeSequence(seqId) {
   const idx = S.sequences.findIndex(s => s.id === seqId);
   if (idx < 0) return;
   const seqName = S.sequences[idx].name;
-  if (!confirm(`Deseja realmente fechar a sequência "${seqName}"?`)) return;
-  S.sequences.splice(idx, 1);
-  S.isDirty = true;
-  if (S.activeSequenceId === seqId) {
-    const nextSeq = S.sequences[Math.max(0, idx - 1)];
-    loadSequenceIntoState(nextSeq.id);
-  } else {
-    renderSequenceTabs();
-  }
-  toast(`Sequência "${seqName}" fechada.`);
+  dialog({
+    id: "closeSeqConfirmWin",
+    title: "Fechar Sequência",
+    width: 360,
+    body: `<div style="padding:6px 0">Deseja realmente fechar a sequência <b>"${escH(seqName)}"</b>?</div>`,
+    buttons: [
+      {
+        label: "Sim",
+        def: 1,
+        run: () => {
+          S.sequences.splice(idx, 1);
+          S.isDirty = true;
+          if (S.activeSequenceId === seqId) {
+            const nextSeq = S.sequences[Math.max(0, idx - 1)];
+            loadSequenceIntoState(nextSeq.id);
+          } else {
+            renderSequenceTabs();
+          }
+          toast(`Sequência "${seqName}" fechada.`);
+        }
+      },
+      { label: "Não" }
+    ]
+  });
 }
 
 function renameSequence(seqId) {
   ensureSequencesInitialized();
   const seq = S.sequences.find(s => s.id === seqId);
   if (!seq) return;
-  const newName = prompt("Renomear Sequência:", seq.name);
-  if (!newName || !newName.trim() || newName.trim() === seq.name) return;
-  seq.name = newName.trim();
-  S.isDirty = true;
-  renderSequenceTabs();
-  updateStatusBar();
-  toast(`Sequência renomeada para "${seq.name}"`);
+  dialog({
+    id: "renameSeqWin",
+    title: "Renomear Sequência",
+    width: 360,
+    body: `
+      <div class="col" style="gap:6px">
+        <label class="fld"><span>Novo Nome da Sequência:</span>
+          <input type="text" id="rename-seq-input" value="${escH(seq.name)}" style="font-weight:bold">
+        </label>
+      </div>
+    `,
+    buttons: [
+      {
+        label: "OK",
+        def: 1,
+        run: (w) => {
+          const val = w.querySelector("#rename-seq-input")?.value?.trim();
+          if (val && val !== seq.name) {
+            seq.name = val;
+            S.isDirty = true;
+            renderSequenceTabs();
+            updateStatusBar();
+            toast(`Sequência renomeada para "${seq.name}"`);
+          }
+        }
+      },
+      { label: "Cancelar" }
+    ]
+  });
+  setTimeout(() => {
+    const inp = document.getElementById("rename-seq-input");
+    if (inp) { inp.focus(); inp.select(); }
+  }, 50);
 }
 
 function renderSequenceTabs() {
@@ -839,6 +971,7 @@ function saveUndoSnapshot() {
     trackPans: S.trackPans,
     selectedClipId: S.selectedClipId,
     selectedClipTrack: S.selectedClipTrack,
+    selectedClipIds: Array.isArray(S.selectedClipIds) ? [...S.selectedClipIds] : [],
     tlIn: S.tlIn,
     tlOut: S.tlOut
   });
@@ -864,6 +997,7 @@ function undoEdit() {
     trackPans: S.trackPans,
     selectedClipId: S.selectedClipId,
     selectedClipTrack: S.selectedClipTrack,
+    selectedClipIds: Array.isArray(S.selectedClipIds) ? [...S.selectedClipIds] : [],
     tlIn: S.tlIn,
     tlOut: S.tlOut
   });
@@ -877,6 +1011,7 @@ function undoEdit() {
   S.clips = prev.clips;
   S.selectedClipId = prev.selectedClipId;
   S.selectedClipTrack = prev.selectedClipTrack;
+  S.selectedClipIds = prev.selectedClipIds || (prev.selectedClipId ? [prev.selectedClipId] : []);
   if (prev.tlIn !== undefined) S.tlIn = prev.tlIn;
   if (prev.tlOut !== undefined) S.tlOut = prev.tlOut;
   recalcSequenceDuration();
@@ -898,6 +1033,7 @@ function redoEdit() {
     trackPans: S.trackPans,
     selectedClipId: S.selectedClipId,
     selectedClipTrack: S.selectedClipTrack,
+    selectedClipIds: Array.isArray(S.selectedClipIds) ? [...S.selectedClipIds] : [],
     tlIn: S.tlIn,
     tlOut: S.tlOut
   });
@@ -911,6 +1047,7 @@ function redoEdit() {
   S.clips = next.clips;
   S.selectedClipId = next.selectedClipId;
   S.selectedClipTrack = next.selectedClipTrack;
+  S.selectedClipIds = next.selectedClipIds || (next.selectedClipId ? [next.selectedClipId] : []);
   if (next.tlIn !== undefined) S.tlIn = next.tlIn;
   if (next.tlOut !== undefined) S.tlOut = next.tlOut;
   recalcSequenceDuration();
@@ -918,11 +1055,455 @@ function redoEdit() {
   toast("Ação refeita (Ctrl+Y).");
 }
 
+function isClipSelected(id) {
+  if (!id) return false;
+  if (Array.isArray(S.selectedClipIds) && S.selectedClipIds.includes(id)) return true;
+  return S.selectedClipId === id;
+}
+
 function getSelectedClip() {
-  if (!S.selectedClipId) return null;
-  for (const tk of getAllTrackIds()) {
-    const found = (S.clips[tk] || []).find(c => c.id === S.selectedClipId);
-    if (found) return found;
+  if (S.selectedClipId) {
+    for (const tk of getAllTrackIds()) {
+      const found = (S.clips[tk] || []).find(c => c.id === S.selectedClipId);
+      if (found) return found;
+    }
+  }
+  if (Array.isArray(S.selectedClipIds) && S.selectedClipIds.length > 0) {
+    for (const tk of getAllTrackIds()) {
+      const found = (S.clips[tk] || []).find(c => c.id === S.selectedClipIds[0]);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+function getSelectedClipsList() {
+  const ids = new Set(Array.isArray(S.selectedClipIds) ? S.selectedClipIds : []);
+  if (S.selectedClipId) ids.add(S.selectedClipId);
+  const result = [];
+  getAllTrackIds().forEach(tk => {
+    (S.clips[tk] || []).forEach(c => {
+      if (ids.has(c.id)) {
+        result.push({ clip: c, track: tk });
+      }
+    });
+  });
+  return result;
+}
+
+function clearClipSelection() {
+  S.selectedClipIds = [];
+  S.selectedClipId = null;
+  S.selectedClipTrack = null;
+  S.selectedGap = null;
+}
+
+function selectClip(clipId, track, isMulti = false, toggle = false) {
+  if (!Array.isArray(S.selectedClipIds)) S.selectedClipIds = [];
+  S.selectedGap = null;
+
+  // Busca o clipe para verificar se faz parte de grupo ou vínculo
+  let clipObj = null;
+  getAllTrackIds().forEach(tk => {
+    const found = (S.clips[tk] || []).find(c => c.id === clipId);
+    if (found) clipObj = found;
+  });
+
+  const memberIds = [clipId];
+  if (clipObj && clipObj.groupId) {
+    getAllTrackIds().forEach(tk => {
+      (S.clips[tk] || []).forEach(c => {
+        if (c.groupId === clipObj.groupId && !memberIds.includes(c.id)) {
+          memberIds.push(c.id);
+        }
+      });
+    });
+  }
+  if (clipObj && clipObj.linkId) {
+    getAllTrackIds().forEach(tk => {
+      (S.clips[tk] || []).forEach(c => {
+        if (c.linkId === clipObj.linkId && !memberIds.includes(c.id)) {
+          memberIds.push(c.id);
+        }
+      });
+    });
+  }
+
+  if (isMulti) {
+    const allAlreadyIn = memberIds.every(id => S.selectedClipIds.includes(id));
+    if (toggle && allAlreadyIn) {
+      S.selectedClipIds = S.selectedClipIds.filter(id => !memberIds.includes(id));
+      if (S.selectedClipId && memberIds.includes(S.selectedClipId)) {
+        S.selectedClipId = S.selectedClipIds[0] || null;
+      }
+    } else {
+      memberIds.forEach(id => {
+        if (!S.selectedClipIds.includes(id)) S.selectedClipIds.push(id);
+      });
+      S.selectedClipId = clipId;
+      S.selectedClipTrack = track;
+    }
+  } else {
+    S.selectedClipIds = [...memberIds];
+    S.selectedClipId = clipId;
+    S.selectedClipTrack = track;
+  }
+}
+
+function selectAllClips() {
+  clearClipSelection();
+  const allIds = [];
+  getAllTrackIds().forEach(tk => {
+    (S.clips[tk] || []).forEach(c => allIds.push(c.id));
+  });
+  S.selectedClipIds = allIds;
+  if (allIds.length > 0) {
+    S.selectedClipId = allIds[0];
+  }
+  renderTimeline();
+  updateStatusBar();
+  toast(`${allIds.length} clipe(s) selecionado(s) em todas as faixas (Ctrl+A).`);
+}
+
+function selectTrackClips(tk) {
+  if (!S.clips[tk] || !S.clips[tk].length) {
+    toast(`Nenhum clipe na faixa ${tk.toUpperCase()}.`);
+    return;
+  }
+  if (!Array.isArray(S.selectedClipIds)) S.selectedClipIds = [];
+  const trackClipIds = (S.clips[tk] || []).map(c => c.id);
+  trackClipIds.forEach(id => {
+    if (!S.selectedClipIds.includes(id)) S.selectedClipIds.push(id);
+  });
+  S.selectedClipId = trackClipIds[0];
+  S.selectedClipTrack = tk;
+  renderTimeline();
+  updateStatusBar();
+  toast(`Todos os ${trackClipIds.length} clipe(s) da faixa ${tk.toUpperCase()} selecionados!`);
+}
+
+function groupSelectedClips() {
+  const selectedList = getSelectedClipsList();
+  if (selectedList.length < 2) {
+    toast("Selecione pelo menos 2 clipes para agrupar (use Shift+Clique ou o Laço do mouse).");
+    return;
+  }
+  saveUndoSnapshot();
+  const newGroupId = uid("grp_");
+  selectedList.forEach(item => {
+    item.clip.groupId = newGroupId;
+  });
+  renderTimeline();
+  updateStatusBar();
+  toast(`${selectedList.length} clipes agrupados com sucesso (Ctrl+G)!`);
+}
+
+function ungroupSelectedClips() {
+  const selectedList = getSelectedClipsList();
+  if (!selectedList.length) {
+    toast("Selecione os clipes do grupo para desagrupar.");
+    return;
+  }
+  saveUndoSnapshot();
+  const groupIds = new Set(selectedList.map(item => item.clip.groupId).filter(Boolean));
+  if (!groupIds.size) {
+    toast("Nenhum dos clipes selecionados pertence a um grupo.");
+    return;
+  }
+  let count = 0;
+  getAllTrackIds().forEach(tk => {
+    (S.clips[tk] || []).forEach(c => {
+      if (c.groupId && groupIds.has(c.groupId)) {
+        delete c.groupId;
+        count++;
+      }
+    });
+  });
+  renderTimeline();
+  updateStatusBar();
+  toast(`${count} clipe(s) desagrupado(s) (Ctrl+Shift+G).`);
+}
+
+function linkSelectedClips() {
+  const selectedList = getSelectedClipsList();
+  if (selectedList.length < 2) {
+    toast("Selecione pelo menos 1 clipe de vídeo e 1 de áudio para vincular/desvincular (Ctrl+L).");
+    return;
+  }
+  const hasLink = selectedList.some(item => item.clip.linkId);
+  if (hasLink) {
+    saveUndoSnapshot();
+    const linkIds = new Set(selectedList.map(item => item.clip.linkId).filter(Boolean));
+    let count = 0;
+    getAllTrackIds().forEach(tk => {
+      (S.clips[tk] || []).forEach(c => {
+        if (c.linkId && linkIds.has(c.linkId)) {
+          delete c.linkId;
+          delete c.syncOffset;
+          count++;
+        }
+      });
+    });
+    renderTimeline();
+    toast(`${count} clipe(s) desvinculado(s) de áudio e vídeo.`);
+    return;
+  }
+
+  saveUndoSnapshot();
+  const newLinkId = uid("lnk_");
+  const vItem = selectedList.find(item => isVideoTrack(item.track));
+  const aItem = selectedList.find(item => isAudioTrack(item.track));
+  const offset = (vItem && aItem) ? Number((vItem.clip.start - aItem.clip.start).toFixed(2)) : 0;
+
+  selectedList.forEach(item => {
+    item.clip.linkId = newLinkId;
+    item.clip.syncOffset = offset;
+  });
+  renderTimeline();
+  toast("Áudio e Vídeo vinculados com sucesso (Ctrl+L)!");
+}
+
+function openPasteAttributesDialog() {
+  if (!S.clipboardClip) {
+    toast("Copie um clipe primeiro com Ctrl+C para ter atributos a colar.");
+    return;
+  }
+  const targets = getSelectedClipsList();
+  if (!targets.length) {
+    toast("Selecione um ou mais clipes na timeline para colar atributos.");
+    return;
+  }
+
+  dialog({
+    id: "pasteAttrWin",
+    title: "Colar Atributos (Paste Attributes 1995)",
+    width: 440,
+    body: `
+      <div class="col" style="gap:8px">
+        <div>Copiar atributos de: <b>${escH(S.clipboardClip.title)}</b></div>
+        <div>Aplicar a: <b>${targets.length} clipe(s) selecionado(s)</b></div>
+        <fieldset class="groupbox" style="margin-top:4px">
+          <legend>Atributos de Vídeo</legend>
+          <label class="row" style="gap:6px;cursor:pointer"><input type="checkbox" id="pa-motion" checked> <span>Movimento (Escala, Posição, Rotação e Recorte)</span></label>
+          <label class="row" style="gap:6px;cursor:pointer"><input type="checkbox" id="pa-fit" checked> <span>Modo de Ajuste de Tela (Contain / Stretch)</span></label>
+          <label class="row" style="gap:6px;cursor:pointer"><input type="checkbox" id="pa-fx" checked> <span>Transição e Filtro Master de Imagem</span></label>
+        </fieldset>
+        <fieldset class="groupbox">
+          <legend>Atributos de Áudio e Tempo</legend>
+          <label class="row" style="gap:6px;cursor:pointer"><input type="checkbox" id="pa-speed" checked> <span>Velocidade e Reversão (${Math.round((S.clipboardClip.speed || 1) * 100)}%)</span></label>
+          <label class="row" style="gap:6px;cursor:pointer"><input type="checkbox" id="pa-vol" checked> <span>Volume, Pan e Curva Rubberband</span></label>
+        </fieldset>
+      </div>
+    `,
+    buttons: [
+      {
+        label: "Colar Atributos",
+        def: 1,
+        run: () => {
+          const doMotion = document.getElementById("pa-motion")?.checked;
+          const doFit = document.getElementById("pa-fit")?.checked;
+          const doFx = document.getElementById("pa-fx")?.checked;
+          const doSpeed = document.getElementById("pa-speed")?.checked;
+          const doVol = document.getElementById("pa-vol")?.checked;
+
+          saveUndoSnapshot();
+          const src = S.clipboardClip;
+          targets.forEach(item => {
+            const dest = item.clip;
+            if (doMotion) {
+              dest.scale = src.scale != null ? src.scale : 100;
+              dest.scaleX = src.scaleX != null ? src.scaleX : 100;
+              dest.scaleY = src.scaleY != null ? src.scaleY : 100;
+              dest.posX = src.posX != null ? src.posX : 0;
+              dest.posY = src.posY != null ? src.posY : 0;
+              dest.rotation = src.rotation != null ? src.rotation : 0;
+              dest.cropTop = src.cropTop || 0;
+              dest.cropBottom = src.cropBottom || 0;
+              dest.cropLeft = src.cropLeft || 0;
+              dest.cropRight = src.cropRight || 0;
+            }
+            if (doFit && src.fitMode) dest.fitMode = src.fitMode;
+            if (doFx) {
+              if (src.trans) dest.trans = src.trans;
+              if (src.transDur) dest.transDur = src.transDur;
+            }
+            if (doSpeed && src.speed != null) dest.speed = src.speed;
+            if (doVol) {
+              if (src.vol != null) dest.vol = src.vol;
+              if (src.pan != null) dest.pan = src.pan;
+              if (Array.isArray(src.rubberband)) {
+                dest.rubberband = JSON.parse(JSON.stringify(src.rubberband));
+              }
+            }
+          });
+          renderAll();
+          toast(`Atributos colados em ${targets.length} clipe(s)!`);
+        }
+      },
+      { label: "Cancelar" }
+    ]
+  });
+}
+
+function openColorMatteDialog() {
+  dialog({
+    id: "colorMatteWin",
+    title: "Gerador de Matte de Cor Sólida (Color Matte 1995)",
+    width: 440,
+    body: `
+      <div class="col" style="gap:8px">
+        <label class="fld"><span>Nome da Cartela:</span>
+          <input type="text" id="matte-name" value="PRETO_BROADCAST_01" style="font-weight:bold">
+        </label>
+        <div class="row" style="gap:10px;align-items:center">
+          <label class="fld" style="flex:1"><span>Cor Hexadecimal:</span>
+            <input type="color" id="matte-color" value="#000000" style="height:32px;padding:1px;width:100%">
+          </label>
+          <label class="fld" style="width:110px"><span>Duração (s):</span>
+            <input type="number" id="matte-dur" value="5.0" min="0.5" max="300" step="0.5">
+          </label>
+        </div>
+        <div><b>Amostras Rápidas Broadcast 1995:</b></div>
+        <div class="color-matte-swatches">
+          <div class="color-matte-swatch" style="background:#000000" data-col="#000000" data-name="PRETO_BROADCAST" title="Preto Puro Broadcast (0% IRE / 16-235)"></div>
+          <div class="color-matte-swatch" style="background:#FFFFFF" data-col="#FFFFFF" data-name="BRANCO_ESTUDIO" title="Branco Estúdio (100% IRE)"></div>
+          <div class="color-matte-swatch" style="background:#0000FF" data-col="#0000FF" data-name="CHROMA_BLUE" title="Azul Chroma Key Broadcast"></div>
+          <div class="color-matte-swatch" style="background:#00FF00" data-col="#00FF00" data-name="CHROMA_GREEN" title="Verde Chroma Key Broadcast"></div>
+          <div class="color-matte-swatch" style="background:#808080" data-col="#808080" data-name="CINZA_50" title="Cinza Médio 50% Neutro"></div>
+          <div class="color-matte-swatch" style="background:#C00000" data-col="#C00000" data-name="VERMELHO_PADRAO" title="Vermelho Primário"></div>
+          <div class="color-matte-swatch" style="background:#FFE040" data-col="#FFE040" data-name="AMARELO_TESTE" title="Amarelo de Sinalização"></div>
+        </div>
+      </div>
+    `,
+    buttons: [
+      {
+        label: "Inserir na Linha do Tempo",
+        def: 1,
+        run: () => {
+          const col = document.getElementById("matte-color")?.value || "#000000";
+          const dur = Math.max(0.5, parseFloat(document.getElementById("matte-dur")?.value) || 5.0);
+          const name = (document.getElementById("matte-name")?.value || "COLOR_MATTE").trim();
+          createAndInsertColorMatte(col, dur, name, true);
+        }
+      },
+      {
+        label: "Apenas Adicionar ao Cesto (Bin)",
+        run: () => {
+          const col = document.getElementById("matte-color")?.value || "#000000";
+          const dur = Math.max(0.5, parseFloat(document.getElementById("matte-dur")?.value) || 5.0);
+          const name = (document.getElementById("matte-name")?.value || "COLOR_MATTE").trim();
+          createAndInsertColorMatte(col, dur, name, false);
+        }
+      },
+      { label: "Cancelar" }
+    ]
+  });
+
+  setTimeout(() => {
+    document.querySelectorAll(".color-matte-swatch").forEach(sw => {
+      sw.onclick = () => {
+        const cIn = document.getElementById("matte-color");
+        const nIn = document.getElementById("matte-name");
+        if (cIn) cIn.value = sw.dataset.col;
+        if (nIn) nIn.value = sw.dataset.name + "_01";
+      };
+    });
+  }, 50);
+}
+
+function createAndInsertColorMatte(colorHex, dur, name, insertOnTimeline) {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="240"><rect width="100%" height="100%" fill="${colorHex}"/></svg>`;
+  const dataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+
+  const item = {
+    id: uid("matte_"),
+    name: name,
+    tipo: "matte",
+    dur: dur,
+    cor: colorHex,
+    url: dataUrl,
+    thumb: dataUrl,
+    pasta: "Cartelas"
+  };
+
+  S.mediaBin.unshift(item);
+  renderSide();
+
+  if (insertOnTimeline) {
+    saveUndoSnapshot();
+    const tk = isVideoTrack(S.targetVideoTrack) ? S.targetVideoTrack : "v1";
+    ensureTrackExists(tk);
+    const newClip = {
+      id: uid(tk + "_"),
+      title: item.name,
+      mediaUrl: item.url,
+      thumb: item.thumb,
+      start: Number(S.playhead.toFixed(2)),
+      dur: dur,
+      inPoint: 0,
+      outPoint: dur,
+      track: tk,
+      vol: 100,
+      pan: 0,
+      scale: 100,
+      scaleX: 100,
+      scaleY: 100,
+      posX: 0,
+      posY: 0,
+      fitMode: "contain"
+    };
+    S.clips[tk].push(newClip);
+    resolveTrackOverlaps(tk, newClip.id);
+    S.selectedClipId = newClip.id;
+    S.selectedClipTrack = tk;
+    S.selectedClipIds = [newClip.id];
+    recalcSequenceDuration();
+    renderAll();
+    toast(`Matte de Cor "${name}" inserido na faixa ${tk.toUpperCase()}!`);
+  } else {
+    toast(`Matte de Cor "${name}" adicionado ao Cesto de Mídia!`);
+  }
+}
+
+function applyQuickCrossDissolve() {
+  const selectedList = getSelectedClipsList();
+  saveUndoSnapshot();
+
+  if (selectedList.length >= 1) {
+    selectedList.forEach(item => {
+      item.clip.trans = "Dissolvência Cruzada";
+      item.clip.transDur = 1.0;
+    });
+    renderAll();
+    toast(`Dissolvência Cruzada (1.0s) aplicada em ${selectedList.length} clipe(s)!`);
+    return;
+  }
+
+  const tk = isVideoTrack(S.targetVideoTrack) ? S.targetVideoTrack : "v1";
+  const cutClip = (S.clips[tk] || []).find(c => Math.abs(c.start - S.playhead) < 0.2 || Math.abs((c.start + c.dur) - S.playhead) < 0.2);
+  if (cutClip) {
+    cutClip.trans = "Dissolvência Cruzada";
+    cutClip.transDur = 1.0;
+    renderAll();
+    toast(`Dissolvência Cruzada (1.0s) aplicada no corte em ${fmtSMPTE(cutClip.start)}!`);
+    return;
+  }
+
+  toast("Posicione a agulha sobre um corte ou selecione clipe(s) para aplicar dissolvência (Ctrl+D).");
+}
+
+function getSelectedClip() {
+  if (S.selectedClipId) {
+    for (const tk of getAllTrackIds()) {
+      const found = (S.clips[tk] || []).find(c => c.id === S.selectedClipId);
+      if (found) return found;
+    }
+  }
+  if (Array.isArray(S.selectedClipIds) && S.selectedClipIds.length > 0) {
+    for (const tk of getAllTrackIds()) {
+      const found = (S.clips[tk] || []).find(c => c.id === S.selectedClipIds[0]);
+      if (found) return found;
+    }
   }
   return null;
 }
@@ -1034,6 +1615,7 @@ function createStarterFreeProject(name = "PROJETO_LIVRE_01.PPJ", keepBin = false
   S.isStarterDemo = false;
   S.selectedClipId = null;
   S.selectedClipTrack = null;
+  S.selectedClipIds = [];
   S.selectedGap = null;
   S.tlIn = null;
   S.tlOut = null;
@@ -1562,6 +2144,7 @@ function insertSourceIntoTimeline(targetTrack, mode = "append_or_playhead", expl
 
   S.selectedClipId = newClip.id;
   S.selectedClipTrack = tk;
+  S.selectedClipIds = [newClip.id];
   if (isVideoTrack(tk)) S.targetVideoTrack = tk;
   if (isAudioTrack(tk)) S.targetAudioTrack = tk;
   recalcSequenceDuration();
@@ -3867,6 +4450,7 @@ function setupProgramMonitorDirectTransform() {
 
     S.selectedClipId = clip.id;
     S.selectedClipTrack = clip.track;
+    S.selectedClipIds = [clip.id];
     renderTimeline();
     if (S.sideTab === "fx" || S.sideTab === "trans") renderSide();
     renderMonitorFrame();
@@ -4093,6 +4677,7 @@ function createFreezeFrameAtPlayhead() {
   resolveTrackOverlaps(tk, newClip.id);
   S.selectedClipId = newClip.id;
   S.selectedClipTrack = tk;
+  S.selectedClipIds = [newClip.id];
 
   recalcSequenceDuration();
   renderAll();
@@ -4221,58 +4806,131 @@ function addTimelineMarker() {
 }
 
 function duplicateSelectedClip() {
-  const sel = getSelectedClip();
-  if (!sel) {
-    toast("Selecione um clipe na linha do tempo para duplicá-lo.");
-    return;
-  }
-  if (S.tracksLocked[sel.track]) {
-    toast(`A faixa ${sel.track.toUpperCase()} está trancada.`);
+  const selectedList = getSelectedClipsList();
+  if (!selectedList.length) {
+    toast("Selecione clipe(s) na linha do tempo para duplicar.");
     return;
   }
   saveUndoSnapshot();
-  const insertAt = Number((sel.start + sel.dur).toFixed(2));
-  // Empurra clipes posteriores para caber a cópia sem sobrepor
-  (S.clips[sel.track] || []).forEach(c => {
-    if (c.id !== sel.id && c.start >= insertAt - 0.02) {
-      c.start = Number((c.start + sel.dur).toFixed(2));
+
+  if (selectedList.length === 1) {
+    const sel = selectedList[0].clip;
+    const tk = selectedList[0].track;
+    if (S.tracksLocked[tk]) {
+      toast(`A faixa ${tk.toUpperCase()} está trancada.`);
+      return;
     }
+    const insertAt = Number((sel.start + sel.dur).toFixed(2));
+    (S.clips[tk] || []).forEach(c => {
+      if (c.id !== sel.id && c.start >= insertAt - 0.02) {
+        c.start = Number((c.start + sel.dur).toFixed(2));
+      }
+    });
+    const copy = Object.assign({}, JSON.parse(JSON.stringify(sel)), {
+      id: uid(tk + "_"),
+      title: `${sel.title} (Cópia)`,
+      start: insertAt
+    });
+    S.clips[tk].push(copy);
+    resolveTrackOverlaps(tk, copy.id);
+    S.selectedClipId = copy.id;
+    S.selectedClipTrack = tk;
+    S.selectedClipIds = [copy.id];
+    recalcSequenceDuration();
+    setPlayhead(copy.start, false);
+    renderAll();
+    toast(`Clipe duplicado em ${fmtSMPTE(copy.start)}!`);
+    return;
+  }
+
+  // Duplicação de múltiplos clipes em bloco
+  const maxEnd = Math.max(...selectedList.map(item => item.clip.start + item.clip.dur));
+  const minStart = Math.min(...selectedList.map(item => item.clip.start));
+  const delta = Number(((maxEnd - minStart) + 0.1).toFixed(2));
+  const newIds = [];
+
+  selectedList.forEach(item => {
+    const tk = item.track;
+    if (S.tracksLocked[tk]) return;
+    const copy = Object.assign({}, JSON.parse(JSON.stringify(item.clip)), {
+      id: uid(tk + "_"),
+      title: `${item.clip.title} (Cópia)`,
+      start: Number((item.clip.start + delta).toFixed(2))
+    });
+    S.clips[tk].push(copy);
+    resolveTrackOverlaps(tk, copy.id);
+    newIds.push(copy.id);
   });
-  const copy = Object.assign({}, JSON.parse(JSON.stringify(sel)), {
-    id: uid(sel.track + "_"),
-    title: `${sel.title} (Cópia)`,
-    start: insertAt
-  });
-  S.clips[sel.track].push(copy);
-  resolveTrackOverlaps(sel.track, copy.id);
-  S.selectedClipId = copy.id;
+
+  S.selectedClipIds = newIds;
+  if (newIds.length) {
+    S.selectedClipId = newIds[0];
+  }
   recalcSequenceDuration();
-  setPlayhead(copy.start, false);
+  setPlayhead(Number((minStart + delta).toFixed(2)), false);
   renderAll();
-  toast(`Clipe duplicado em ${fmtSMPTE(copy.start)}!`);
+  toast(`${newIds.length} clipe(s) duplicado(s) em bloco!`);
 }
 
 function copySelectedClip() {
-  const sel = getSelectedClip();
-  if (!sel) {
-    toast("Selecione um clipe para copiar.");
+  const selectedList = getSelectedClipsList();
+  if (!selectedList.length) {
+    toast("Selecione clipe(s) para copiar.");
     return;
   }
-  S.clipboardClip = JSON.parse(JSON.stringify(sel));
-  toast(`Clipe "${sel.title}" copiado para a área de transferência!`);
+  if (selectedList.length === 1) {
+    S.clipboardClip = JSON.parse(JSON.stringify(selectedList[0].clip));
+    S.clipboardClips = null;
+    toast(`Clipe "${selectedList[0].clip.title}" copiado para a área de transferência!`);
+  } else {
+    const minStart = Math.min(...selectedList.map(item => item.clip.start));
+    S.clipboardClips = selectedList.map(item => ({
+      clip: JSON.parse(JSON.stringify(item.clip)),
+      track: item.track,
+      relStart: item.clip.start - minStart
+    }));
+    S.clipboardClip = JSON.parse(JSON.stringify(selectedList[0].clip));
+    toast(`${selectedList.length} clipes copiados para a área de transferência!`);
+  }
 }
 
 function pasteClipAtPlayhead() {
-  if (!S.clipboardClip) {
-    toast("Nenhum clipe copiado ainda (use Ctrl+C num clipe).");
+  if (!S.clipboardClip && (!S.clipboardClips || !S.clipboardClips.length)) {
+    toast("Nenhum clipe copiado ainda (use Ctrl+C num clipe ou seleção).");
     return;
   }
+  saveUndoSnapshot();
+  clearClipSelection();
+
+  if (S.clipboardClips && S.clipboardClips.length > 1) {
+    const newSelectedIds = [];
+    S.clipboardClips.forEach(item => {
+      const tk = item.track || "v1";
+      ensureTrackExists(tk);
+      if (S.tracksLocked[tk]) return;
+      const copy = Object.assign({}, JSON.parse(JSON.stringify(item.clip)), {
+        id: uid(tk + "_"),
+        start: Number((S.playhead + item.relStart).toFixed(2))
+      });
+      S.clips[tk].push(copy);
+      resolveTrackOverlaps(tk, copy.id);
+      newSelectedIds.push(copy.id);
+    });
+    S.selectedClipIds = newSelectedIds;
+    if (newSelectedIds.length) {
+      S.selectedClipId = newSelectedIds[0];
+    }
+    recalcSequenceDuration();
+    renderAll();
+    toast(`${newSelectedIds.length} clipes colados na agulha!`);
+    return;
+  }
+
   const tk = S.clipboardClip.track || "v1";
   if (S.tracksLocked[tk]) {
     toast(`A faixa ${tk.toUpperCase()} está trancada.`);
     return;
   }
-  saveUndoSnapshot();
   const copy = Object.assign({}, JSON.parse(JSON.stringify(S.clipboardClip)), {
     id: uid(tk + "_"),
     start: Number(S.playhead.toFixed(2))
@@ -4281,6 +4939,7 @@ function pasteClipAtPlayhead() {
   resolveTrackOverlaps(tk, copy.id);
   S.selectedClipId = copy.id;
   S.selectedClipTrack = tk;
+  S.selectedClipIds = [copy.id];
   recalcSequenceDuration();
   renderAll();
   toast(`Clipe "${copy.title}" colado em ${fmtSMPTE(copy.start)}!`);
@@ -4367,22 +5026,33 @@ function showClipContextMenu(clip, clientX, clientY) {
   closeMenus();
   const m = document.createElement("div");
   m.className = "menu";
+
+  const selectedList = getSelectedClipsList();
+  const hasMultiple = selectedList.length > 1;
+  const isGrp = clip.groupId || (hasMultiple && selectedList.some(item => item.clip.groupId));
+  const isLnk = clip.linkId || (hasMultiple && selectedList.some(item => item.clip.linkId));
+
   const items = [
     ["splitHere", "Dividir Clipe Aqui (Navalha)", "Ctrl+K"],
     ["speedDur", "Velocidade / Duração…", ""],
     ["openFx", "Redimensionar, Posição e Recorte (FX)…", ""],
+    ["-", "", ""],
+    ["pasteAttr", "Colar Atributos…", prettyKeyName(KEYMAP.pasteAttributes || "Ctrl+Alt+V")],
+    [isGrp ? "ungroup" : "group", isGrp ? "Desagrupar Clipes" : "Agrupar Clipes Selecionados", prettyKeyName(KEYMAP.groupClips || "Ctrl+G")],
+    ["linkAv", isLnk ? "Desvincular Áudio e Vídeo" : "Vincular Áudio e Vídeo", prettyKeyName(KEYMAP.linkClips || "Ctrl+L")],
+    ["quickDissolve", "Inserir Dissolvência Rápida (1.0s)", prettyKeyName(KEYMAP.quickCrossDissolve || "Ctrl+D")],
     ["-", "", ""],
     ["fitContain", "Ajustar Imagem à Tela (Manter Proporção)", ""],
     ["fitStretch", "Esticar Imagem na Tela 4:3 (Preencher)", ""],
     ["pipCorner", "Miniatura no Canto (Picture-in-Picture)", ""],
     ["resetTransform", "Resetar Tamanho e Posição (100%)", ""],
     ["-", "", ""],
-    ["duplicate", "Duplicar Clipe", prettyKeyName(KEYMAP.duplicateClip)],
-    ["copy", "Copiar Clipe", prettyKeyName(KEYMAP.copyClip)],
+    ["duplicate", hasMultiple ? `Duplicar ${selectedList.length} Clipes Selecionados` : "Duplicar Clipe", prettyKeyName(KEYMAP.duplicateClip)],
+    ["copy", hasMultiple ? `Copiar ${selectedList.length} Clipes Selecionados` : "Copiar Clipe", prettyKeyName(KEYMAP.copyClip)],
     ["toggleEnable", clip.disabled ? "Habilitar Clipe na Faixa" : "Desabilitar / Ocultar Clipe", ""],
     ["-", "", ""],
-    ["del", "Apagar Clipe", prettyKeyName(KEYMAP.deleteClip)],
-    ["rippleDel", "Apagar e Fechar Espaço (Ripple Delete)", prettyKeyName(KEYMAP.rippleDelete)]
+    ["del", hasMultiple ? `Apagar ${selectedList.length} Clipes Selecionados` : "Apagar Clipe", prettyKeyName(KEYMAP.deleteClip)],
+    ["rippleDel", hasMultiple ? `Apagar ${selectedList.length} Clipes (Ripple Delete)` : "Apagar e Fechar Espaço (Ripple Delete)", prettyKeyName(KEYMAP.rippleDelete)]
   ];
 
   m.innerHTML = items.map(([id, lbl, k]) => {
@@ -4412,6 +5082,11 @@ function showClipContextMenu(clip, clientX, clientY) {
     if (act === "splitHere") splitSpecificClipAt(clip.track, clip.id, clickSec);
     else if (act === "speedDur") openClipSpeedDialog(clip);
     else if (act === "openFx") { S.sideTab = "fx"; renderSide(); }
+    else if (act === "pasteAttr") openPasteAttributesDialog();
+    else if (act === "group") groupSelectedClips();
+    else if (act === "ungroup") ungroupSelectedClips();
+    else if (act === "linkAv") linkSelectedClips();
+    else if (act === "quickDissolve") applyQuickCrossDissolve();
     else if (act === "fitContain") {
       saveUndoSnapshot();
       Object.assign(clip, { fitMode: "contain", scale: 100, scaleX: 100, scaleY: 100, posX: 0, posY: 0, rotation: 0 });
@@ -4560,11 +5235,20 @@ function renderTimeline() {
     hEl.onclick = (e) => {
       if (e.target.closest("button")) return;
       const tk = hEl.dataset.hdrtk;
+      if (e.shiftKey || e.ctrlKey) {
+        selectTrackClips(tk);
+        return;
+      }
       if (isVideoTrack(tk)) S.targetVideoTrack = tk;
       else S.targetAudioTrack = tk;
       renderTimeline();
       if (S.sideTab === "bin") renderSide();
       toast(`Faixa alvo ativa: ${tk.toUpperCase()}`);
+    };
+    hEl.ondblclick = (e) => {
+      if (e.target.closest("button")) return;
+      const tk = hEl.dataset.hdrtk;
+      selectTrackClips(tk);
     };
   });
 
@@ -4624,12 +5308,35 @@ function renderTimeline() {
     const clipsHtml = list.map(c => {
       const left = Math.round(c.start * pxPerSec);
       const width = Math.max(16, Math.round(c.dur * pxPerSec) - 1);
-      const isSel = S.selectedClipId === c.id;
+      const isSel = isClipSelected(c.id);
+      const isMulti = isSel && Array.isArray(S.selectedClipIds) && S.selectedClipIds.length > 1;
       const hasMedia = !!c.mediaUrl;
       const isOffline = !!c.offline;
       const waveSvg = buildClipWaveSvg(c, width, isVid);
       const hasWave = !!waveSvg;
       const fxBadge = (c.trans && c.trans !== "Corte Seco") ? `<span class="fx-badge">FX</span>` : "";
+      const grpBadge = c.groupId ? `<span class="clip-badge-grp" title="Grupo: ${c.groupId}">GRP</span>` : "";
+
+      let slipBadge = "";
+      if (c.linkId) {
+        let counterpart = null;
+        for (const otk of getAllTrackIds()) {
+          const found = (S.clips[otk] || []).find(x => x.linkId === c.linkId && x.id !== c.id);
+          if (found) { counterpart = found; break; }
+        }
+        if (counterpart) {
+          const expectedOffset = c.syncOffset != null ? c.syncOffset : 0;
+          const currentOffset = Number((c.start - counterpart.start).toFixed(2));
+          const slip = currentOffset - expectedOffset;
+          if (Math.abs(slip) >= 1 / FPS) {
+            const sign = slip >= 0 ? "+" : "-";
+            const absS = Math.abs(slip);
+            const slipStr = `${sign}${pad2(Math.floor(absS))}:${pad2(Math.floor((absS % 1) * FPS))}`;
+            slipBadge = `<span class="clip-slip-badge" title="Dessincronizado: ${slip.toFixed(2)}s">${slipStr}</span>`;
+          }
+        }
+      }
+
       const spdTag = (c.speed && c.speed !== 1) ? ` [${c.speed}x]` : "";
       const sub = `${mmss(c.start)}–${mmss(c.start + c.dur)} (${c.dur.toFixed(1)}s)${spdTag}`;
 
@@ -4673,13 +5380,13 @@ function renderTimeline() {
         }
       }
 
-      return `<div class="tl-clip ${tkTypeCls}${hasMedia ? " has-media" : ""}${hasWave ? " has-wave" : ""}${filmstripHtml ? " has-filmstrip" : ""}${isSel ? " sel" : ""}${c.disabled ? " disabled" : ""}${isOffline ? " offline" : ""}" data-clip="${c.id}" data-tk="${tk}" style="left:${left}px;width:${width}px" title="[${tk.toUpperCase()}] ${isOffline ? "[OFFLINE] " : ""}${escH(c.title)} · Arraste para mover, Duplo-clique para nó de áudio, Botão direito para opções">
+      return `<div class="tl-clip ${tkTypeCls}${hasMedia ? " has-media" : ""}${hasWave ? " has-wave" : ""}${filmstripHtml ? " has-filmstrip" : ""}${isSel ? " sel" : ""}${isMulti ? " multi-sel" : ""}${c.disabled ? " disabled" : ""}${isOffline ? " offline" : ""}" data-clip="${c.id}" data-tk="${tk}" style="left:${left}px;width:${width}px" title="[${tk.toUpperCase()}] ${isOffline ? "[OFFLINE] " : ""}${escH(c.title)} · Arraste para mover, Duplo-clique para nó de áudio, Botão direito para opções">
         ${filmstripHtml}
         ${waveSvg}
         ${rubberbandSvg}
         <span class="trim-l" data-trim="l"></span>
         <div class="clip-text-box">
-          <span>${isOffline ? '<span class="badge-offline">OFFLINE</span> ' : ""}${fxBadge}${escH(c.title)}</span>
+          <span>${isOffline ? '<span class="badge-offline">OFFLINE</span> ' : ""}${grpBadge}${fxBadge}${escH(c.title)}${slipBadge}</span>
           <small>${escH(sub)}</small>
         </div>
         <span class="trim-r" data-trim="r"></span>
@@ -4724,16 +5431,92 @@ function renderTimeline() {
     });
   });
 
-  // Clique no fundo vazio da faixa desmarca seleção
+  // Marquee Selection (Caixa Elástica 95 com o Mouse no Vazio da Timeline)
   tracksEl.querySelectorAll(".tl-track").forEach(tel => {
     tel.addEventListener("pointerdown", (ev) => {
-      if (ev.target.closest(".tl-clip") || ev.target.closest(".tl-gap")) return;
+      if (ev.target.closest(".tl-clip") || ev.target.closest(".tl-gap") || ev.target.closest(".rb-node")) return;
+      if (ev.button !== 0) return;
       closeMenus();
-      S.selectedClipId = null;
-      S.selectedClipTrack = null;
-      S.selectedGap = null;
-      renderTimeline();
-      updateStatusBar();
+
+      const startX = ev.clientX;
+      const startY = ev.clientY;
+      const areaRect = area.getBoundingClientRect();
+      const initialSelectedIds = new Set((ev.shiftKey || ev.ctrlKey) ? (S.selectedClipIds || []) : []);
+      if (!ev.shiftKey && !ev.ctrlKey) {
+        clearClipSelection();
+        area.querySelectorAll(".tl-clip").forEach(node => node.classList.remove("sel", "multi-sel"));
+      }
+
+      let marqueeEl = document.getElementById("tlMarquee");
+      if (!marqueeEl) {
+        marqueeEl = document.createElement("div");
+        marqueeEl.id = "tlMarquee";
+        marqueeEl.className = "tl-marquee";
+        area.appendChild(marqueeEl);
+      }
+      marqueeEl.style.display = "none";
+      let hasMarqueeMoved = false;
+
+      const onMarqueeMove = (me) => {
+        const curX = me.clientX;
+        const curY = me.clientY;
+        const boxLeft = Math.min(startX, curX);
+        const boxRight = Math.max(startX, curX);
+        const boxTop = Math.min(startY, curY);
+        const boxBottom = Math.max(startY, curY);
+        const boxW = boxRight - boxLeft;
+        const boxH = boxBottom - boxTop;
+
+        if (boxW < 3 && boxH < 3 && !hasMarqueeMoved) return;
+        hasMarqueeMoved = true;
+
+        marqueeEl.style.display = "block";
+        marqueeEl.style.left = (boxLeft - areaRect.left + area.scrollLeft) + "px";
+        marqueeEl.style.top = (boxTop - areaRect.top + area.scrollTop) + "px";
+        marqueeEl.style.width = boxW + "px";
+        marqueeEl.style.height = boxH + "px";
+
+        const currentSelected = new Set(initialSelectedIds);
+        area.querySelectorAll(".tl-clip").forEach(clipEl => {
+          const cRect = clipEl.getBoundingClientRect();
+          const overlaps = !(cRect.right < boxLeft || cRect.left > boxRight || cRect.bottom < boxTop || cRect.top > boxBottom);
+          const cid = clipEl.dataset.clip;
+          if (overlaps) {
+            currentSelected.add(cid);
+            clipEl.classList.add("sel");
+            if (currentSelected.size > 1) clipEl.classList.add("multi-sel");
+          } else if (!initialSelectedIds.has(cid)) {
+            currentSelected.delete(cid);
+            clipEl.classList.remove("sel", "multi-sel");
+          }
+        });
+
+        S.selectedClipIds = Array.from(currentSelected);
+        if (S.selectedClipIds.length > 0) {
+          S.selectedClipId = S.selectedClipIds[0];
+        } else {
+          S.selectedClipId = null;
+        }
+        updateStatusBar();
+      };
+
+      const onMarqueeUp = () => {
+        window.removeEventListener("pointermove", onMarqueeMove);
+        window.removeEventListener("pointerup", onMarqueeUp);
+        if (marqueeEl) marqueeEl.remove();
+        if (hasMarqueeMoved && S.selectedClipIds.length > 0) {
+          playFoleySound("bip", 0.02);
+          renderTimeline();
+          updateStatusBar();
+        } else if (!hasMarqueeMoved && !ev.shiftKey && !ev.ctrlKey) {
+          clearClipSelection();
+          renderTimeline();
+          updateStatusBar();
+        }
+      };
+
+      window.addEventListener("pointermove", onMarqueeMove);
+      window.addEventListener("pointerup", onMarqueeUp);
     });
   });
 
@@ -4809,12 +5592,32 @@ function renderTimeline() {
         return;
       }
 
-      S.selectedClipId = cid;
-      S.selectedClipTrack = tk;
+      // Shift + Clique ou Ctrl + Clique: Adiciona ou remove da seleção em lote (Multi-seleção)
+      if (ev.shiftKey || ev.ctrlKey) {
+        selectClip(cid, tk, true, true);
+        renderTimeline();
+        updateStatusBar();
+        return;
+      }
+
+      // Se clicar com botão esquerdo simples num clipe:
+      // Se o clipe já fazia parte da multi-seleção ativa, mantém a seleção para arrastar em bloco
+      const alreadyInMulti = Array.isArray(S.selectedClipIds) && S.selectedClipIds.length > 1 && S.selectedClipIds.includes(cid);
+      if (!alreadyInMulti) {
+        selectClip(cid, tk, false, false);
+      } else {
+        S.selectedClipId = cid;
+        S.selectedClipTrack = tk;
+      }
+
       if (isVideoTrack(tk)) S.targetVideoTrack = tk;
       else S.targetAudioTrack = tk;
       S.isStarterDemo = false;
-      area.querySelectorAll(".tl-clip").forEach(node => node.classList.toggle("sel", node.dataset.clip === cid));
+      area.querySelectorAll(".tl-clip").forEach(node => {
+        const isNodeSel = isClipSelected(node.dataset.clip);
+        node.classList.toggle("sel", isNodeSel);
+        node.classList.toggle("multi-sel", isNodeSel && S.selectedClipIds && S.selectedClipIds.length > 1);
+      });
       updateStatusBar();
       if (S.sideTab === "fx" || S.sideTab === "trans") renderSide();
       renderMonitorFrame();
@@ -4825,6 +5628,9 @@ function renderTimeline() {
       const origDur = clip.dur;
       const origIn = clip.inPoint || 0;
       let moved = false;
+
+      const selectedList = getSelectedClipsList();
+      const isMultiDrag = selectedList.length > 1 && !trimSide && S.tool === "select";
 
       // Salva posições originais de todos os clipes para empurrar sem sobrepor de forma reversível durante o arrasto
       const baseStarts = new Map();
@@ -4858,22 +5664,61 @@ function renderTimeline() {
         if (Math.abs(dx) > 2 && !moved) {
           saveUndoSnapshot();
           moved = true;
-          // Alt+Arrastar duplica o clipe automaticamente (igual ao Adobe Premiere!)
-          if (ev.altKey && !trimSide && S.tool === "select") {
-            const dup = Object.assign({}, JSON.parse(JSON.stringify(clip)), {
-              id: uid(tk + "_"),
-              title: `${clip.title} (Cópia)`
+          if (isMultiDrag) {
+            if (ev.altKey) {
+              const dupSelectedList = [];
+              selectedList.forEach(item => {
+                const dup = Object.assign({}, JSON.parse(JSON.stringify(item.clip)), {
+                  id: uid(item.track + "_"),
+                  title: `${item.clip.title} (Cópia)`
+                });
+                S.clips[item.track].push(dup);
+                baseStarts.set(dup.id, item.clip.start);
+                dupSelectedList.push({ clip: dup, track: item.track });
+              });
+              S.selectedClipIds = dupSelectedList.map(d => d.clip.id);
+              S.selectedClipId = dupSelectedList[0].clip.id;
+              selectedList.length = 0;
+              dupSelectedList.forEach(d => selectedList.push(d));
+              clip = dupSelectedList.find(d => d.track === tk)?.clip || dupSelectedList[0].clip;
+            }
+            selectedList.forEach(item => {
+              baseStarts.set(item.clip.id, item.clip.start);
             });
-            S.clips[tk].push(dup);
-            baseStarts.set(clip.id, clip.start);
-            baseDurs.set(clip.id, clip.dur);
-            baseIns.set(clip.id, clip.inPoint || 0);
-            clip = dup;
-            S.selectedClipId = dup.id;
-            el.dataset.clip = dup.id;
+          } else {
+            // Alt+Arrastar duplica o clipe automaticamente (igual ao Adobe Premiere!)
+            if (ev.altKey && !trimSide && S.tool === "select") {
+              const dup = Object.assign({}, JSON.parse(JSON.stringify(clip)), {
+                id: uid(tk + "_"),
+                title: `${clip.title} (Cópia)`
+              });
+              S.clips[tk].push(dup);
+              baseStarts.set(clip.id, clip.start);
+              baseDurs.set(clip.id, clip.dur);
+              baseIns.set(clip.id, clip.inPoint || 0);
+              clip = dup;
+              S.selectedClipId = dup.id;
+              el.dataset.clip = dup.id;
+            }
           }
         }
         const dt = dx / pxPerSecNow;
+
+        if (isMultiDrag && moved) {
+          const minStart = Math.min(...selectedList.map(item => baseStarts.get(item.clip.id) || 0));
+          let clampedDt = Math.max(-minStart, dt);
+          if (prefs.snap) {
+            const rawTarget = Math.max(0, (baseStarts.get(clip.id) || 0) + clampedDt);
+            const snapped = snapTimelineSecForClip(rawTarget, clip.dur, clip.id);
+            clampedDt = snapped - (baseStarts.get(clip.id) || 0);
+          }
+          selectedList.forEach(item => {
+            item.clip.start = Number(Math.max(0, (baseStarts.get(item.clip.id) || 0) + clampedDt).toFixed(2));
+          });
+          syncClipDomPositions(pxPerSecNow);
+          setPlayhead(clip.start, false);
+          return;
+        }
 
         if (S.tool === "track" && !trimSide && forwardClips.length) {
           const minBase = Math.min(...forwardClips.map(f => f.baseStart));
@@ -5027,6 +5872,14 @@ function renderTimeline() {
         el.removeEventListener("pointermove", onMove);
         el.removeEventListener("pointerup", onUp);
         hideSnapLine();
+        if (isMultiDrag && moved) {
+          const tracksToResolve = new Set(selectedList.map(item => item.track));
+          tracksToResolve.forEach(t => resolveTrackOverlaps(t));
+          recalcSequenceDuration();
+          renderTimeline();
+          if (S.sideTab === "fx") renderSide();
+          return;
+        }
         getAllTrackIds().forEach(k => resolveTrackOverlaps(k, k === tk ? clip.id : null));
         recalcSequenceDuration();
         renderTimeline();
@@ -5188,6 +6041,7 @@ function splitSpecificClipAt(tk, clipId, cutSec) {
   arr.splice(idx + 1, 0, partB);
   S.selectedClipId = partB.id;
   S.selectedClipTrack = tk;
+  S.selectedClipIds = [partB.id];
   playFoleySound("claquete");
   setPlayhead(cutSec, false);
   renderAll();
@@ -5218,33 +6072,62 @@ function deleteSelectedClip(ripple = false) {
     rippleDeleteGap(S.selectedGap, ripple);
     return;
   }
-  const sel = getSelectedClip();
-  if (!sel) {
+  const selectedList = getSelectedClipsList();
+  if (!selectedList.length) {
     toast("Selecione um clipe ou espaço vazio na linha do tempo primeiro.");
     return;
   }
   saveUndoSnapshot();
-  const tk = sel.track;
-  const arr = S.clips[tk] || [];
-  const idx = arr.findIndex(c => c.id === sel.id);
-  if (idx < 0) return;
 
-  const removedStart = sel.start;
-  const removedDur = sel.dur;
-  arr.splice(idx, 1);
-
-  if (ripple) {
-    arr.forEach(c => {
-      if (c.start > removedStart) {
-        c.start = Number(Math.max(0, c.start - removedDur).toFixed(2));
+  if (selectedList.length === 1) {
+    const sel = selectedList[0].clip;
+    const tk = selectedList[0].track;
+    const arr = S.clips[tk] || [];
+    const idx = arr.findIndex(c => c.id === sel.id);
+    if (idx >= 0) {
+      const removedStart = sel.start;
+      const removedDur = sel.dur;
+      arr.splice(idx, 1);
+      if (ripple) {
+        arr.forEach(c => {
+          if (c.start > removedStart) {
+            c.start = Number(Math.max(0, c.start - removedDur).toFixed(2));
+          }
+        });
       }
+    }
+  } else {
+    // Multi-clip delete / ripple delete
+    const idsToRemove = new Set(selectedList.map(item => item.clip.id));
+    const tracksAffected = new Set(selectedList.map(item => item.track));
+
+    tracksAffected.forEach(tk => {
+      const arr = S.clips[tk] || [];
+      if (ripple) {
+        // Ordena do fim para o início para que o fechamento de ondulação funcione perfeitamente
+        const toRemoveOnTk = arr.filter(c => idsToRemove.has(c.id)).sort((a, b) => b.start - a.start);
+        toRemoveOnTk.forEach(rem => {
+          const remIdx = arr.findIndex(c => c.id === rem.id);
+          if (remIdx >= 0) {
+            arr.splice(remIdx, 1);
+            arr.forEach(c => {
+              if (c.start > rem.start) {
+                c.start = Number(Math.max(0, c.start - rem.dur).toFixed(2));
+              }
+            });
+          }
+        });
+      } else {
+        S.clips[tk] = arr.filter(c => !idsToRemove.has(c.id));
+      }
+      resolveTrackOverlaps(tk);
     });
   }
 
-  S.selectedClipId = null;
+  clearClipSelection();
   recalcSequenceDuration();
   renderAll();
-  toast(ripple ? "Clipe apagado e espaço fechado (Ripple Delete)." : "Clipe removido da linha do tempo.");
+  toast(ripple ? `${selectedList.length} clipe(s) apagado(s) e espaço fechado (Ripple Delete).` : `${selectedList.length} clipe(s) removido(s) da linha do tempo.`);
 }
 
 /* ---------- Painel Lateral: Projeto (Bin), Efeitos (FX), Transições, Roteiro e Atalhos ---------- */
@@ -5428,14 +6311,38 @@ function renderSide() {
     const btnNewFolder = box.querySelector("#btnNewBinFolder");
     if (btnNewFolder) {
       btnNewFolder.onclick = () => {
-        const name = prompt("Nome da nova Pasta de Projeto:");
-        if (name && name.trim()) {
-          const clean = name.trim();
-          if (!S.binFolders.includes(clean)) S.binFolders.push(clean);
-          S.binCurFolder = clean;
-          renderSide();
-          toast(`Pasta "${clean}" criada no Projeto!`);
-        }
+        dialog({
+          id: "newFolderWin",
+          title: "Nova Pasta no Bin",
+          width: 340,
+          body: `
+            <div class="col" style="gap:6px">
+              <label class="fld"><span>Nome da Nova Pasta:</span>
+                <input type="text" id="bin-folder-input" value="Nova Pasta" style="font-weight:bold">
+              </label>
+            </div>
+          `,
+          buttons: [
+            {
+              label: "OK",
+              def: 1,
+              run: (w) => {
+                const name = w.querySelector("#bin-folder-input")?.value?.trim();
+                if (name) {
+                  if (!S.binFolders.includes(name)) S.binFolders.push(name);
+                  S.binCurFolder = name;
+                  renderSide();
+                  toast(`Pasta "${name}" criada no Projeto!`);
+                }
+              }
+            },
+            { label: "Cancelar" }
+          ]
+        });
+        setTimeout(() => {
+          const inp = document.getElementById("bin-folder-input");
+          if (inp) { inp.focus(); inp.select(); }
+        }, 50);
       };
     }
 
@@ -6430,6 +7337,7 @@ function buildTimelineFromScript(sc) {
 
   Object.assign(S.clips, { v2, v1, a1, a2 });
   S.selectedClipId = v1[0] ? v1[0].id : null;
+  S.selectedClipIds = v1[0] ? [v1[0].id] : [];
   recalcSequenceDuration();
   setPlayhead(0, false);
   renderAll();
@@ -6896,6 +7804,8 @@ function openChyronDialog() {
           resolveTrackOverlaps(tk, newClip.id);
           S.selectedClipId = newClip.id;
           S.selectedClipTrack = tk;
+          S.selectedClipIds = [newClip.id];
+          S.selectedClipIds = [newClip.id];
           setPlayhead(newClip.start + 0.1, false);
           renderAll();
           toast(`Letreiro inserido na faixa ${tk.toUpperCase()}!`);
@@ -6996,6 +7906,7 @@ function openGeneratorDialog() {
           resolveTrackOverlaps(tk, newClip.id);
           S.selectedClipId = newClip.id;
           S.selectedClipTrack = tk;
+          S.selectedClipIds = [newClip.id];
           recalcSequenceDuration();
           renderAll();
           toast(`${names[tp]} inserido na faixa ${tk.toUpperCase()}!`);
@@ -9659,7 +10570,20 @@ function aboutDialog() {
       <b style="margin-top:4px">Recursos da Edição 95 (Moldes Adobe Premiere 4.2)</b>
       <div class="listview vers" style="max-height:175px">
         <div class="ver-block">
-          <b>1.0.6 · Multi-Sequências, Ripple Delete no Vazio e Salvamento Profissional</b><span class="chip95">você está nesta</span>
+          <b>1.0.7 · Seleção Múltipla de Clipes, Agrupamento e Operações em Bloco</b><span class="chip95">você está nesta</span>
+          <ul>
+            <li>Seleção Múltipla com Laço (Marquee 95): Caixa elástica tracejada com o mouse no vazio para selecionar múltiplos clipes</li>
+            <li>Seleção Aditiva (Shift + Clique / Ctrl + Clique) e seleção de faixas inteiras (Duplo-clique no cabeçalho ou Ctrl+A)</li>
+            <li>Movimentação Coordenada em Bloco e Exclusão / Ripple Delete em massa de clipes selecionados</li>
+            <li>Agrupar e Desagrupar Clipes (Ctrl+G / Ctrl+Shift+G) com selo clássico [GRP]</li>
+            <li>Vínculo de Áudio e Vídeo (Ctrl+L) com indicador técnico de perda de sincronia (Slip Indicator)</li>
+            <li>Colar Atributos Seletivo (Ctrl+Alt+V) para copiar escalas, posições, filtros, volumes e velocidades</li>
+            <li>Gerador de Matte de Cor Sólida (Color Matte 1995) para fundos, cartelas e chroma keys</li>
+            <li>Transição Rápida de Dissolvência (Ctrl+D) de 1.0s sobre o corte ou seleção</li>
+          </ul>
+        </div>
+        <div class="ver-block">
+          <b>1.0.6 · Multi-Sequências, Ripple Delete no Vazio e Salvamento Profissional</b>
           <ul>
             <li>Múltiplas Timelines / Sequências no mesmo projeto (.PPJ) com abas 3D no topo da régua (Ctrl+N)</li>
             <li>Seleção de Espaço Vazio &amp; Eliminar Ondulação (Ripple Delete) com a tecla Delete ou botão direito</li>
@@ -9814,7 +10738,20 @@ function openWhatsNewDialog() {
       </div>
       <div class="listview vers" style="max-height:220px;overflow:auto">
         <div class="ver-block">
-          <b>1.0.6 · Multi-Sequências, Ripple Delete no Vazio e Salvamento Profissional</b><span class="chip95">versão instalada</span>
+          <b>1.0.7 · Seleção Múltipla de Clipes, Agrupamento e Operações em Bloco</b><span class="chip95">versão instalada</span>
+          <ul>
+            <li><b>Seleção Múltipla com Laço (Marquee 95):</b> Clique e arraste o mouse sobre qualquer área vazia da linha do tempo para desenhar uma caixa elástica tracejada e selecionar múltiplos clipes de qualquer faixa simultaneamente.</li>
+            <li><b>Seleção Aditiva (Shift + Clique &amp; Ctrl + Clique):</b> Adicione ou remova clipes individuais da seleção sem perder os demais; dê duplo-clique no cabeçalho da faixa (ex: V1, A1) para selecionar todos os clipes daquela trilha de uma vez só.</li>
+            <li><b>Movimentação e Exclusão em Bloco:</b> Arraste qualquer clipe selecionado para deslocar todos os clipes coordenadamente mantendo distâncias relativas e com atração magnética inteligente; tecle Delete para apagar em massa ou Shift+Delete para fechar os espaços em cascata (Ripple Delete).</li>
+            <li><b>Agrupamento de Clipes (Ctrl+G / Ctrl+Shift+G):</b> Agrupe clipes permanentemente com selo clássico <b>[GRP]</b> para que sejam sempre selecionados e manipulados juntos.</li>
+            <li><b>Vínculo de Áudio e Vídeo (Ctrl+L):</b> Conecte faixas de áudio e vídeo mantendo sincronia e exibindo indicador técnico de slip em vermelho caso haja perda de sincronismo temporal.</li>
+            <li><b>Colar Atributos Seletivo (Ctrl+Alt+V):</b> Copie um clipe (Ctrl+C) e transfira seletivamente escala, posição, efeitos/filtros, curvas de volume de áudio ou velocidade para múltiplos clipes selecionados.</li>
+            <li><b>Gerador de Matte de Cor Sólida (Color Matte 1995):</b> Crie cartelas de cor sólida broadcast (Preto Puro, Branco Estúdio, Chroma Blue/Green, Cinza 50% ou seletor hexadecimal) para fades, títulos e fundos.</li>
+            <li><b>Transição Rápida de Dissolvência (Ctrl+D):</b> Insira instantaneamente uma transição Cross Dissolve de 1.0s sobre o corte sob a agulha ou nos clipes selecionados.</li>
+          </ul>
+        </div>
+        <div class="ver-block">
+          <b>1.0.6 · Multi-Sequências, Ripple Delete no Vazio e Salvamento Profissional</b>
           <ul>
             <li><b>Múltiplas Linhas do Tempo / Sequências no Mesmo Projeto (Ctrl+N):</b> Crie, renomeie, duplique e feche diferentes sequências de montagem através de abas clássicas 3D no topo da régua, mantendo todas as sequências salvas no mesmo arquivo .PPJ.</li>
             <li><b>Seleção de Espaço Vazio &amp; Eliminar Ondulação (Ripple Delete):</b> Clique diretamente em qualquer buraco entre clipes na timeline para selecioná-lo em hachura amarela e tecle DELETE ou use o menu do botão direito para fechar o espaço instantaneamente puxando os clipes seguintes.</li>
@@ -10282,6 +11219,7 @@ function switchMulticamCam(camNumber) {
       S.clips[targetTk].push(newClip);
       resolveTrackOverlaps(targetTk, newClip.id);
       S.selectedClipId = newClip.id;
+      S.selectedClipIds = [newClip.id];
     }
     playFoleySound("claquete", 0.04);
     toast(`Corte no ar: Câmera ${camNumber} (${srcTk.toUpperCase()})!`);
@@ -10308,6 +11246,10 @@ function updateStatusBar() {
   if (sbClip) {
     if (S.selectedGap) {
       sbClip.textContent = `Espaço Vazio [${S.selectedGap.track.toUpperCase()}]: ${S.selectedGap.dur.toFixed(2)}s (DEL para fechar)`;
+    } else if (Array.isArray(S.selectedClipIds) && S.selectedClipIds.length > 1) {
+      const selectedList = getSelectedClipsList();
+      const combinedDur = selectedList.reduce((acc, item) => acc + (item.clip.dur || 0), 0);
+      sbClip.textContent = `${selectedList.length} Clipes Selecionados (Duração combinada: ${combinedDur.toFixed(1)}s)`;
     } else {
       const sel = getSelectedClip();
       sbClip.textContent = sel ? `Clipe [${sel.track.toUpperCase()}]: ${sel.title.slice(0, 24)} (${sel.dur}s)` : `Faixas Alvo: ${(S.targetVideoTrack || "v1").toUpperCase()} / ${(S.targetAudioTrack || "a1").toUpperCase()}`;
@@ -10383,6 +11325,14 @@ const CMD = {
   }},
   excluirClipe: { label: "Apagar Clipe Selecionado", key: "Delete", run: () => deleteSelectedClip(false) },
   excluirRipple: { label: "Apagar e Fechar Espaço (Ripple Delete)", key: "Shift+Del", run: () => deleteSelectedClip(true) },
+  selecionarTodos: { label: "Selecionar Todos os Clipes", icon: "seq", key: "Ctrl+A", run: () => selectAllClips() },
+  desmarcarTudo: { label: "Desmarcar Todos os Clipes", key: "Esc", run: () => { clearClipSelection(); renderTimeline(); updateStatusBar(); } },
+  agruparClipes: { label: "Agrupar Clipes Selecionados", icon: "group", key: "Ctrl+G", run: () => groupSelectedClips() },
+  desagruparClipes: { label: "Desagrupar Clipes", key: "Ctrl+Shift+G", run: () => ungroupSelectedClips() },
+  vincularAV: { label: "Vincular / Desvincular Áudio e Vídeo", key: "Ctrl+L", run: () => linkSelectedClips() },
+  colarAtributos: { label: "Colar Atributos nos Clipes…", icon: "sparkle", key: "Ctrl+Alt+V", run: () => openPasteAttributesDialog() },
+  colorMatte: { label: "Gerador de Matte de Cor Sólida (Color Matte 1995)…", icon: "sparkle", key: "Shift+M", run: () => openColorMatteDialog() },
+  quickDissolve: { label: "Inserir Dissolvência Rápida (1.0s)", icon: "sparkle", key: "Ctrl+D", run: () => applyQuickCrossDissolve() },
   toolSelect: { label: "Ferramenta Seleção e Movimento", key: "Tecla V", run: () => setTimelineTool("select") },
   toolTrack: { label: "Ferramenta Selecionar Faixa Adiante", key: "Tecla A", run: () => setTimelineTool("track") },
   toolRazor: { label: "Ferramenta Navalha (Corte)", key: "Tecla C", run: () => setTimelineTool("razor") },
@@ -10424,10 +11374,10 @@ const CMD = {
 };
 
 const MENUS = [
-  ["Arquivo", "A", ["telaInicial", "-", "novaSequencia", "novoProjetoLivre", "abrirProjeto", "salvarProjeto", "salvarProjetoComo", "-", "importarMidia", "relinkMidias", "importarEDL", "exportarEDL", "exportarCueSheet", "-", "importarSRT", "exportarSRT", "-", "gerarSinal", "geradorGC", "-", "importarSR", "salvarNoSR", "-", "exportarMaster", "filaRender", "-", "abrirScriptRoom", "-", "desligar"]],
-  ["Editar", "E", ["desfazer", "refazer", "-", "copiarClipe", "colarClipe", "duplicarClipe", "congelarQuadro", "-", "cortarAgulha", "excluirClipe", "excluirRipple", "rippleDeleteVazio", "-", "toggleSnap", "-", "configTeclas"]],
-  ["Projeto", "P", ["novaSequencia", "duplicarSequencia", "-", "importarMidia", "relinkMidias", "abrirProjeto", "salvarProjeto", "-", "gerarSinal", "geradorGC", "adicionarMarcador", "abaMarcadores", "-", "addVideoTrack", "addAudioTrack", "-", "mesaSom", "rackDinamica", "equalizadorDSP", "corretor3Way", "-", "importarSRT", "exportarSRT", "-", "importarSR"]],
-  ["Clipe", "C", ["sobrescreverOrigem", "inserirOrigem", "-", "marcarInTimeline", "marcarOutTimeline", "limparInOutTimeline", "-", "velocidadeClipe", "congelarQuadro", "cortarAgulha", "duplicarClipe", "excluirClipe", "excluirRipple", "rippleDeleteVazio", "-", "toggleSnap", "-", "addVideoTrack", "addAudioTrack", "-", "toolSelect", "toolTrack", "toolRazor", "toolTrim", "toolRipple", "toolRolling", "toolSlip", "toolSlide", "toolHand"]],
+  ["Arquivo", "A", ["telaInicial", "-", "novaSequencia", "novoProjetoLivre", "abrirProjeto", "salvarProjeto", "salvarProjetoComo", "-", "importarMidia", "relinkMidias", "importarEDL", "exportarEDL", "exportarCueSheet", "-", "importarSRT", "exportarSRT", "-", "gerarSinal", "geradorGC", "colorMatte", "-", "importarSR", "salvarNoSR", "-", "exportarMaster", "filaRender", "-", "abrirScriptRoom", "-", "desligar"]],
+  ["Editar", "E", ["desfazer", "refazer", "-", "selecionarTodos", "desmarcarTudo", "-", "copiarClipe", "colarClipe", "colarAtributos", "duplicarClipe", "congelarQuadro", "-", "agruparClipes", "desagruparClipes", "vincularAV", "-", "cortarAgulha", "excluirClipe", "excluirRipple", "rippleDeleteVazio", "-", "toggleSnap", "-", "configTeclas"]],
+  ["Projeto", "P", ["novaSequencia", "duplicarSequencia", "-", "importarMidia", "relinkMidias", "abrirProjeto", "salvarProjeto", "-", "gerarSinal", "geradorGC", "colorMatte", "adicionarMarcador", "abaMarcadores", "-", "addVideoTrack", "addAudioTrack", "-", "mesaSom", "rackDinamica", "equalizadorDSP", "corretor3Way", "-", "importarSRT", "exportarSRT", "-", "importarSR"]],
+  ["Clipe", "C", ["sobrescreverOrigem", "inserirOrigem", "-", "marcarInTimeline", "marcarOutTimeline", "limparInOutTimeline", "-", "colorMatte", "quickDissolve", "-", "agruparClipes", "desagruparClipes", "vincularAV", "colarAtributos", "-", "velocidadeClipe", "congelarQuadro", "cortarAgulha", "duplicarClipe", "excluirClipe", "excluirRipple", "rippleDeleteVazio", "-", "toggleSnap", "-", "addVideoTrack", "addAudioTrack", "-", "toolSelect", "toolTrack", "toolRazor", "toolTrim", "toolRipple", "toolRolling", "toolSlip", "toolSlide", "toolHand"]],
   ["Janela", "J", ["layDual", "layMulticam", "laySingle", "layScript", "-", "janelaDub", "multicamSwitcher", "filaRender", "-", "verPainel", "-", "desacoplarProgram", "desacoplarSource", "desacoplarSide", "desacoplarTimeline", "-", "reacoplarTodos", "resetLayout", "-", "esquema"]],
   ["Áudio/Vídeo", "V", ["mesaSom", "rackDinamica", "equalizadorDSP", "corretor3Way", "-", "janelaDub", "-", "addVideoTrack", "addAudioTrack", "-", "mesaFoley", "gravadorADR", "claqueteCam", "-", "exportarMaster", "filaRender"]],
   ["Ajuda", "u", ["atalhosAjuda", "dicaDoDia", "procurarAtualizacoes", "-", "oQueHaDeNovo", "telaAbertura", "sobre"]]
@@ -11167,7 +12117,21 @@ async function boot() {
       createFreezeFrameAtPlayhead();
     }
     else if (match("splitClip")) { e.preventDefault(); splitClipAtPlayhead(); }
-    else if (match("duplicateClip")) { e.preventDefault(); duplicateSelectedClip(); }
+    else if (match("selectAll") || combo.toLowerCase() === "ctrl+a") { e.preventDefault(); selectAllClips(); }
+    else if (match("groupClips") || combo.toLowerCase() === "ctrl+g") { e.preventDefault(); groupSelectedClips(); }
+    else if (match("ungroupClips") || combo.toLowerCase() === "ctrl+shift+g") { e.preventDefault(); ungroupSelectedClips(); }
+    else if (match("linkClips") || combo.toLowerCase() === "ctrl+l") { e.preventDefault(); linkSelectedClips(); }
+    else if (match("pasteAttributes") || combo.toLowerCase() === "ctrl+alt+v") { e.preventDefault(); openPasteAttributesDialog(); }
+    else if (match("colorMatte") || combo.toLowerCase() === "shift+m") { e.preventDefault(); openColorMatteDialog(); }
+    else if (e.key === "Escape") { e.preventDefault(); clearClipSelection(); renderTimeline(); updateStatusBar(); }
+    else if (match("duplicateClip") || combo.toLowerCase() === "ctrl+d") {
+      e.preventDefault();
+      if ((S.selectedClipIds && S.selectedClipIds.length > 1) || S.selectedClipId) {
+        duplicateSelectedClip();
+      } else {
+        applyQuickCrossDissolve();
+      }
+    }
     else if (match("copyClip")) { e.preventDefault(); copySelectedClip(); }
     else if (match("pasteClip")) { e.preventDefault(); pasteClipAtPlayhead(); }
     else if (match("addMarker")) { e.preventDefault(); addTimelineMarker(); }

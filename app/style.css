@@ -2692,6 +2692,84 @@ body[data-tool="ripple"] .tl-clip {
   filter: drop-shadow(0 0 3px #00E5FF);
 }
 
+/* ==========================================================================
+   VERSÃO 1.0.7: SELEÇÃO MÚLTIPLA, MARQUEE BOX, AGRUPAMENTO E OPERAÇÕES EM BLOCO
+   ========================================================================== */
+
+/* Caixa Elástica de Seleção com o Mouse (Marquee / Lasso 95) */
+.tl-marquee {
+  position: absolute;
+  border: 1.5px dashed #00E5FF;
+  background: rgba(0, 160, 240, 0.22);
+  box-shadow: 0 0 6px rgba(0, 229, 255, 0.4);
+  pointer-events: none;
+  z-index: 85;
+  box-sizing: border-box;
+}
+
+/* Clipes Selecionados em Grupo / Multi-seleção */
+.tl-clip.multi-sel {
+  outline: 2px solid #00FFFF !important;
+  outline-offset: -1px;
+  filter: drop-shadow(0 0 4px rgba(0, 255, 255, 0.6)) !important;
+  z-index: 6 !important;
+}
+
+/* Badge de Clipes Agrupados [GRP] */
+.clip-badge-grp {
+  display: inline-flex;
+  align-items: center;
+  background: #000080;
+  color: #FFE040;
+  font: bold 9px monospace;
+  padding: 0 3px;
+  border-radius: 2px;
+  border: 1px outset #fff;
+  margin-right: 4px;
+  letter-spacing: 0.5px;
+}
+
+/* Badge de Dessincronização de Áudio/Vídeo (Slip Indicator) */
+.clip-slip-badge {
+  display: inline-flex;
+  align-items: center;
+  background: #800000;
+  color: #FFF;
+  font: bold 9px monospace;
+  padding: 0 3px;
+  border-radius: 2px;
+  border: 1px outset #ff4040;
+  margin-left: 4px;
+  animation: slipPulse 1s infinite alternate;
+}
+
+@keyframes slipPulse {
+  from { background: #800000; color: #FFF; }
+  to { background: #E00000; color: #FFE040; }
+}
+
+/* Amostras de cores do Gerador Color Matte */
+.color-matte-swatches {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.color-matte-swatch {
+  width: 28px;
+  height: 28px;
+  border: 2px inset #000;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: transform 0.1s;
+}
+
+.color-matte-swatch:hover {
+  transform: scale(1.1);
+  border-color: #fff;
+}
+
 
 
 
