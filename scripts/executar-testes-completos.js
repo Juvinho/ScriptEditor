@@ -1,6 +1,16 @@
-// Script de Teste Automatizado E2E — ScriptEditor 95 (Versão 1.1.1)
+// Script de Teste Automatizado E2E — ScriptEditor 95 (Versão 1.1.2)
 // Simula um usuário real navegando por absolutamente TODOS os módulos do editor
 // e captura telas completas em alta resolução salvando na pasta raiz 'testes_e2e_screenshots/'.
+
+if (!process.versions.electron) {
+  const electronBin = require("electron");
+  const { spawn } = require("child_process");
+  const env = { ...process.env };
+  delete env.ELECTRON_RUN_AS_NODE;
+  const child = spawn(electronBin, [__filename], { stdio: "inherit", env });
+  child.on("close", (code) => process.exit(code || 0));
+  return;
+}
 
 const { app, BrowserWindow } = require("electron");
 const path = require("path");
@@ -14,7 +24,7 @@ async function sleep(ms) {
 }
 
 app.whenReady().then(async () => {
-  console.log("=== INICIANDO BATERIA DE TESTES E2E SCRIPTEDITOR 95 (v1.1.1) ===");
+  console.log("=== INICIANDO BATERIA DE TESTES E2E SCRIPTEDITOR 95 (v1.1.2) ===");
   console.log("Diretório de destino:", OUTPUT_DIR);
 
   const win = new BrowserWindow({
@@ -264,7 +274,26 @@ app.whenReady().then(async () => {
       await sleep(400);
       await capture("23_ficha_tecnica_montagem_cue_sheet_95.png", "Ficha Técnica de Montagem & Relatório de Decupagem (HTML 95 & TXT)");
 
-      console.log("=== TODOS OS 23 TESTES E CAPTURAS CONCLUÍDOS COM SUCESSO! ===");
+      // 24. SELETOR DE CORES OFICIAL DO WINDOWS 95 (CHOOSECOLOR / COMMDLG32)
+      await exec(`
+        document.querySelectorAll(".win:not(#appWin)").forEach(w => { if (w._close) w._close(); else w.remove(); });
+        document.querySelectorAll(".scrim").forEach(s => s.remove());
+        if (typeof openWin95ColorDialog === "function") openWin95ColorDialog("#008080", null, { title: "Cores" });
+      `);
+      await sleep(500);
+      await capture("24_seletor_de_cores_oficial_windows_95.png", "Seletor de Cores Oficial do Windows 95 (COMMDLG32 / Cores Básicas & Espectro HSL)");
+
+      // 25. PROCESSADOR DE EFEITOS DIGITAIS 3D (DVE 1995 — AMPEX ADO / PINNACLE)
+      await exec(`
+        document.querySelectorAll(".win:not(#appWin)").forEach(w => { if (w._close) w._close(); else w.remove(); });
+        document.querySelectorAll(".scrim").forEach(s => s.remove());
+        const cl = (S.clips.v1 && S.clips.v1[0]) || { title: "CENA_3D.AVI", rotY: 35, rotX: 20, dve3dBevel: true, anaglyph3D: true };
+        if (typeof open3DDVEConsole === "function") open3DDVEConsole(cl);
+      `);
+      await sleep(500);
+      await capture("25_processador_efeitos_3d_dve_1995.png", "Processador de Efeitos Digitais 3D (DVE 1995 — Gizmo de Cubo 3D & Perspectiva)");
+
+      console.log("=== TODOS OS 25 TESTES E CAPTURAS CONCLUÍDOS COM SUCESSO! ===");
       await sleep(500);
       app.quit();
     } catch (err) {

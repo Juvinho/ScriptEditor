@@ -1,7 +1,7 @@
 {
   "name": "scripteditor-95",
   "productName": "ScriptEditor",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "ScriptEditor: ilha de edição de vídeo não-linear estilo 1995 integrada ao ScriptRoom. Edita vídeos, cortes, locuções, cartelas e trilhas seguindo o roteiro cena a cena.",
   "main": "main.js",
   "author": "Departamento de Montagem e Videografismo · C2",
@@ -13,7 +13,7 @@
   },
   "scripts": {
     "start": "electron .",
-    "testes-e2e": "electron . --testes-e2e",
+    "testes-e2e": "node scripts/executar-testes-completos.js",
     "gerar-icone": "node scripts/gerar-build-assets.js",
     "instalador": "node scripts/gerar-build-assets.js && electron-builder --win nsis",
     "portatil": "node scripts/gerar-build-assets.js && electron-builder --win portable",

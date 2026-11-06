@@ -3106,6 +3106,355 @@ input[type="range"].mixer-fader {
   border-color: #fff;
 }
 
+/* ==========================================================================
+   SELETOR DE CORES OFICIAL DO WINDOWS 95 (CHOOSECOLOR / COMMDLG32.DLL)
+   ========================================================================== */
+
+/* Botão Universal de Amostra de Cor Windows 95 (Substituto do <input type="color">) */
+.win95-color-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 6px 2px 4px;
+  background: var(--face);
+  border-top: 2px solid var(--hi);
+  border-left: 2px solid var(--hi);
+  border-right: 2px solid var(--dk);
+  border-bottom: 2px solid var(--dk);
+  box-shadow: 1px 1px 0 var(--lo);
+  cursor: pointer;
+  font-family: var(--f-ui);
+  font-size: 11px;
+  color: var(--text);
+  user-select: none;
+  min-height: 24px;
+  box-sizing: border-box;
+}
+
+.win95-color-btn:hover {
+  background: #D8D8D8;
+}
+
+.win95-color-btn:active {
+  border-top: 2px solid var(--dk);
+  border-left: 2px solid var(--dk);
+  border-right: 2px solid var(--hi);
+  border-bottom: 2px solid var(--hi);
+  padding: 3px 5px 1px 5px;
+}
+
+.win95-color-chip {
+  width: 22px;
+  height: 16px;
+  border-top: 1px solid #404040;
+  border-left: 1px solid #404040;
+  border-right: 1px solid #FFFFFF;
+  border-bottom: 1px solid #FFFFFF;
+  box-sizing: border-box;
+  display: inline-block;
+  box-shadow: inset 1px 1px 0 #000;
+}
+
+.win95-color-hex-label {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* Grade de Cores Básicas e Personalizadas (COMMDLG32 8 colunas) */
+.w95-palette-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.w95-palette-label {
+  font-family: var(--f-ui);
+  font-size: 11px;
+  color: #000;
+  font-weight: normal;
+}
+
+.w95-palette-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 22px);
+  gap: 4px;
+  padding: 4px;
+  background: var(--face);
+}
+
+.w95-palette-swatch {
+  width: 22px;
+  height: 18px;
+  border-top: 1px solid #404040;
+  border-left: 1px solid #404040;
+  border-right: 1px solid #FFFFFF;
+  border-bottom: 1px solid #FFFFFF;
+  box-shadow: inset 1px 1px 0 #000;
+  cursor: pointer;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.w95-palette-swatch:hover {
+  outline: 1px solid #000080;
+}
+
+.w95-palette-swatch.active {
+  outline: 2px dotted #000;
+  outline-offset: 1px;
+}
+
+/* Espectro HSL 2D e Barra de Luminosidade */
+.w95-spectrum-wrapper {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  position: relative;
+}
+
+.w95-spectrum-box {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  cursor: crosshair;
+}
+
+.w95-spectrum-canvas {
+  width: 180px;
+  height: 180px;
+  border-top: 2px solid #404040;
+  border-left: 2px solid #404040;
+  border-right: 2px solid #FFFFFF;
+  border-bottom: 2px solid #FFFFFF;
+  box-shadow: inset 1px 1px 0 #000;
+  display: block;
+}
+
+.w95-spectrum-crosshair {
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.w95-spectrum-crosshair::before,
+.w95-spectrum-crosshair::after {
+  content: "";
+  position: absolute;
+  background: #000;
+  box-shadow: 0 0 1px #fff;
+}
+
+.w95-spectrum-crosshair::before {
+  top: 5px;
+  left: 0;
+  width: 11px;
+  height: 1px;
+}
+
+.w95-spectrum-crosshair::after {
+  top: 0;
+  left: 5px;
+  width: 1px;
+  height: 11px;
+}
+
+.w95-lum-wrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+  height: 180px;
+}
+
+.w95-lum-canvas {
+  width: 18px;
+  height: 180px;
+  border-top: 2px solid #404040;
+  border-left: 2px solid #404040;
+  border-right: 2px solid #FFFFFF;
+  border-bottom: 2px solid #FFFFFF;
+  box-shadow: inset 1px 1px 0 #000;
+  cursor: pointer;
+  display: block;
+}
+
+.w95-lum-arrow {
+  position: absolute;
+  left: 21px;
+  transform: translateY(-50%);
+  font-size: 11px;
+  color: #000;
+  cursor: pointer;
+  user-select: none;
+  line-height: 1;
+}
+
+/* Caixa "Cor | Sólido" (Color | Solid Preview) */
+.w95-preview-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: center;
+}
+
+.w95-preview-label {
+  font-size: 11px;
+  color: #000;
+  text-align: center;
+}
+
+.w95-color-solid-box {
+  width: 64px;
+  height: 48px;
+  border-top: 2px solid #404040;
+  border-left: 2px solid #404040;
+  border-right: 2px solid #FFFFFF;
+  border-bottom: 2px solid #FFFFFF;
+  box-shadow: inset 1px 1px 0 #000;
+  display: flex;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.w95-preview-left-color {
+  flex: 1;
+  height: 100%;
+}
+
+.w95-preview-right-solid {
+  flex: 1;
+  height: 100%;
+  position: relative;
+}
+
+/* Indicador SMPTE Broadcast Safe Legal / Alerta Chroma Bleed VHS */
+.w95-smpte-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  padding: 4px 6px;
+  border: 1px solid var(--dk);
+  background: var(--face);
+  box-shadow: inset 1px 1px var(--hi), inset -1px -1px var(--lo);
+}
+
+.w95-smpte-legal {
+  color: #006000;
+  font-weight: 700;
+}
+
+.w95-smpte-illegal {
+  color: #A00000;
+  font-weight: 700;
+  animation: smpteBlink 1s infinite alternate;
+}
+
+@keyframes smpteBlink {
+  from { opacity: 1; }
+  to { opacity: 0.6; }
+}
+
+/* Campos Numéricos do Seletor Windows 95 */
+.w95-num-input {
+  width: 44px;
+  height: 20px;
+  background: #FFF;
+  border-top: 1px solid #404040;
+  border-left: 1px solid #404040;
+  border-right: 1px solid #FFF;
+  border-bottom: 1px solid #FFF;
+  box-shadow: inset 1px 1px 0 #000;
+  font-family: var(--f-ui);
+  font-size: 11px;
+  text-align: right;
+  padding: 1px 3px;
+  box-sizing: border-box;
+}
+
+.w95-hex-input {
+  width: 72px;
+  height: 20px;
+  background: #FFF;
+  border-top: 1px solid #404040;
+  border-left: 1px solid #404040;
+  border-right: 1px solid #FFF;
+  border-bottom: 1px solid #FFF;
+  box-shadow: inset 1px 1px 0 #000;
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  font-size: 11px;
+  padding: 1px 3px;
+  box-sizing: border-box;
+}
+
+/* ==========================================================================
+   EFEITOS DIGITAIS 3D (DVE 1995) — AMPEX ADO / PINNACLE ALLADIN / FLYER
+   ========================================================================== */
+.dve-3d-panel {
+  background: var(--face);
+  border: 1px solid var(--dk);
+  box-shadow: inset 1px 1px var(--hi), inset -1px -1px var(--lo);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dve-3d-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #000080;
+  color: #FFF;
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  letter-spacing: 0.5px;
+}
+
+.dve-3d-gizmo-box {
+  width: 72px;
+  height: 72px;
+  background: #000;
+  border-top: 2px solid #404040;
+  border-left: 2px solid #404040;
+  border-right: 2px solid #FFFFFF;
+  border-bottom: 2px solid #FFFFFF;
+  box-shadow: inset 1px 1px 0 #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.dve-3d-cube {
+  width: 38px;
+  height: 38px;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.05s linear;
+}
+
+.dve-3d-face {
+  position: absolute;
+  width: 38px;
+  height: 38px;
+  border: 1px solid #00FF66;
+  background: rgba(0, 255, 102, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  font-family: monospace;
+  color: #00FF66;
+}
+
+
 
 
 

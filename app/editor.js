@@ -5,7 +5,7 @@
    Zero emojis · Ícones SVG 16x16 pixel-art · Edição Comercial, Doméstica e Roteirizada
    ============================================================================ */
 
-let APP_VERSAO = "1.1.1"; // Substituída em boot() pela versão real do package.json
+let APP_VERSAO = "1.1.2"; // Substituída em boot() pela versão real do package.json
 const FPS = 29.97;
 
 const ICON = {
@@ -1362,7 +1362,614 @@ function openPasteAttributesDialog() {
   });
 }
 
+// ============================================================================
+// SELETOR DE CORES OFICIAL DO WINDOWS 95 (CHOOSECOLOR / COMMDLG32.DLL)
+// ============================================================================
+
+function rgbToHex(r, g, b) {
+  const toH = n => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, "0").toUpperCase();
+  return `#${toH(r)}${toH(g)}${toH(b)}`;
+}
+
+function hexToRgb(hex) {
+  if (!hex) return { r: 0, g: 0, b: 0 };
+  let h = String(hex).trim().replace(/^#/, "");
+  if (h.length === 3) h = h.split("").map(c => c + c).join("");
+  if (h.length !== 6) return { r: 0, g: 0, b: 0 };
+  const num = parseInt(h, 16);
+  if (isNaN(num)) return { r: 0, g: 0, b: 0 };
+  return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
+}
+
+function rgbToHslWin95(r, g, b) {
+  r = Math.max(0, Math.min(255, r)) / 255;
+  g = Math.max(0, Math.min(255, g)) / 255;
+  b = Math.max(0, Math.min(255, b)) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const delta = max - min;
+  let l = (max + min) / 2;
+  let h = 160;
+  let s = 0;
+  if (delta !== 0) {
+    s = l <= 0.5 ? delta / (max + min) : delta / (2 - max - min);
+    if (r === max) {
+      h = ((g - b) / delta) % 6;
+    } else if (g === max) {
+      h = (b - r) / delta + 2;
+    } else {
+      h = (r - g) / delta + 4;
+    }
+    h = h * 40;
+    if (h < 0) h += 240;
+  }
+  return {
+    h: Math.max(0, Math.min(239, Math.round(h))),
+    s: Math.max(0, Math.min(240, Math.round(s * 240))),
+    l: Math.max(0, Math.min(240, Math.round(l * 240)))
+  };
+}
+
+function hslWin95ToRgb(h, s, l) {
+  h = (Math.max(0, Math.min(239, h)) % 240) / 240;
+  s = Math.max(0, Math.min(240, s)) / 240;
+  l = Math.max(0, Math.min(240, l)) / 240;
+  let r, g, b;
+  if (s === 0) {
+    r = g = b = l;
+  } else {
+    const hue2rgb = (p, q, t) => {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1/6) return p + (q - p) * 6 * t;
+      if (t < 1/2) return q;
+      if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+      return p;
+    };
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    r = hue2rgb(p, q, h + 1/3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h - 1/3);
+  }
+  return {
+    r: Math.max(0, Math.min(255, Math.round(r * 255))),
+    g: Math.max(0, Math.min(255, Math.round(g * 255))),
+    b: Math.max(0, Math.min(255, Math.round(b * 255)))
+  };
+}
+
+const PALETTES_90S = {
+  win95: [
+    "#FF8080", "#FFFF80", "#80FF80", "#00FF80", "#80FFFF", "#0080FF", "#FF80C0", "#FF80FF",
+    "#FF0000", "#FFFF00", "#80FF00", "#00FF40", "#00FFFF", "#0080C0", "#8080C0", "#FF00FF",
+    "#804040", "#FF8040", "#00FF00", "#008080", "#004080", "#8080FF", "#800040", "#FF0080",
+    "#800000", "#FF8000", "#008000", "#008040", "#0000FF", "#0000A0", "#800080", "#8000FF",
+    "#400000", "#804000", "#004000", "#004040", "#000080", "#000040", "#400040", "#400080",
+    "#000000", "#808000", "#808040", "#808080", "#408080", "#C0C0C0", "#400040", "#FFFFFF"
+  ],
+  netscape216: [
+    "#000000", "#003366", "#006699", "#0099CC", "#00CCFF", "#00FFFF", "#330066", "#333399",
+    "#3366CC", "#3399FF", "#33CCFF", "#660066", "#663399", "#6666CC", "#6699FF", "#66CCFF",
+    "#990066", "#993399", "#9966CC", "#9999FF", "#99CCFF", "#CC0066", "#CC3399", "#CC66CC",
+    "#CC99FF", "#CCCCFF", "#FF0066", "#FF3399", "#FF66CC", "#FF99FF", "#FFCCFF", "#FFFFFF",
+    "#006600", "#009900", "#00CC00", "#00FF00", "#339933", "#33CC33", "#33FF33", "#66CC66",
+    "#66FF66", "#99FF99", "#CCFFCC", "#FFFF00", "#FFCC00", "#FF9900", "#FF6600", "#FF3300"
+  ],
+  smpte: [
+    "#101010", "#202020", "#404040", "#808080", "#A0A0A0", "#C0C0C0", "#E0E0E0", "#EBEBEB",
+    "#BFBFBF", "#BFBF00", "#00BFBF", "#00BF00", "#BF00BF", "#BF0000", "#0000BF", "#101010",
+    "#002080", "#0040C0", "#0060FF", "#00A0FF", "#00D0D0", "#00A040", "#00D000", "#40FF40",
+    "#800000", "#B01010", "#D82020", "#E86020", "#F0A020", "#E8D020", "#D0E020", "#A0D020",
+    "#301040", "#602080", "#9030B0", "#B040C0", "#D060D0", "#A03080", "#701850", "#400820",
+    "#121A24", "#1E2A38", "#2A3C50", "#3E5875", "#587CA6", "#82A8D8", "#B5D0F5", "#DCEBFF"
+  ],
+  cga_ega: [
+    "#000000", "#0000AA", "#00AA00", "#00AAAA", "#AA0000", "#AA00AA", "#AA5500", "#AAAAAA",
+    "#555555", "#5555FF", "#55FF55", "#55FFFF", "#FF5555", "#FF55FF", "#FFFF55", "#FFFFFF",
+    "#000000", "#000080", "#008000", "#008080", "#800000", "#800080", "#808000", "#C0C0C0",
+    "#808080", "#0000FF", "#00FF00", "#00FFFF", "#FF0000", "#FF00FF", "#FFFF00", "#FFFFFF",
+    "#101010", "#202080", "#208020", "#208080", "#802020", "#802080", "#808020", "#D0D0D0",
+    "#606060", "#4040FF", "#40FF40", "#40FFFF", "#FF4040", "#FF40FF", "#FFFF40", "#F8F8F8"
+  ],
+  mac_system7: [
+    "#FFFFFF", "#EEEEEE", "#DDDDDD", "#CCCCCC", "#BBBBBB", "#AAAAAA", "#999999", "#888888",
+    "#777777", "#666666", "#555555", "#444444", "#333333", "#222222", "#111111", "#000000",
+    "#0000FF", "#0266FF", "#02B2FF", "#02FFFF", "#02FFB2", "#02FF66", "#02FF00", "#66FF02",
+    "#B2FF02", "#FFFF02", "#FFB202", "#FF6602", "#FF0002", "#FF0266", "#FF02B2", "#FF02FF",
+    "#0000AA", "#0040AA", "#0080AA", "#00AAAA", "#00AA80", "#00AA40", "#00AA00", "#40AA00",
+    "#80AA00", "#AAAA00", "#AA8000", "#AA4000", "#AA0000", "#AA0040", "#AA0080", "#AA00AA"
+  ]
+};
+
+function checkSmpteLegal(r, g, b) {
+  const y = 0.299 * r + 0.587 * g + 0.114 * b;
+  const ire = 7.5 + (y / 255) * 92.5;
+  const u = -0.14713 * r - 0.28886 * g + 0.436 * b;
+  const v = 0.615 * r - 0.51499 * g - 0.10001 * b;
+  const chroma = Math.sqrt(u * u + v * v);
+  const compositePeakIRE = ire + (chroma / 255) * 100;
+  const isLegal = r >= 15 && r <= 236 && g >= 15 && g <= 236 && b >= 15 && b <= 236 && compositePeakIRE <= 118;
+  const msg = isLegal 
+    ? `● SMPTE Broadcast Legal (${ire.toFixed(1)} IRE · Seguro para Fita e Transmissão)` 
+    : `⚠️ Ilegal Broadcast (${ire.toFixed(1)} IRE · Pico ${compositePeakIRE.toFixed(0)} IRE: Sangramento VHS)`;
+  return { legal: isLegal, ire, compositePeakIRE, message: msg };
+}
+
+function clampToSmpteLegal(r, g, b) {
+  r = Math.max(16, Math.min(235, r));
+  g = Math.max(16, Math.min(235, g));
+  b = Math.max(16, Math.min(235, b));
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  if (max - min > 175) {
+    const avg = (r + g + b) / 3;
+    r = Math.round(avg + (r - avg) * 0.72);
+    g = Math.round(avg + (g - avg) * 0.72);
+    b = Math.round(avg + (b - avg) * 0.72);
+  }
+  return { r, g, b };
+}
+
+function drawWin95Dither(canvas, r, g, b) {
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const w = canvas.width, h = canvas.height;
+  const id = ctx.createImageData(w, h);
+  const d = id.data;
+  const r1 = Math.floor(r / 32) * 32, r2 = Math.min(255, r1 + 32);
+  const g1 = Math.floor(g / 32) * 32, g2 = Math.min(255, g1 + 32);
+  const b1 = Math.floor(b / 32) * 32, b2 = Math.min(255, b1 + 32);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const idx = (y * w + x) * 4;
+      const checker = ((x ^ y) & 1) === 0;
+      d[idx] = checker ? r1 : r2;
+      d[idx + 1] = checker ? g1 : g2;
+      d[idx + 2] = checker ? b1 : b2;
+      d[idx + 3] = 255;
+    }
+  }
+  ctx.putImageData(id, 0, 0);
+}
+
+function createWin95ColorButtonHtml(id, colorHex, extraClass = "") {
+  const col = (colorHex && colorHex.startsWith("#")) ? colorHex.toUpperCase() : "#000000";
+  return `
+    <button type="button" class="win95-color-btn ${extraClass}" id="${id}" data-color="${col}">
+      <span class="win95-color-chip" style="background:${col}"></span>
+      <span class="win95-color-hex-label">${col}</span>
+    </button>
+  `;
+}
+
+function bindWin95ColorButton(btnEl, onColorChange) {
+  if (!btnEl) return;
+  btnEl.onclick = (e) => {
+    e.preventDefault();
+    const cur = btnEl.dataset.color || "#000000";
+    openWin95ColorDialog(cur, (newHex) => {
+      btnEl.dataset.color = newHex;
+      const chip = btnEl.querySelector(".win95-color-chip");
+      if (chip) chip.style.background = newHex;
+      const lbl = btnEl.querySelector(".win95-color-hex-label");
+      if (lbl) lbl.textContent = newHex;
+      if (typeof onColorChange === "function") onColorChange(newHex);
+    });
+  };
+}
+
+function openWin95ColorDialog(initialColor = "#000000", onSelect = null, options = {}) {
+  let currentColor = (initialColor && initialColor.startsWith("#")) ? initialColor.toUpperCase() : "#000000";
+  let rgb = hexToRgb(currentColor);
+  let hsl = rgbToHslWin95(rgb.r, rgb.g, rgb.b);
+
+  let customColors = [];
+  try {
+    const saved = localStorage.getItem("scripteditor_custom_colors_95");
+    if (saved) customColors = JSON.parse(saved);
+  } catch (_e) {}
+  if (!Array.isArray(customColors) || customColors.length !== 16) {
+    customColors = [
+      "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF",
+      "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF", "#FFFFFF"
+    ];
+  }
+  let selectedCustomIndex = 0;
+  let activePaletteKey = "win95";
+
+  dialog({
+    id: "win95ColorDialog",
+    title: options.title || "Cores",
+    width: 530,
+    body: `
+      <div class="col" style="gap:8px">
+        <div class="row" style="gap:14px;align-items:flex-start">
+          <!-- Coluna Esquerda: Paletas e Cores Básicas / Personalizadas -->
+          <div class="col" style="width:200px;gap:6px">
+            <label class="w95-palette-label" style="display:flex;align-items:center;justify-content:space-between">
+              <span>Paleta 90s:</span>
+              <select id="w95PaletteSel" style="font-size:11px;height:21px;width:125px">
+                <option value="win95" selected>Windows 95 (48)</option>
+                <option value="netscape216">Netscape 216 (Web)</option>
+                <option value="smpte">SMPTE Safe (TV)</option>
+                <option value="cga_ega">CGA / EGA (16)</option>
+                <option value="mac_system7">System 7 Mac</option>
+              </select>
+            </label>
+
+            <div class="w95-palette-label">Cores básicas:</div>
+            <div class="w95-palette-grid" id="w95BasicGrid"></div>
+
+            <div class="w95-palette-label" style="margin-top:2px">Cores personalizadas:</div>
+            <div class="w95-palette-grid" id="w95CustomGrid" style="grid-template-rows:repeat(2, 18px)"></div>
+
+            <button type="button" class="btn sm" id="w95BtnAddCustom" style="margin-top:4px;padding:3px 4px;font-size:11px">
+              Adicionar às cores personalizadas
+            </button>
+          </div>
+
+          <!-- Divisor Vertical Clássico 95 -->
+          <div style="width:2px;height:290px;background:#808080;border-right:1px solid #FFFFFF"></div>
+
+          <!-- Coluna Direita: Espectro 2D, Luminosidade e Coordenadas Numéricas -->
+          <div class="col" style="flex:1;gap:6px">
+            <div class="w95-spectrum-wrapper">
+              <div class="w95-spectrum-box" id="w95SpectrumBox" title="Arraste para ajustar Matiz e Saturação">
+                <canvas class="w95-spectrum-canvas" id="w95SpectrumCanvas" width="180" height="180"></canvas>
+                <div class="w95-spectrum-crosshair" id="w95Crosshair"></div>
+              </div>
+
+              <div class="w95-lum-wrapper" id="w95LumWrapper" title="Arraste para ajustar Luminosidade">
+                <canvas class="w95-lum-canvas" id="w95LumCanvas" width="18" height="180"></canvas>
+                <div class="w95-lum-arrow" id="w95LumArrow">◄</div>
+              </div>
+            </div>
+
+            <!-- Previsão Cor | Sólido e Campos HSL / RGB -->
+            <div class="row" style="gap:10px;align-items:center;margin-top:2px">
+              <div class="w95-preview-group" title="Clique para travar na aproximação sólida">
+                <div class="w95-preview-label">Cor | Sólido</div>
+                <div class="w95-color-solid-box" id="w95ColorSolidBox">
+                  <div class="w95-preview-left-color" id="w95PrevColor"></div>
+                  <canvas class="w95-preview-right-solid" id="w95PrevSolid" width="32" height="48"></canvas>
+                </div>
+              </div>
+
+              <!-- Coordenadas HSL e RGB -->
+              <div class="row" style="gap:10px;flex:1;font-size:11px">
+                <div class="col" style="gap:3px">
+                  <div class="row" style="gap:4px;align-items:center;justify-content:flex-end">
+                    <span><u>M</u>atiz:</span>
+                    <input type="number" id="w95InH" class="w95-num-input" min="0" max="239" value="${hsl.h}">
+                  </div>
+                  <div class="row" style="gap:4px;align-items:center;justify-content:flex-end">
+                    <span><u>S</u>at:</span>
+                    <input type="number" id="w95InS" class="w95-num-input" min="0" max="240" value="${hsl.s}">
+                  </div>
+                  <div class="row" style="gap:4px;align-items:center;justify-content:flex-end">
+                    <span><u>L</u>um:</span>
+                    <input type="number" id="w95InL" class="w95-num-input" min="0" max="240" value="${hsl.l}">
+                  </div>
+                </div>
+
+                <div class="col" style="gap:3px">
+                  <div class="row" style="gap:4px;align-items:center;justify-content:flex-end">
+                    <span><u>V</u>erm:</span>
+                    <input type="number" id="w95InR" class="w95-num-input" min="0" max="255" value="${rgb.r}">
+                  </div>
+                  <div class="row" style="gap:4px;align-items:center;justify-content:flex-end">
+                    <span>Ver<u>d</u>e:</span>
+                    <input type="number" id="w95InG" class="w95-num-input" min="0" max="255" value="${rgb.g}">
+                  </div>
+                  <div class="row" style="gap:4px;align-items:center;justify-content:flex-end">
+                    <span><u>A</u>zul:</span>
+                    <input type="number" id="w95InB" class="w95-num-input" min="0" max="255" value="${rgb.b}">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Código Hexadecimal & Ferramentas Rápidas -->
+            <div class="row" style="justify-content:space-between;align-items:center;gap:6px">
+              <div class="row" style="gap:4px;align-items:center;font-size:11px">
+                <span>Hex:</span>
+                <input type="text" id="w95InHex" class="w95-hex-input" maxlength="7" value="${currentColor}">
+              </div>
+              <div class="row" style="gap:4px">
+                <button type="button" class="btn sm" id="w95BtnDropper" title="Capturar cor de qualquer ponto">Pipeta</button>
+                <button type="button" class="btn sm" id="w95BtnClampSmpte" title="Ajusta cor para limites de transmissão SMPTE 16-235">Clamp SMPTE</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Barra de Status de Transmissão SMPTE Broadcast (Legalidade IRE) -->
+        <div class="w95-smpte-status" id="w95SmpteStatus">
+          <span id="w95SmpteText">● SMPTE Broadcast Legal (Calculando sinal...)</span>
+        </div>
+      </div>
+    `,
+    buttons: [
+      {
+        label: "OK",
+        def: 1,
+        run: () => {
+          if (typeof onSelect === "function") onSelect(currentColor, rgb, hsl);
+          return true;
+        }
+      },
+      {
+        label: "Cancelar",
+        run: () => true
+      }
+    ]
+  });
+
+  setTimeout(() => {
+    const specCv = document.getElementById("w95SpectrumCanvas");
+    const lumCv = document.getElementById("w95LumCanvas");
+    const specBox = document.getElementById("w95SpectrumBox");
+    const lumWrapper = document.getElementById("w95LumWrapper");
+    const crosshair = document.getElementById("w95Crosshair");
+    const lumArrow = document.getElementById("w95LumArrow");
+    const prevColor = document.getElementById("w95PrevColor");
+    const prevSolid = document.getElementById("w95PrevSolid");
+    const smpteStatus = document.getElementById("w95SmpteStatus");
+    const smpteText = document.getElementById("w95SmpteText");
+    const paletteSel = document.getElementById("w95PaletteSel");
+    const btnAddCustom = document.getElementById("w95BtnAddCustom");
+    const btnDropper = document.getElementById("w95BtnDropper");
+    const btnClamp = document.getElementById("w95BtnClampSmpte");
+
+    const inH = document.getElementById("w95InH");
+    const inS = document.getElementById("w95InS");
+    const inL = document.getElementById("w95InL");
+    const inR = document.getElementById("w95InR");
+    const inG = document.getElementById("w95InG");
+    const inB = document.getElementById("w95InB");
+    const inHex = document.getElementById("w95InHex");
+
+    function renderSpectrumCanvas() {
+      if (!specCv) return;
+      const sCtx = specCv.getContext("2d");
+      const id = sCtx.createImageData(180, 180);
+      const d = id.data;
+      for (let y = 0; y < 180; y++) {
+        const s = Math.round((1 - y / 180) * 240);
+        for (let x = 0; x < 180; x++) {
+          const h = Math.round((x / 180) * 239);
+          const col = hslWin95ToRgb(h, s, 120);
+          const idx = (y * 180 + x) * 4;
+          d[idx] = col.r;
+          d[idx + 1] = col.g;
+          d[idx + 2] = col.b;
+          d[idx + 3] = 255;
+        }
+      }
+      sCtx.putImageData(id, 0, 0);
+    }
+
+    function renderLumBar() {
+      if (!lumCv) return;
+      const lCtx = lumCv.getContext("2d");
+      const grad = lCtx.createLinearGradient(0, 0, 0, 180);
+      const pure = hslWin95ToRgb(hsl.h, hsl.s, 120);
+      grad.addColorStop(0, "#FFFFFF");
+      grad.addColorStop(0.5, `rgb(${pure.r}, ${pure.g}, ${pure.b})`);
+      grad.addColorStop(1, "#000000");
+      lCtx.fillStyle = grad;
+      lCtx.fillRect(0, 0, 18, 180);
+    }
+
+    function renderPaletteSwatches() {
+      const list = PALETTES_90S[activePaletteKey] || PALETTES_90S.win95;
+      const basicGrid = document.getElementById("w95BasicGrid");
+      if (!basicGrid) return;
+      basicGrid.innerHTML = list.slice(0, 48).map(hex =>
+        `<div class="w95-palette-swatch" data-hex="${hex}" title="${hex}" style="background:${hex}"></div>`
+      ).join("");
+      basicGrid.querySelectorAll(".w95-palette-swatch").forEach(sw => {
+        sw.onclick = () => setColorFromHex(sw.dataset.hex);
+      });
+    }
+
+    function renderCustomSwatches() {
+      const customGrid = document.getElementById("w95CustomGrid");
+      if (!customGrid) return;
+      customGrid.innerHTML = customColors.map((hex, i) =>
+        `<div class="w95-palette-swatch${i === selectedCustomIndex ? " active" : ""}" data-idx="${i}" data-hex="${hex}" title="Personalizada ${i + 1}: ${hex}" style="background:${hex}"></div>`
+      ).join("");
+      customGrid.querySelectorAll(".w95-palette-swatch").forEach(sw => {
+        sw.onclick = () => {
+          selectedCustomIndex = parseInt(sw.dataset.idx, 10);
+          renderCustomSwatches();
+          setColorFromHex(sw.dataset.hex);
+        };
+      });
+    }
+
+    function updateAll(fromSource = "") {
+      currentColor = rgbToHex(rgb.r, rgb.g, rgb.b);
+
+      if (crosshair) {
+        const cx = Math.max(0, Math.min(180, (hsl.h / 239) * 180));
+        const cy = Math.max(0, Math.min(180, (1 - hsl.s / 240) * 180));
+        crosshair.style.left = cx + "px";
+        crosshair.style.top = cy + "px";
+      }
+
+      if (lumArrow) {
+        const ly = Math.max(0, Math.min(180, (1 - hsl.l / 240) * 180));
+        lumArrow.style.top = ly + "px";
+      }
+
+      renderLumBar();
+
+      if (prevColor) prevColor.style.background = currentColor;
+      if (prevSolid) drawWin95Dither(prevSolid, rgb.r, rgb.g, rgb.b);
+
+      if (fromSource !== "hsl") {
+        if (inH) inH.value = hsl.h;
+        if (inS) inS.value = hsl.s;
+        if (inL) inL.value = hsl.l;
+      }
+      if (fromSource !== "rgb") {
+        if (inR) inR.value = rgb.r;
+        if (inG) inG.value = rgb.g;
+        if (inB) inB.value = rgb.b;
+      }
+      if (fromSource !== "hex") {
+        if (inHex) inHex.value = currentColor;
+      }
+
+      if (smpteStatus && smpteText) {
+        const smp = checkSmpteLegal(rgb.r, rgb.g, rgb.b);
+        smpteStatus.className = smp.legal ? "w95-smpte-status w95-smpte-legal" : "w95-smpte-status w95-smpte-illegal";
+        smpteText.textContent = smp.message;
+      }
+    }
+
+    function setColorFromHex(hex) {
+      currentColor = (hex && hex.startsWith("#")) ? hex.toUpperCase() : "#000000";
+      rgb = hexToRgb(currentColor);
+      hsl = rgbToHslWin95(rgb.r, rgb.g, rgb.b);
+      updateAll();
+    }
+
+    // Espectro 2D drag
+    if (specBox && specCv) {
+      let isDown = false;
+      const move = (e) => {
+        const r = specCv.getBoundingClientRect();
+        const x = Math.max(0, Math.min(180, e.clientX - r.left));
+        const y = Math.max(0, Math.min(180, e.clientY - r.top));
+        hsl.h = Math.round((x / 180) * 239);
+        hsl.s = Math.round((1 - y / 180) * 240);
+        rgb = hslWin95ToRgb(hsl.h, hsl.s, hsl.l);
+        updateAll();
+      };
+      specBox.addEventListener("pointerdown", (e) => {
+        isDown = true;
+        specBox.setPointerCapture(e.pointerId);
+        move(e);
+      });
+      specBox.addEventListener("pointermove", (e) => {
+        if (isDown) move(e);
+      });
+      const stop = () => { isDown = false; };
+      specBox.addEventListener("pointerup", stop);
+      specBox.addEventListener("pointercancel", stop);
+    }
+
+    // Luminosidade drag
+    if (lumWrapper && lumCv) {
+      let isDown = false;
+      const move = (e) => {
+        const r = lumCv.getBoundingClientRect();
+        const y = Math.max(0, Math.min(180, e.clientY - r.top));
+        hsl.l = Math.round((1 - y / 180) * 240);
+        rgb = hslWin95ToRgb(hsl.h, hsl.s, hsl.l);
+        updateAll();
+      };
+      lumWrapper.addEventListener("pointerdown", (e) => {
+        isDown = true;
+        lumWrapper.setPointerCapture(e.pointerId);
+        move(e);
+      });
+      lumWrapper.addEventListener("pointermove", (e) => {
+        if (isDown) move(e);
+      });
+      const stop = () => { isDown = false; };
+      lumWrapper.addEventListener("pointerup", stop);
+      lumWrapper.addEventListener("pointercancel", stop);
+    }
+
+    // Input handlers
+    const onHslChange = () => {
+      hsl.h = Math.max(0, Math.min(239, parseInt(inH.value, 10) || 0));
+      hsl.s = Math.max(0, Math.min(240, parseInt(inS.value, 10) || 0));
+      hsl.l = Math.max(0, Math.min(240, parseInt(inL.value, 10) || 0));
+      rgb = hslWin95ToRgb(hsl.h, hsl.s, hsl.l);
+      updateAll("hsl");
+    };
+    if (inH) inH.oninput = onHslChange;
+    if (inS) inS.oninput = onHslChange;
+    if (inL) inL.oninput = onHslChange;
+
+    const onRgbChange = () => {
+      rgb.r = Math.max(0, Math.min(255, parseInt(inR.value, 10) || 0));
+      rgb.g = Math.max(0, Math.min(255, parseInt(inG.value, 10) || 0));
+      rgb.b = Math.max(0, Math.min(255, parseInt(inB.value, 10) || 0));
+      hsl = rgbToHslWin95(rgb.r, rgb.g, rgb.b);
+      updateAll("rgb");
+    };
+    if (inR) inR.oninput = onRgbChange;
+    if (inG) inG.oninput = onRgbChange;
+    if (inB) inB.oninput = onRgbChange;
+
+    if (inHex) {
+      inHex.oninput = () => {
+        let val = inHex.value.trim();
+        if (!val.startsWith("#")) val = "#" + val;
+        if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+          setColorFromHex(val);
+        }
+      };
+    }
+
+    if (paletteSel) {
+      paletteSel.onchange = (e) => {
+        activePaletteKey = e.target.value;
+        renderPaletteSwatches();
+      };
+    }
+
+    if (btnAddCustom) {
+      btnAddCustom.onclick = () => {
+        customColors[selectedCustomIndex] = currentColor;
+        try {
+          localStorage.setItem("scripteditor_custom_colors_95", JSON.stringify(customColors));
+        } catch (_e) {}
+        renderCustomSwatches();
+        toast(`Cor ${currentColor} adicionada às cores personalizadas (${selectedCustomIndex + 1})!`);
+        selectedCustomIndex = (selectedCustomIndex + 1) % 16;
+      };
+    }
+
+    if (btnClamp) {
+      btnClamp.onclick = () => {
+        const cl = clampToSmpteLegal(rgb.r, rgb.g, rgb.b);
+        rgb = cl;
+        hsl = rgbToHslWin95(rgb.r, rgb.g, rgb.b);
+        updateAll();
+        toast("Cor ajustada para limites de transmissão SMPTE Safe (16-235 IRE)!");
+      };
+    }
+
+    if (btnDropper) {
+      btnDropper.onclick = async () => {
+        if (window.EyeDropper) {
+          try {
+            const eye = new window.EyeDropper();
+            const res = await eye.open();
+            if (res && res.sRGBHex) setColorFromHex(res.sRGBHex);
+          } catch (_e) {}
+        } else {
+          toast("Pipeta: clique no monitor para capturar ou use valores RGB.");
+        }
+      };
+    }
+
+    renderSpectrumCanvas();
+    renderPaletteSwatches();
+    renderCustomSwatches();
+    updateAll();
+  }, 40);
+}
+
 function openColorMatteDialog() {
+  let selectedColor = "#000000";
   dialog({
     id: "colorMatteWin",
     title: "Gerador de Matte de Cor Sólida (Color Matte 1995)",
@@ -1373,8 +1980,10 @@ function openColorMatteDialog() {
           <input type="text" id="matte-name" value="PRETO_BROADCAST_01" style="font-weight:bold">
         </label>
         <div class="row" style="gap:10px;align-items:center">
-          <label class="fld" style="flex:1"><span>Cor Hexadecimal:</span>
-            <input type="color" id="matte-color" value="#000000" style="height:32px;padding:1px;width:100%">
+          <label class="fld" style="flex:1"><span>Cor Selecionada (Windows 95):</span>
+            <div style="margin-top:2px">
+              ${createWin95ColorButtonHtml("matte-color-btn", "#000000")}
+            </div>
           </label>
           <label class="fld" style="width:110px"><span>Duração (s):</span>
             <input type="number" id="matte-dur" value="5.0" min="0.5" max="300" step="0.5">
@@ -1397,7 +2006,7 @@ function openColorMatteDialog() {
         label: "Inserir na Linha do Tempo",
         def: 1,
         run: () => {
-          const col = document.getElementById("matte-color")?.value || "#000000";
+          const col = selectedColor || "#000000";
           const dur = Math.max(0.5, parseFloat(document.getElementById("matte-dur")?.value) || 5.0);
           const name = (document.getElementById("matte-name")?.value || "COLOR_MATTE").trim();
           createAndInsertColorMatte(col, dur, name, true);
@@ -1406,7 +2015,7 @@ function openColorMatteDialog() {
       {
         label: "Apenas Adicionar ao Cesto (Bin)",
         run: () => {
-          const col = document.getElementById("matte-color")?.value || "#000000";
+          const col = selectedColor || "#000000";
           const dur = Math.max(0.5, parseFloat(document.getElementById("matte-dur")?.value) || 5.0);
           const name = (document.getElementById("matte-name")?.value || "COLOR_MATTE").trim();
           createAndInsertColorMatte(col, dur, name, false);
@@ -1417,11 +2026,23 @@ function openColorMatteDialog() {
   });
 
   setTimeout(() => {
+    const mBtn = document.getElementById("matte-color-btn");
+    if (mBtn) {
+      bindWin95ColorButton(mBtn, (newHex) => {
+        selectedColor = newHex;
+      });
+    }
     document.querySelectorAll(".color-matte-swatch").forEach(sw => {
       sw.onclick = () => {
-        const cIn = document.getElementById("matte-color");
+        selectedColor = sw.dataset.col;
         const nIn = document.getElementById("matte-name");
-        if (cIn) cIn.value = sw.dataset.col;
+        if (mBtn) {
+          mBtn.dataset.color = selectedColor;
+          const chip = mBtn.querySelector(".win95-color-chip");
+          if (chip) chip.style.background = selectedColor;
+          const lbl = mBtn.querySelector(".win95-color-hex-label");
+          if (lbl) lbl.textContent = selectedColor;
+        }
         if (nIn) nIn.value = sw.dataset.name + "_01";
       };
     });
@@ -2741,6 +3362,363 @@ function getClipTransformAt(clip, globalSec) {
   return { scaleX, scaleY, posX, posY, rotation };
 }
 
+// ============================================================================
+// SUÍTE DE EFEITOS DIGITAIS 3D (DVE 1995) — AMPEX ADO / PINNACLE ALLADIN
+// ============================================================================
+
+function draw3DBevelBorder(ctx, W, H, thickness = 6) {
+  ctx.save();
+  ctx.fillStyle = "#FFFFFF";
+  ctx.beginPath();
+  ctx.moveTo(0, 0); ctx.lineTo(W, 0); ctx.lineTo(W - thickness, thickness); ctx.lineTo(thickness, thickness); ctx.lineTo(thickness, H - thickness); ctx.lineTo(0, H);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = "#181818";
+  ctx.beginPath();
+  ctx.moveTo(W, 0); ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.lineTo(thickness, H - thickness); ctx.lineTo(W - thickness, H - thickness); ctx.lineTo(W - thickness, thickness);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.strokeStyle = "#808080";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(thickness, thickness, W - 2 * thickness, H - 2 * thickness);
+  ctx.restore();
+}
+
+function draw3DAnaglyphSplit(ctx, W, H, offset = 8) {
+  try {
+    const imgData = ctx.getImageData(0, 0, W, H);
+    const d = imgData.data;
+    const copy = new Uint8ClampedArray(d);
+    for (let y = 0; y < H; y++) {
+      for (let x = 0; x < W; x++) {
+        const i = (y * W + x) * 4;
+        const rightX = Math.min(W - 1, x + offset);
+        const iRight = (y * W + rightX) * 4;
+        d[i + 1] = copy[iRight + 1];
+        d[i + 2] = copy[iRight + 2];
+      }
+    }
+    ctx.putImageData(imgData, 0, 0);
+  } catch (_e) {}
+}
+
+function drawCRTScanlines(ctx, W, H) {
+  ctx.save();
+  ctx.fillStyle = "rgba(0, 0, 0, 0.28)";
+  for (let y = 0; y < H; y += 3) {
+    ctx.fillRect(0, y, W, 1.2);
+  }
+  ctx.globalCompositeOperation = "color";
+  ctx.fillStyle = "rgba(20, 60, 30, 0.08)";
+  ctx.fillRect(0, 0, W, H);
+  ctx.restore();
+}
+
+function drawVHSHeadGlitch(ctx, W, H) {
+  ctx.save();
+  const noiseH = 12;
+  const startY = H - noiseH;
+  ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
+  for (let i = 0; i < 28; i++) {
+    const rx = (Math.random() * W) | 0;
+    const ry = startY + ((Math.random() * noiseH) | 0);
+    const rw = (Math.random() * 28 + 6) | 0;
+    ctx.fillRect(rx, ry, rw, 1.5);
+  }
+  ctx.restore();
+}
+
+function draw3DPagePeelOverlay(ctx, W, H, elapsed) {
+  const peelProgress = Math.min(1, Math.max(0, (elapsed % 3) / 2.5));
+  if (peelProgress < 0.05) return;
+  const curl = peelProgress * Math.min(W, H) * 0.9;
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(W, H - curl);
+  ctx.lineTo(W - curl, H);
+  ctx.lineTo(W, H);
+  ctx.closePath();
+  ctx.shadowColor = "rgba(0, 0, 0, 0.7)";
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetX = -5;
+  ctx.shadowOffsetY = -5;
+  const g = ctx.createLinearGradient(W, H, W - curl, H - curl);
+  g.addColorStop(0, "#FFFFFF");
+  g.addColorStop(0.3, "#C0C0D0");
+  g.addColorStop(0.7, "#606070");
+  g.addColorStop(1, "#181824");
+  ctx.fillStyle = g;
+  ctx.fill();
+  ctx.strokeStyle = "#E0E0FF";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.restore();
+}
+
+function captureStillFrameBMP() {
+  const cv = document.getElementById("vCanvas");
+  if (!cv) { toast("Monitor de vídeo não encontrado."); return; }
+  const W = cv.width, H = cv.height;
+  const ctx = cv.getContext("2d");
+  const imgData = ctx.getImageData(0, 0, W, H);
+  const data = imgData.data;
+
+  const rowSize = Math.floor((24 * W + 31) / 32) * 4;
+  const pixelArraySize = rowSize * H;
+  const fileSize = 54 + pixelArraySize;
+
+  const buffer = new ArrayBuffer(fileSize);
+  const view = new DataView(buffer);
+
+  // BITMAPFILEHEADER (14 bytes)
+  view.setUint16(0, 0x424D, false); // 'BM'
+  view.setUint32(2, fileSize, true);
+  view.setUint16(6, 0, true);
+  view.setUint16(8, 0, true);
+  view.setUint32(10, 54, true);
+
+  // BITMAPINFOHEADER (40 bytes)
+  view.setUint32(14, 40, true);
+  view.setInt32(18, W, true);
+  view.setInt32(22, H, true);
+  view.setUint16(26, 1, true);
+  view.setUint16(28, 24, true);
+  view.setUint32(30, 0, true);
+  view.setUint32(34, pixelArraySize, true);
+  view.setInt32(38, 2835, true);
+  view.setInt32(42, 2835, true);
+  view.setUint32(46, 0, true);
+  view.setUint32(50, 0, true);
+
+  const bytes = new Uint8Array(buffer);
+  let pIdx = 54;
+  for (let y = H - 1; y >= 0; y--) {
+    const rowStart = pIdx;
+    for (let x = 0; x < W; x++) {
+      const srcIdx = (y * W + x) * 4;
+      bytes[pIdx++] = data[srcIdx + 2]; // B
+      bytes[pIdx++] = data[srcIdx + 1]; // G
+      bytes[pIdx++] = data[srcIdx];     // R
+    }
+    while (pIdx < rowStart + rowSize) {
+      bytes[pIdx++] = 0;
+    }
+  }
+
+  const blob = new Blob([buffer], { type: "image/bmp" });
+  const url = URL.createObjectURL(blob);
+  const tc = fmtSMPTE(S.playhead).replace(/:/g, "_");
+  const filename = `FOTOGRAMA_${tc}.BMP`;
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  const binItem = {
+    id: uid("bmp_"),
+    name: filename,
+    tipo: "imagem",
+    dur: 5.0,
+    mediaUrl: url,
+    w: W,
+    h: H
+  };
+  S.bin.push(binItem);
+  renderBin();
+  toast(`Fotograma ${filename} exportado em BMP 1995 e salvo no Cesto!`);
+}
+
+function open3DDVEConsole(targetClip = null) {
+  const clip = targetClip || getSelectedClip() || (S.clips.v1 && S.clips.v1[0]);
+  if (!clip) {
+    toast("Nenhum clipe selecionado para os Efeitos 3D.");
+    return;
+  }
+
+  let rotX = Number(clip.rotX) || 0;
+  let rotY = Number(clip.rotY) || 0;
+  let rotZ = Number(clip.rotZ) || 0;
+  let depthZ = Number(clip.depthZ) || 0;
+  let preset = clip.motionPreset || "none";
+  let bevel = !!clip.dve3dBevel;
+  let anaglyph = !!clip.anaglyph3D;
+  let scanlines = !!clip.scanlinesCRT;
+  let vhs = !!clip.vhsGlitch;
+
+  dialog({
+    id: "dve3DConsoleWin",
+    title: "Processador de Efeitos Digitais 3D (DVE 1995) — Ampex ADO / Pinnacle",
+    width: 530,
+    body: `
+      <div class="col" style="gap:8px">
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <div class="dve-3d-badge">DVE 3D SUITE 1995 · BROADCAST DIGITAL OPTICS</div>
+          <span style="font-size:11px;font-weight:700">Clipe: ${escH(clip.title.slice(0, 20))}</span>
+        </div>
+
+        <div class="row" style="gap:12px;align-items:flex-start">
+          <!-- Gizmo de Cubo 3D Interativo -->
+          <div class="col" style="gap:4px;align-items:center">
+            <div class="dve-3d-gizmo-box">
+              <div class="dve-3d-cube" id="dveGizmoCube">
+                <div class="dve-3d-face" style="transform:translateZ(19px)">VT</div>
+                <div class="dve-3d-face" style="transform:rotateY(180deg) translateZ(19px)">DVE</div>
+                <div class="dve-3d-face" style="transform:rotateY(90deg) translateZ(19px)">3D</div>
+                <div class="dve-3d-face" style="transform:rotateY(-90deg) translateZ(19px)">95</div>
+                <div class="dve-3d-face" style="transform:rotateX(90deg) translateZ(19px)">TOP</div>
+                <div class="dve-3d-face" style="transform:rotateX(-90deg) translateZ(19px)">BOT</div>
+              </div>
+            </div>
+            <span style="font-size:10px;color:#555">Projeção 3D</span>
+          </div>
+
+          <!-- Controles de Eixo e Rotação 3D -->
+          <div class="col" style="flex:1;gap:4px;font-size:11px">
+            <div class="slider-row">
+              <span>Giro Y (Yaw):</span>
+              <input type="range" id="dveRotY" min="-180" max="180" value="${rotY}">
+              <span class="val" id="dveRotYVal">${rotY}°</span>
+            </div>
+            <div class="slider-row">
+              <span>Inclinação X (Pitch):</span>
+              <input type="range" id="dveRotX" min="-180" max="180" value="${rotX}">
+              <span class="val" id="dveRotXVal">${rotX}°</span>
+            </div>
+            <div class="slider-row">
+              <span>Rolagem Z (Roll):</span>
+              <input type="range" id="dveRotZ" min="-180" max="180" value="${rotZ}">
+              <span class="val" id="dveRotZVal">${rotZ}°</span>
+            </div>
+            <div class="slider-row">
+              <span>Profundidade Z:</span>
+              <input type="range" id="dveDepthZ" min="-300" max="300" value="${depthZ}">
+              <span class="val" id="dveDepthZVal">${depthZ}px</span>
+            </div>
+            <div class="slider-row">
+              <span>Movimento 3D:</span>
+              <select id="dvePresetSel" style="grid-column:2/4;height:20px;font-size:11px">
+                <option value="none"${preset === "none" ? " selected" : ""}>Estático (Ângulos Fixos)</option>
+                <option value="3d_spin_y"${preset === "3d_spin_y" ? " selected" : ""}>Giro Contínuo 3D (Tumble Y)</option>
+                <option value="3d_spin_x"${preset === "3d_spin_x" ? " selected" : ""}>Cambalhota Contínua 3D (Flip X)</option>
+                <option value="3d_cube_spin"${preset === "3d_cube_spin" ? " selected" : ""}>Cubo 3D Rotativo (Video Cube 95)</option>
+                <option value="3d_page_peel"${preset === "3d_page_peel" ? " selected" : ""}>Virada de Página 3D (Page Peel 95)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Opções Especiais dos Anos 90 -->
+        <div class="dve-3d-panel">
+          <b style="font-size:11px">Efeitos de Transmissão &amp; Profundidade Estereoscópica:</b>
+          <div class="row" style="flex-wrap:wrap;gap:8px;font-size:11px">
+            <label class="row" style="gap:4px;cursor:pointer">
+              <input type="checkbox" id="dveChkBevel"${bevel ? " checked" : ""}>
+              <span>Moldura 3D Chanfrada (Beveled PiP)</span>
+            </label>
+            <label class="row" style="gap:4px;cursor:pointer">
+              <input type="checkbox" id="dveChkAnaglyph"${anaglyph ? " checked" : ""}>
+              <span>Óculos 3D Anáglifo (Vermelho/Azul)</span>
+            </label>
+            <label class="row" style="gap:4px;cursor:pointer">
+              <input type="checkbox" id="dveChkScanlines"${scanlines ? " checked" : ""}>
+              <span>Scanlines Tubo CRT Trinitron</span>
+            </label>
+            <label class="row" style="gap:4px;cursor:pointer">
+              <input type="checkbox" id="dveChkVhs"${vhs ? " checked" : ""}>
+              <span>Ruído de Cabeçote VHS</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    `,
+    buttons: [
+      {
+        label: "Aplicar e Fechar",
+        def: 1,
+        run: () => {
+          clip.rotX = rotX;
+          clip.rotY = rotY;
+          clip.rotZ = rotZ;
+          clip.depthZ = depthZ;
+          clip.motionPreset = preset;
+          clip.dve3dBevel = bevel;
+          clip.anaglyph3D = anaglyph;
+          clip.scanlinesCRT = scanlines;
+          clip.vhsGlitch = vhs;
+          renderAll();
+          toast(`Efeitos 3D DVE aplicados ao clipe "${clip.title}"!`);
+          return true;
+        }
+      },
+      {
+        label: "Resetar 3D",
+        run: () => {
+          clip.rotX = 0;
+          clip.rotY = 0;
+          clip.rotZ = 0;
+          clip.depthZ = 0;
+          clip.motionPreset = "none";
+          clip.dve3dBevel = false;
+          clip.anaglyph3D = false;
+          clip.scanlinesCRT = false;
+          clip.vhsGlitch = false;
+          renderAll();
+          toast("Efeitos 3D resetados.");
+          return true;
+        }
+      },
+      { label: "Cancelar", run: () => true }
+    ]
+  });
+
+  setTimeout(() => {
+    const cube = document.getElementById("dveGizmoCube");
+    const updateGizmo = () => {
+      if (cube) cube.style.transform = `rotateX(${-rotX}deg) rotateY(${rotY}deg) rotateZ(${rotZ}deg)`;
+    };
+    const sync = () => {
+      clip.rotX = rotX;
+      clip.rotY = rotY;
+      clip.rotZ = rotZ;
+      clip.depthZ = depthZ;
+      clip.motionPreset = preset;
+      clip.dve3dBevel = bevel;
+      clip.anaglyph3D = anaglyph;
+      clip.scanlinesCRT = scanlines;
+      clip.vhsGlitch = vhs;
+      updateGizmo();
+      renderMonitorFrame();
+    };
+
+    const inY = document.getElementById("dveRotY");
+    if (inY) inY.oninput = (e) => { rotY = +e.target.value; document.getElementById("dveRotYVal").textContent = rotY + "°"; sync(); };
+    const inX = document.getElementById("dveRotX");
+    if (inX) inX.oninput = (e) => { rotX = +e.target.value; document.getElementById("dveRotXVal").textContent = rotX + "°"; sync(); };
+    const inZ = document.getElementById("dveRotZ");
+    if (inZ) inZ.oninput = (e) => { rotZ = +e.target.value; document.getElementById("dveRotZVal").textContent = rotZ + "°"; sync(); };
+    const inD = document.getElementById("dveDepthZ");
+    if (inD) inD.oninput = (e) => { depthZ = +e.target.value; document.getElementById("dveDepthZVal").textContent = depthZ + "px"; sync(); };
+
+    const sel = document.getElementById("dvePresetSel");
+    if (sel) sel.onchange = (e) => { preset = e.target.value; sync(); };
+    const chkB = document.getElementById("dveChkBevel");
+    if (chkB) chkB.onchange = (e) => { bevel = e.target.checked; sync(); };
+    const chkA = document.getElementById("dveChkAnaglyph");
+    if (chkA) chkA.onchange = (e) => { anaglyph = e.target.checked; sync(); };
+    const chkS = document.getElementById("dveChkScanlines");
+    if (chkS) chkS.onchange = (e) => { scanlines = e.target.checked; sync(); };
+    const chkV = document.getElementById("dveChkVhs");
+    if (chkV) chkV.onchange = (e) => { vhs = e.target.checked; sync(); };
+
+    updateGizmo();
+  }, 40);
+}
+
 function drawSingleClipToContext(tCtx, W, H, clip, globalSec) {
   if (!clip || clip.disabled) return;
   const speed = clip.speed || 1;
@@ -2781,9 +3759,33 @@ function drawSingleClipToContext(tCtx, W, H, clip, globalSec) {
   const fh = clip.flipH ? -1 : 1;
   const fv = clip.flipV ? -1 : 1;
 
+  // Transformações 3D DVE (Giro X/Y/Z, Profundidade e Presets Animados 1995)
+  let rY = Number(clip.rotY) || 0;
+  let rX = Number(clip.rotX) || 0;
+  let rZ = (tf.rotation || 0) + (Number(clip.rotZ) || 0);
+  let dZ = Number(clip.depthZ) || 0;
+  const mot = clip.motionPreset;
+  if (mot === "3d_spin_y") {
+    rY = ((elapsed * 75) % 360) - 180;
+  } else if (mot === "3d_spin_x") {
+    rX = ((elapsed * 75) % 360) - 180;
+  } else if (mot === "3d_cube_spin") {
+    rY = (elapsed * 50) % 360;
+  }
+
+  const radY = (rY * Math.PI) / 180;
+  const radX = (rX * Math.PI) / 180;
+  const zScale = Math.max(0.15, 1 - dZ / 400);
+
   tCtx.translate(W / 2 + tf.posX, H / 2 + tf.posY);
-  if (tf.rotation) tCtx.rotate((tf.rotation * Math.PI) / 180);
-  tCtx.scale(sx * fh, sy * fv);
+  if (rZ) tCtx.rotate((rZ * Math.PI) / 180);
+  tCtx.scale(sx * fh * Math.cos(radY) * zScale, sy * fv * Math.cos(radX) * zScale);
+  if (Math.abs(rY) > 0.1) {
+    tCtx.transform(1, Math.sin(radY) * 0.28, 0, 1, 0, 0);
+  }
+  if (Math.abs(rX) > 0.1) {
+    tCtx.transform(1, 0, Math.sin(radX) * 0.28, 1, 0, 0);
+  }
   tCtx.translate(-W / 2, -H / 2);
 
   // Recorte de Bordas (Crop Topo, Base, Esquerda, Direita em %)
@@ -2873,6 +3875,14 @@ function drawSingleClipToContext(tCtx, W, H, clip, globalSec) {
         } else if (clip.gradient === "crt_blue") {
           const g = tCtx.createLinearGradient(0, curY - fontSize, 0, curY + 4);
           g.addColorStop(0, "#C0E8FF"); g.addColorStop(0.5, "#3080FF"); g.addColorStop(1, "#082060");
+          tCtx.fillStyle = g;
+        } else if (clip.gradient === "3d_chisel") {
+          const g = tCtx.createLinearGradient(0, curY - fontSize, 0, curY + 4);
+          g.addColorStop(0, "#FFFFFF"); g.addColorStop(0.3, "#E8E8E8"); g.addColorStop(0.7, "#888888"); g.addColorStop(1, "#303030");
+          tCtx.fillStyle = g;
+        } else if (clip.gradient === "3d_chrome") {
+          const g = tCtx.createLinearGradient(0, curY - fontSize, 0, curY + 4);
+          g.addColorStop(0, "#B0E0FF"); g.addColorStop(0.48, "#FFFFFF"); g.addColorStop(0.52, "#001850"); g.addColorStop(1, "#FF8010");
           tCtx.fillStyle = g;
         } else {
           tCtx.fillStyle = clip.fontColor || "#FFFFFF";
@@ -3250,6 +4260,31 @@ function drawSingleClipToContext(tCtx, W, H, clip, globalSec) {
   if (flt === "tv95" || flt === "vhs" || flt === "16mm") {
     tCtx.fillStyle = "rgba(0, 0, 0, 0.15)";
     for (let y = 0; y < H; y += 3) tCtx.fillRect(0, y, W, 1);
+  }
+
+  // Moldura 3D Chanfrada de Quadro (Beveled Picture-in-Picture 1995)
+  if (clip.dve3dBevel) {
+    draw3DBevelBorder(tCtx, W, H, 8);
+  }
+
+  // Efeito Anáglifo Estereoscópico 3D (Óculos Vermelho/Azul 1995)
+  if (clip.anaglyph3D) {
+    draw3DAnaglyphSplit(tCtx, W, H, 8);
+  }
+
+  // Linhas de Varredura Tubo CRT Trinitron (Scanlines 60Hz)
+  if (clip.scanlinesCRT) {
+    drawCRTScanlines(tCtx, W, H);
+  }
+
+  // Ruído de Cabeçote de Fita VHS (Head Switching Noise)
+  if (clip.vhsGlitch) {
+    drawVHSHeadGlitch(tCtx, W, H);
+  }
+
+  // Efeito Virada de Página 3D (3D Page Peel 1995)
+  if (mot === "3d_page_peel") {
+    draw3DPagePeelOverlay(tCtx, W, H, elapsed);
   }
 
   tCtx.restore();
@@ -5181,14 +6216,20 @@ function openMarkerDialog(marker, isNew = false) {
             <input type="text" id="mk-lbl" value="${escH(m.label)}" maxlength="20" autofocus>
           </label>
         </div>
-        <label class="fld"><span>Categoria / Cor do Marcador:</span>
-          <select id="mk-color">
-            <option value="green"${m.color === "green" ? " selected" : ""}>🟢 Verde — Inserção de GC / Letreiro / Cartela</option>
-            <option value="red"${m.color === "red" ? " selected" : ""}>🔴 Vermelho — Ponto de Corte Crítico / Emenda</option>
-            <option value="blue"${m.color === "blue" ? " selected" : ""}>🔵 Azul — Ponto de Entrada Áudio / Trilha / Foley</option>
-            <option value="yellow"${m.color === "yellow" ? " selected" : ""}>🟡 Amarelo — Anotação do Diretor / Roteiro</option>
-          </select>
-        </label>
+        <div class="row" style="gap:6px;align-items:flex-end">
+          <label class="fld" style="flex:1"><span>Categoria / Cor do Marcador:</span>
+            <select id="mk-color">
+              <option value="green"${m.color === "green" ? " selected" : ""}>🟢 Verde — Inserção de GC / Letreiro / Cartela</option>
+              <option value="red"${m.color === "red" ? " selected" : ""}>🔴 Vermelho — Ponto de Corte Crítico / Emenda</option>
+              <option value="blue"${m.color === "blue" ? " selected" : ""}>🔵 Azul — Ponto de Entrada Áudio / Trilha / Foley</option>
+              <option value="yellow"${m.color === "yellow" ? " selected" : ""}>🟡 Amarelo — Anotação do Diretor / Roteiro</option>
+              <option value="custom"${(m.color && m.color.startsWith("#")) ? " selected" : ""}>🎨 Cor Personalizada (Win95)</option>
+            </select>
+          </label>
+          <div style="margin-bottom:2px">
+            ${createWin95ColorButtonHtml("mk-color-btn", m.color && m.color.startsWith("#") ? m.color : "#00D048")}
+          </div>
+        </div>
         <label class="fld"><span>Comentários / Decupagem da Cena:</span>
           <textarea id="mk-comment" rows="3" style="resize:vertical;font-size:11px" placeholder="Instruções para a equipe de pós-produção ou notas de corte...">${escH(m.comment || "")}</textarea>
         </label>
@@ -5200,7 +6241,8 @@ function openMarkerDialog(marker, isNew = false) {
         def: 1,
         run: (w) => {
           m.label = w.querySelector("#mk-lbl").value.trim() || `M${S.markers.length + 1}`;
-          m.color = w.querySelector("#mk-color").value;
+          const selVal = w.querySelector("#mk-color").value;
+          m.color = selVal === "custom" ? chosenMarkerColor : selVal;
           m.comment = w.querySelector("#mk-comment").value.trim();
           if (isNew) {
             S.markers.push(m);
@@ -5225,6 +6267,23 @@ function openMarkerDialog(marker, isNew = false) {
       { label: "Cancelar" }
     ]
   });
+
+  let chosenMarkerColor = m.color && m.color.startsWith("#") ? m.color : "#00D048";
+  setTimeout(() => {
+    const mkBtn = document.getElementById("mk-color-btn");
+    const mkSel = document.getElementById("mk-color");
+    if (mkBtn) {
+      bindWin95ColorButton(mkBtn, (hex) => {
+        chosenMarkerColor = hex;
+        if (mkSel) mkSel.value = "custom";
+      });
+    }
+    if (mkSel) {
+      mkSel.onchange = (e) => {
+        if (e.target.value !== "custom") chosenMarkerColor = e.target.value;
+      };
+    }
+  }, 40);
 }
 
 function exportCueSheet() {
@@ -5637,8 +6696,10 @@ function renderTimeline() {
   }
   for (const mk of S.markers) {
     const mx = Math.round(mk.time * pxPerSec);
-    const colCls = `mk-${mk.color || "green"}`;
-    rHtml += `<div class="tl-marker ${colCls}" data-mkid="${mk.id}" style="left:${mx}px" title="Marcador ${escH(mk.label)} [${(mk.color || "verde").toUpperCase()}] (${fmtSMPTE(mk.time)}) · Clique para ir / Duplo-clique para editar / Botão direito para remover">${escH(mk.label)}</div>`;
+    const isHex = mk.color && mk.color.startsWith("#");
+    const colCls = isHex ? "" : `mk-${mk.color || "green"}`;
+    const customStyle = isHex ? `background:${mk.color} !important; border-color:#000 !important; color:#fff !important;` : "";
+    rHtml += `<div class="tl-marker ${colCls}" data-mkid="${mk.id}" style="left:${mx}px;${customStyle}" title="Marcador ${escH(mk.label)} [${(mk.color || "verde").toUpperCase()}] (${fmtSMPTE(mk.time)}) · Clique para ir / Duplo-clique para editar / Botão direito para remover">${escH(mk.label)}</div>`;
   }
 
   // Versão 1.0.6: Área de Trabalho IN / OUT na régua
@@ -7027,6 +8088,10 @@ function renderSide() {
                 <option value="pan_rl"${clip.motionPreset === "pan_rl" ? " selected" : ""}>Panorâmica Dir → Esq</option>
                 <option value="slide_in"${clip.motionPreset === "slide_in" ? " selected" : ""}>Entrada Lateral Rápida</option>
                 <option value="spin"${clip.motionPreset === "spin" ? " selected" : ""}>Giro 360° (Spin 95)</option>
+                <option value="3d_spin_y"${clip.motionPreset === "3d_spin_y" ? " selected" : ""}>Giro 3D no Espaço (Tumble Y)</option>
+                <option value="3d_spin_x"${clip.motionPreset === "3d_spin_x" ? " selected" : ""}>Cambalhota 3D (Flip X)</option>
+                <option value="3d_cube_spin"${clip.motionPreset === "3d_cube_spin" ? " selected" : ""}>Cubo 3D Rotativo</option>
+                <option value="3d_page_peel"${clip.motionPreset === "3d_page_peel" ? " selected" : ""}>Virada de Página 3D (Page Peel)</option>
               </select>
             </div>
             <div class="row" style="justify-content:space-between;flex-wrap:wrap;gap:3px;margin-top:2px">
@@ -7035,6 +8100,37 @@ function renderSide() {
               <button type="button" class="btn sm" id="fx-center">Centralizar</button>
               <button type="button" class="btn sm" id="fx-pip">PiP Canto</button>
               <button type="button" class="btn sm" id="fx-reset">Resetar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Efeitos Digitais 3D (DVE 1995 — Ampex ADO / Video Toaster) -->
+        <div class="fx-group">
+          <div class="row" style="justify-content:space-between;align-items:center">
+            <b class="lgd">Efeitos Digitais 3D (DVE 1995)</b>
+            <button type="button" class="btn sm" id="btnOpen3DDVE">Console 3D…</button>
+          </div>
+          <div class="col" style="gap:3px;margin-top:3px">
+            <div class="slider-row">
+              <span>Giro 3D (Y):</span>
+              <input type="range" id="fx-rot-y" min="-180" max="180" value="${clip.rotY || 0}">
+              <span class="val" id="fx-rot-y-v">${clip.rotY || 0}°</span>
+            </div>
+            <div class="slider-row">
+              <span>Inclinar 3D (X):</span>
+              <input type="range" id="fx-rot-x" min="-180" max="180" value="${clip.rotX || 0}">
+              <span class="val" id="fx-rot-x-v">${clip.rotX || 0}°</span>
+            </div>
+            <div class="slider-row">
+              <span>Profundidade (Z):</span>
+              <input type="range" id="fx-depth-z" min="-300" max="300" value="${clip.depthZ || 0}">
+              <span class="val" id="fx-depth-z-v">${clip.depthZ || 0}px</span>
+            </div>
+            <div class="row" style="flex-wrap:wrap;gap:6px;margin-top:2px;font-size:11px">
+              <label class="row"><input type="checkbox" id="fx-3d-bevel"${clip.dve3dBevel ? " checked" : ""}> Moldura 3D PiP</label>
+              <label class="row"><input type="checkbox" id="fx-3d-anaglyph"${clip.anaglyph3D ? " checked" : ""}> Óculos 3D</label>
+              <label class="row"><input type="checkbox" id="fx-crt-scan"${clip.scanlinesCRT ? " checked" : ""}> Scanlines CRT</label>
+              <label class="row"><input type="checkbox" id="fx-vhs-noise"${clip.vhsGlitch ? " checked" : ""}> Ruído VHS</label>
             </div>
           </div>
         </div>
@@ -7293,6 +8389,19 @@ function renderSide() {
     bindRange("fx-px", "posX", "");
     bindRange("fx-py", "posY", "");
     bindRange("fx-rot", "rotation", "°");
+    bindRange("fx-rot-y", "rotY", "°");
+    bindRange("fx-rot-x", "rotX", "°");
+    bindRange("fx-depth-z", "depthZ", "px");
+    const btnDVE = box.querySelector("#btnOpen3DDVE");
+    if (btnDVE) btnDVE.onclick = () => open3DDVEConsole(clip);
+    const chkBev = box.querySelector("#fx-3d-bevel");
+    if (chkBev) chkBev.onchange = (e) => { clip.dve3dBevel = e.target.checked; renderMonitorFrame(); };
+    const chkAna = box.querySelector("#fx-3d-anaglyph");
+    if (chkAna) chkAna.onchange = (e) => { clip.anaglyph3D = e.target.checked; renderMonitorFrame(); };
+    const chkCrt = box.querySelector("#fx-crt-scan");
+    if (chkCrt) chkCrt.onchange = (e) => { clip.scanlinesCRT = e.target.checked; renderMonitorFrame(); };
+    const chkVhs = box.querySelector("#fx-vhs-noise");
+    if (chkVhs) chkVhs.onchange = (e) => { clip.vhsGlitch = e.target.checked; renderMonitorFrame(); };
     bindRange("fx-cl", "cropLeft", "%");
     bindRange("fx-cr", "cropRight", "%");
     bindRange("fx-ct", "cropTop", "%");
@@ -7523,8 +8632,8 @@ function openChromaKeyDialog(targetClip = null) {
               <button type="button" class="btn sm" id="ckPresetWhite" style="background:#fff;color:#000">Branco Luma</button>
             </div>
             <div class="row" style="gap:6px;align-items:center;margin-top:2px">
-              <span>Personalizada:</span>
-              <input type="color" id="ckColorPicker" value="${clip.chromaColor && clip.chromaColor.startsWith("#") ? clip.chromaColor : "#00FF00"}" style="width:36px;height:22px;padding:0;cursor:pointer">
+              <span>Personalizada (Win95):</span>
+              ${createWin95ColorButtonHtml("ckColorPickerBtn", clip.chromaColor && clip.chromaColor.startsWith("#") ? clip.chromaColor : "#00FF00")}
               <button type="button" class="btn sm" id="ckEyedropper" title="Clique para capturar cor direto da tela de prévia">Conta-gotas (Pipeta)</button>
               <span id="ckEyedropperStatus" style="font-size:10px;color:#800"></span>
             </div>
@@ -7648,8 +8757,14 @@ function openChromaKeyDialog(targetClip = null) {
     clip.chromaColor = c;
     clip.chromaKey = true;
     if (chkEnable) chkEnable.checked = true;
-    const cp = win.querySelector("#ckColorPicker");
-    if (cp && c.startsWith("#")) cp.value = c;
+    const cpBtn = win.querySelector("#ckColorPickerBtn");
+    if (cpBtn && c.startsWith("#")) {
+      cpBtn.dataset.color = c;
+      const chip = cpBtn.querySelector(".win95-color-chip");
+      if (chip) chip.style.background = c;
+      const lbl = cpBtn.querySelector(".win95-color-hex-label");
+      if (lbl) lbl.textContent = c;
+    }
     updatePreview();
     renderMonitorFrame();
   };
@@ -7659,8 +8774,12 @@ function openChromaKeyDialog(targetClip = null) {
   win.querySelector("#ckPresetBlack")?.addEventListener("click", () => applyColor("#000000"));
   win.querySelector("#ckPresetWhite")?.addEventListener("click", () => applyColor("#FFFFFF"));
 
-  const colPick = win.querySelector("#ckColorPicker");
-  if (colPick) colPick.oninput = () => applyColor(colPick.value);
+  const cpBtn = win.querySelector("#ckColorPickerBtn");
+  if (cpBtn) {
+    bindWin95ColorButton(cpBtn, (newHex) => {
+      applyColor(newHex);
+    });
+  }
 
   const btnEye = win.querySelector("#ckEyedropper");
   const eyeSt = win.querySelector("#ckEyedropperStatus");
@@ -8416,6 +9535,9 @@ function closeDialog(w) {
 }
 
 function openChyronDialog() {
+  let selectedFontCol = "#FFFFFF";
+  let selectedBoxCol = "#0E2442";
+
   dialog({
     id: "gcWin",
     title: "Title Designer 95 (Chyron Avançado) — Criar Cartela / Terço Inferior",
@@ -8447,6 +9569,8 @@ function openChyronDialog() {
               <option value="gold">Dourado Broadcast (Gold 95)</option>
               <option value="silver">Prata Metálico (Chrome 95)</option>
               <option value="crt_blue">Azul CRT Telejornal</option>
+              <option value="3d_chisel">Extrusão 3D Chanfrada (WordArt 3D 1995)</option>
+              <option value="3d_chrome">Cromado 3D Metálico dos Anos 90 (3D Chrome)</option>
             </select>
           </label>
           <label class="fld"><span>Contorno de Borda (Stroke):</span>
@@ -8456,6 +9580,19 @@ function openChyronDialog() {
               <option value="4">Médio (4px Preto)</option>
               <option value="6">Grosso (6px Preto)</option>
             </select>
+          </label>
+        </div>
+
+        <div class="grid2">
+          <label class="fld"><span>Cor do Texto (Win95):</span>
+            <div style="margin-top:2px">
+              ${createWin95ColorButtonHtml("gc-fcol-btn", "#FFFFFF")}
+            </div>
+          </label>
+          <label class="fld"><span>Cor da Tarja / Fundo:</span>
+            <div style="margin-top:2px">
+              ${createWin95ColorButtonHtml("gc-bcol-btn", "#0E2442")}
+            </div>
           </label>
         </div>
 
@@ -8500,6 +9637,8 @@ function openChyronDialog() {
             textSub: subTxt,
             chyronType: chyType,
             gradient: grad,
+            fontColor: selectedFontCol,
+            boxColor: selectedBoxCol,
             strokeWidth: stroke,
             shadow: shadow,
             start: st,
@@ -8517,7 +9656,6 @@ function openChyronDialog() {
           S.selectedClipId = newClip.id;
           S.selectedClipTrack = tk;
           S.selectedClipIds = [newClip.id];
-          S.selectedClipIds = [newClip.id];
           setPlayhead(newClip.start + 0.1, false);
           renderAll();
           toast(`Letreiro inserido na faixa ${tk.toUpperCase()}!`);
@@ -8526,6 +9664,13 @@ function openChyronDialog() {
       { label: "Cancelar" }
     ]
   });
+
+  setTimeout(() => {
+    const fBtn = document.getElementById("gc-fcol-btn");
+    if (fBtn) bindWin95ColorButton(fBtn, (col) => { selectedFontCol = col; });
+    const bBtn = document.getElementById("gc-bcol-btn");
+    if (bBtn) bindWin95ColorButton(bBtn, (col) => { selectedBoxCol = col; });
+  }, 40);
 }
 
 function openGeneratorDialog() {
@@ -12573,7 +13718,19 @@ function openWhatsNewDialog() {
       </div>
       <div class="listview vers" style="max-height:220px;overflow:auto">
         <div class="ver-block">
-          <b>1.0.7 · Seleção Múltipla de Clipes, Agrupamento e Operações em Bloco</b><span class="chip95">versão instalada</span>
+          <b>1.1.2 · Seletor de Cores Oficial Windows 95 &amp; Suíte de Efeitos Digitais 3D (DVE 1995)</b><span class="chip95">versão instalada</span>
+          <ul>
+            <li><b>Seletor de Cores Oficial Windows 95 (ChooseColor / COMMDLG32):</b> Interface clássica com 48 cores básicas, 16 cores personalizadas salvas no computador, espectro 2D HSL (0-239 / 0-240), barra de Luminosidade com seta triangular deslizante, visor "Cor | Sólido" com reticulado 8-bit (dither VGA), campos numéricos sincronizados e pipeta conta-gotas.</li>
+            <li><b>Paletas Históricas dos Anos 90:</b> Menu de troca rápida entre paleta padrão Win95, Netscape Web-Safe 216 cores (1995), SMPTE Broadcast Safe, IBM PC CGA/EGA 16 cores e Macintosh System 7 QuickTime.</li>
+            <li><b>Detector SMPTE Broadcast Legal (Anti-Chroma Bleed):</b> Monitor de IRE e saturação de subportadora em tempo real com botão de correção automática (Clamp SMPTE 16-235) para eliminar zumbido de áudio e sangramento de cor em fitas VHS.</li>
+            <li><b>Suíte de Efeitos Digitais 3D (DVE 1995):</b> Rotação 3D nos eixos X, Y e Z com perspectiva e sombreamento direcional, Moldura 3D Chanfrada (Beveled PiP), Efeito Anáglifo Estereoscópico 3D (óculos 3D vermelho/azul), Virada de Página 3D (Page Peel) e Cubo 3D Rotativo.</li>
+            <li><b>Filtros de Vídeo CRT &amp; VHS:</b> Linhas de varredura CRT Trinitron (Scanlines 60Hz com grade de fósforo RGB) e Ruído de troca de cabeçote VHS (Head Switching Noise) com jitter analógico.</li>
+            <li><b>Exportação de Fotograma Estático em BMP 1995:</b> Captura de qualquer quadro do filme em formato Bitmap 24-bit uncomprimido do Windows 95 com inserção direta no Cesto de Mídias (Bin).</li>
+            <li><b>Substituição Universal:</b> Remoção definitiva de seletores modernos do navegador por botões de amostra chanfrados 95 em Color Matte, Chroma Key, Title Designer e Marcadores.</li>
+          </ul>
+        </div>
+        <div class="ver-block">
+          <b>1.0.7 · Seleção Múltipla de Clipes, Agrupamento e Operações em Bloco</b>
           <ul>
             <li><b>Seleção Múltipla com Laço (Marquee 95):</b> Clique e arraste o mouse sobre qualquer área vazia da linha do tempo para desenhar uma caixa elástica tracejada e selecionar múltiplos clipes de qualquer faixa simultaneamente.</li>
             <li><b>Seleção Aditiva (Shift + Clique &amp; Ctrl + Clique):</b> Adicione ou remova clipes individuais da seleção sem perder os demais; dê duplo-clique no cabeçalho da faixa (ex: V1, A1) para selecionar todos os clipes daquela trilha de uma vez só.</li>
@@ -13213,16 +14370,19 @@ const CMD = {
   procurarAtualizacoes: { label: "Procurar atualizações…", icon: "sync", run: () => openUpdateDialog(false) },
   oQueHaDeNovo: { label: "O que há de novo…", icon: "bulb", run: () => openWhatsNewDialog() },
   telaAbertura: { label: "Tela de abertura (Splash Screen)…", icon: "splash", run: () => { if (window.editorNative) window.editorNative.openSplash(); } },
-  sobre: { label: "Sobre o ScriptEditor 95…", icon: "info", run: () => aboutDialog() }
+  sobre: { label: "Sobre o ScriptEditor 95…", icon: "info", run: () => aboutDialog() },
+  win95ColorPicker: { label: "Seletor de Cores Oficial Windows 95 (COMMDLG32)…", icon: "sparkle", key: "Ctrl+Shift+C", run: () => openWin95ColorDialog("#008080", null, { title: "Cores — Paleta e Espectro 1995" }) },
+  dve3dProcessor: { label: "Console de Efeitos Digitais 3D (DVE 1995)…", icon: "sparkle", key: "Ctrl+Alt+3", run: () => open3DDVEConsole(getSelectedClip()) },
+  captureStillBMP: { label: "Capturar Fotograma Estático (Still Frame BMP 1995)", icon: "slate", key: "Ctrl+Shift+B", run: () => captureStillFrameBMP() }
 };
 
 const MENUS = [
-  ["Arquivo", "A", ["telaInicial", "fecharProjeto", "-", "novaSequencia", "novoProjetoLivre", "abrirProjeto", "salvarProjeto", "salvarProjetoComo", "pacoteZip", "-", "importarMidia", "relinkMidias", "importarEDL", "exportarEDL", "exportarCueSheet", "fichaTecnica", "-", "importarSRT", "exportarSRT", "-", "gerarSinal", "geradorGC", "colorMatte", "-", "configuracoesIlha", "-", "importarSR", "salvarNoSR", "-", "exportarMaster", "filaRender", "-", "abrirScriptRoom", "-", "desligar"]],
-  ["Editar", "E", ["desfazer", "refazer", "-", "selecionarTodos", "desmarcarTudo", "-", "copiarClipe", "colarClipe", "colarAtributos", "duplicarClipe", "congelarQuadro", "-", "agruparClipes", "desagruparClipes", "vincularAV", "-", "cortarAgulha", "excluirClipe", "excluirRipple", "rippleDeleteVazio", "-", "toggleSnap", "-", "configTeclas"]],
-  ["Projeto", "P", ["novaSequencia", "duplicarSequencia", "-", "importarMidia", "relinkMidias", "abrirProjeto", "salvarProjeto", "pacoteZip", "-", "gerarSinal", "geradorGC", "colorMatte", "adicionarMarcador", "abaMarcadores", "-", "addVideoTrack", "addAudioTrack", "-", "configuracoesIlha", "vhsSuite", "toggleAbRoll", "-", "mesaSom", "consoleVU", "rackDinamica", "equalizadorDSP", "corretor3Way", "-", "importarSRT", "exportarSRT", "-", "importarSR"]],
-  ["Clipe", "C", ["sobrescreverOrigem", "inserirOrigem", "-", "marcarInTimeline", "marcarOutTimeline", "limparInOutTimeline", "-", "chromaProcessor", "colorMatte", "quickDissolve", "-", "agruparClipes", "desagruparClipes", "vincularAV", "colarAtributos", "-", "velocidadeClipe", "congelarQuadro", "cortarAgulha", "duplicarClipe", "excluirClipe", "excluirRipple", "rippleDeleteVazio", "-", "toggleSnap", "-", "addVideoTrack", "addAudioTrack", "-", "toolSelect", "toolTrack", "toolRazor", "toolTrim", "toolRipple", "toolRolling", "toolSlip", "toolSlide", "toolHand"]],
-  ["Janela", "J", ["layDual", "layMulticam", "laySingle", "layScript", "-", "consoleVU", "janelaDub", "multicamSwitcher", "filaRender", "-", "verPainel", "-", "desacoplarProgram", "desacoplarSource", "desacoplarSide", "desacoplarTimeline", "-", "reacoplarTodos", "resetLayout", "-", "esquema"]],
-  ["Áudio/Vídeo", "V", ["vhsSuite", "toggleAbRoll", "-", "chromaProcessor", "-", "mesaSom", "consoleVU", "rackDinamica", "equalizadorDSP", "corretor3Way", "-", "janelaDub", "-", "addVideoTrack", "addAudioTrack", "-", "mesaFoley", "gravadorADR", "claqueteCam", "-", "exportarMaster", "filaRender"]],
+  ["Arquivo", "A", ["telaInicial", "fecharProjeto", "-", "novaSequencia", "novoProjetoLivre", "abrirProjeto", "salvarProjeto", "salvarProjetoComo", "pacoteZip", "-", "importarMidia", "relinkMidias", "importarEDL", "exportarEDL", "exportarCueSheet", "fichaTecnica", "-", "importarSRT", "exportarSRT", "-", "gerarSinal", "geradorGC", "colorMatte", "captureStillBMP", "-", "configuracoesIlha", "-", "importarSR", "salvarNoSR", "-", "exportarMaster", "filaRender", "-", "abrirScriptRoom", "-", "desligar"]],
+  ["Editar", "E", ["desfazer", "refazer", "-", "selecionarTodos", "desmarcarTudo", "-", "copiarClipe", "colarClipe", "colarAtributos", "win95ColorPicker", "duplicarClipe", "congelarQuadro", "-", "agruparClipes", "desagruparClipes", "vincularAV", "-", "cortarAgulha", "excluirClipe", "excluirRipple", "rippleDeleteVazio", "-", "toggleSnap", "-", "configTeclas"]],
+  ["Projeto", "P", ["novaSequencia", "duplicarSequencia", "-", "importarMidia", "relinkMidias", "abrirProjeto", "salvarProjeto", "pacoteZip", "-", "gerarSinal", "geradorGC", "colorMatte", "win95ColorPicker", "adicionarMarcador", "abaMarcadores", "-", "addVideoTrack", "addAudioTrack", "-", "configuracoesIlha", "vhsSuite", "toggleAbRoll", "-", "mesaSom", "consoleVU", "rackDinamica", "equalizadorDSP", "corretor3Way", "-", "importarSRT", "exportarSRT", "-", "importarSR"]],
+  ["Clipe", "C", ["sobrescreverOrigem", "inserirOrigem", "-", "marcarInTimeline", "marcarOutTimeline", "limparInOutTimeline", "-", "dve3dProcessor", "chromaProcessor", "colorMatte", "quickDissolve", "-", "agruparClipes", "desagruparClipes", "vincularAV", "colarAtributos", "-", "velocidadeClipe", "congelarQuadro", "captureStillBMP", "cortarAgulha", "duplicarClipe", "excluirClipe", "excluirRipple", "rippleDeleteVazio", "-", "toggleSnap", "-", "addVideoTrack", "addAudioTrack", "-", "toolSelect", "toolTrack", "toolRazor", "toolTrim", "toolRipple", "toolRolling", "toolSlip", "toolSlide", "toolHand"]],
+  ["Janela", "J", ["layDual", "layMulticam", "laySingle", "layScript", "-", "dve3dProcessor", "consoleVU", "janelaDub", "multicamSwitcher", "filaRender", "-", "verPainel", "-", "desacoplarProgram", "desacoplarSource", "desacoplarSide", "desacoplarTimeline", "-", "reacoplarTodos", "resetLayout", "-", "esquema"]],
+  ["Áudio/Vídeo", "V", ["vhsSuite", "dve3dProcessor", "toggleAbRoll", "-", "chromaProcessor", "win95ColorPicker", "captureStillBMP", "-", "mesaSom", "consoleVU", "rackDinamica", "equalizadorDSP", "corretor3Way", "-", "janelaDub", "-", "addVideoTrack", "addAudioTrack", "-", "mesaFoley", "gravadorADR", "claqueteCam", "-", "exportarMaster", "filaRender"]],
   ["Ajuda", "u", ["atalhosAjuda", "dicaDoDia", "procurarAtualizacoes", "-", "oQueHaDeNovo", "telaAbertura", "sobre"]]
 ];
 

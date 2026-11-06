@@ -1180,7 +1180,7 @@ function criarJanela() {
 async function rodarBateriaTestesE2E() {
   const OUTPUT_DIR = path.join(__dirname, "testes_e2e_screenshots");
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
-  console.log("=== INICIANDO BATERIA DE TESTES E2E SCRIPTEDITOR 95 (v1.1.1) ===");
+  console.log("=== INICIANDO BATERIA DE TESTES E2E SCRIPTEDITOR 95 (v1.1.2) ===");
   console.log("Pasta de capturas:", OUTPUT_DIR);
 
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
@@ -1424,7 +1424,26 @@ async function rodarBateriaTestesE2E() {
       await sleep(500);
       await capture("23_ficha_tecnica_montagem_cue_sheet_95.png", "Ficha Técnica de Montagem & Relatório de Decupagem (HTML 95 & TXT)");
 
-      console.log("=== TODOS OS 23 TESTES E CAPTURAS CONCLUÍDOS COM SUCESSO! ===");
+      // 24. SELETOR DE CORES OFICIAL DO WINDOWS 95 (CHOOSECOLOR / COMMDLG32)
+      await exec(`
+        document.querySelectorAll(".win:not(#appWin)").forEach(w => { if (w._close) w._close(); else w.remove(); });
+        document.querySelectorAll(".scrim").forEach(s => s.remove());
+        if (typeof openWin95ColorDialog === "function") openWin95ColorDialog("#008080", null, { title: "Cores" });
+      `);
+      await sleep(600);
+      await capture("24_seletor_de_cores_oficial_windows_95.png", "Seletor de Cores Oficial do Windows 95 (COMMDLG32 / Cores Básicas & Espectro HSL)");
+
+      // 25. PROCESSADOR DE EFEITOS DIGITAIS 3D (DVE 1995 — AMPEX ADO / PINNACLE)
+      await exec(`
+        document.querySelectorAll(".win:not(#appWin)").forEach(w => { if (w._close) w._close(); else w.remove(); });
+        document.querySelectorAll(".scrim").forEach(s => s.remove());
+        const cl = (S.clips.v1 && S.clips.v1[0]) || { title: "CENA_3D.AVI", rotY: 35, rotX: 20, dve3dBevel: true, anaglyph3D: true };
+        if (typeof open3DDVEConsole === "function") open3DDVEConsole(cl);
+      `);
+      await sleep(600);
+      await capture("25_processador_efeitos_3d_dve_1995.png", "Processador de Efeitos Digitais 3D (DVE 1995 — Gizmo de Cubo 3D & Perspectiva)");
+
+      console.log("=== TODOS OS 25 TESTES E CAPTURAS CONCLUÍDOS COM SUCESSO! ===");
       await sleep(600);
       app.quit();
     } catch (err) {
