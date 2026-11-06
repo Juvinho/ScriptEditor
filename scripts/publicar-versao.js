@@ -82,12 +82,14 @@ run(`git push origin ${tag}`);
 
 // 6. Publica Release no GitHub via gh CLI com o instalador anexado
 console.log(`Criando Release ${tag} no GitHub...`);
-const notes = `### ScriptEditor ${version} · Edição 95 — Atualização 1.1.3 (Correção de Estabilidade de Efeitos, Áudio Contínuo & Zero Flicker)\n\n` +
-  `- **Áudio Ininterrupto e Sincronismo de Fase Sem Cortar o Som:** Eliminação completa dos loops de busca forçada (seeking) durante a reprodução com efeitos aplicados. Implementado micro-ajuste suave na taxa de reprodução (playbackRate ±4%) para manter o áudio e o vídeo alinhados sem jamais silenciar ou cortar o fluxo sonoro no Chromium;\n` +
-  `- **Eliminação Definitiva da Tela Piscando (Zero Flicker):** Correção matemática de escala mínima segura (safeCos >= 0.02) em transformações 3D DVE, evitando que giros de 90° e 270° tornem a matriz do Canvas 2D singular (determinante zero), o que provocava quedas e piscamentos intermitentes de tela preta;\n` +
-  `- **Aceleração por Hardware no Efeito 3D Anáglifo:** Substituição do processamento pesado de pixels por composição direta de canais de cor na GPU, mantendo taxa de 60 FPS sólida mesmo com efeitos 3D, scanlines e filtros simultâneos;\n` +
-  `- **Otimização de Leitura de Fotogramas no Monitor:** Adição de willReadFrequently: true e proteção contra flashes de telas de carregamento quando o vídeo já possui fotogramas decodificados em memória;\n` +
-  `- **Bateria Completa de 25 Testes Automatizados E2E Homologada:** Todos os 25 testes e capturas de tela aprovados com saída 100% limpa em \`testes_e2e_screenshots/\`.`;
+const notes = `### ScriptEditor ${version} · Edição 95 — Atualização 1.1.4 (Tela de Início MDI Limpa, Roll & Crawl Designer, RTA 31-Bandas, SMPTE & Tracking VHS)\n\n` +
+  `- **Área de Trabalho MDI Limpa na Inicialização:** O assistente de boas-vindas abre sobre um fundo fosco MDI autêntico dos anos 90 com textura pontilhada e baixo-relevo chiseled, ocultando linha do tempo, monitores e cesto de mídias até que um projeto seja aberto ou iniciado;\n` +
+  `- **Roll & Crawl Designer 95 (Ctrl+Alt+R):** Gerador profissional de créditos rolantes verticais em duas colunas sincronizadas (Cargo | Nome) com canaleta central e letreiros contínuos de notícias (Crawl) com badges e gradientes metálicos tridimensionais dos anos 90;\n` +
+  `- **Analisador de Áudio RTA 31-Bandas Rack 19" (Ctrl+Alt+A):** Chassi Klark Teknik / BSS em rack com 31 bandas ISO (20 Hz a 20 kHz), escada de LEDs fluorescentes tricolores com retenção de pico e goniômetro de correlação de fase estéreo;\n` +
+  `- **Calculadora Broadcast SMPTE 12M & Película (Ctrl+Alt+K):** Display digital VFD verde-esmeralda, conversões DF/NDF/PAL/Cinema, metragem de película 35mm e 16mm e teclas de inserção rápida de comerciais de TV;\n` +
+  `- **Simulador de Desajuste de Tracking VHS & Ruído RF:** Barra móvel de erro de alinhamento de cabeçote com chuvisco analógico estático, distorção H-Sync (Flag Waving) e interferência de rádio-frequência VHF/UHF;\n` +
+  `- **Novas Transições 3D Vintage:** Cubo 3D Giratório (Cube Spin 3D) com faces mapeadas e perspectiva, e Mosaico Explosivo em Blocos (Block Dissolve 95);\n` +
+  `- **Bateria Completa de 29 Testes Automatizados E2E Homologada:** Todos os 29 testes e capturas de tela aprovados com saída 100% limpa em \`testes_e2e_screenshots/\`.`;
 
 const releaseCheck = runSilent(`gh release view ${tag} --json tagName`);
 if (!releaseCheck) {
