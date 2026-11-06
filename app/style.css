@@ -1739,6 +1739,97 @@ input[type="range"].mixer-fader {
   box-sizing: border-box;
 }
 
+/* ---------- Painel de Medidores Analógicos VU Tape Deck 1995 ---------- */
+.mixer-analog-vu-panel {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #14181E;
+  border: 2px solid #000;
+  box-shadow: inset 1px 1px #000, 1px 1px #808080;
+  padding: 6px;
+  margin-bottom: 6px;
+}
+
+.mixer-analog-vu-panel canvas {
+  display: block;
+  image-rendering: auto;
+}
+
+/* ---------- Diálogo do Processador Chroma Key 1995 ---------- */
+.chroma-dialog-layout {
+  display: flex;
+  gap: 10px;
+}
+
+.chroma-preview-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 384px;
+}
+
+.chroma-canvas-box {
+  width: 384px;
+  height: 256px;
+  background: #000;
+  border: 2px solid var(--dk);
+  box-shadow: inset 1px 1px #000, 1px 1px var(--hi);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.chroma-canvas-box canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: crosshair;
+}
+
+.chroma-controls-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+/* ---------- Ficha Técnica de Montagem & Relatórios 95 ---------- */
+.tech-report-frame {
+  width: 100%;
+  height: 380px;
+  background: #FFFFFF;
+  color: #000000;
+  border: 1px solid var(--dk);
+  box-shadow: inset 1px 1px #000;
+  font-family: var(--f-ui, 'Segoe UI', Tahoma, sans-serif);
+  font-size: 11px;
+  overflow: auto;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.tech-report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 10.5px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.tech-report-table th, .tech-report-table td {
+  border: 1px solid #777777;
+  padding: 3px 5px;
+  text-align: left;
+}
+
+.tech-report-table th {
+  background: #D4D0C8;
+  font-weight: 700;
+}
+
 /* ---------- Project Bin Aprimorado (Busca, Pastas & Miniaturas) ---------- */
 .bin-toolbar {
   display: flex;

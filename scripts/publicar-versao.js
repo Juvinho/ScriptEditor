@@ -82,15 +82,14 @@ run(`git push origin ${tag}`);
 
 // 6. Publica Release no GitHub via gh CLI com o instalador anexado
 console.log(`Criando Release ${tag} no GitHub...`);
-const notes = `### ScriptEditor ${version} · Edição 95 — Atualização Massiva 1.1\n\n` +
-  `- **Assistente de Entrada & Hub de Projetos 95 (Padrão ScriptRoom):** Tela de boas-vindas estilo ScriptRoom com banner beveled vinho, cartão de continuidade ("Continuar de onde parei") com botão play direto, grade de 6 ações com ícones pixelados, busca em tempo real na tabela de projetos recentes e rotacionador de dicas do dia;\n` +
-  `- **Mesa de Som Analógica 95 Corrigida:** Faders verticais em slots embutidos blindados contra overflow horizontal, escala de serigrafia graduada em decibéis (+6, 0, -6, -12, -24, -inf dB), medidores VU de LED estéreo calibrados em tempo real, potenciômetros de Pan e visor digital LCD em dB;\n` +
-  `- **Suite Analógica de Fita VHS & Betacam SP 95 (Processador DSP):** Emulação ótica e eletromagnética autêntica de cabeçote giratório com ruído de comutação inferior (head switching noise), desvio e jitter de tracking horizontal, desalinhamento/sangramento de croma, dropouts de óxido magnético, granulação e scanlines CRT Trinitron de 15.734 kHz;\n` +
-  `- **Modo de Edição A/B Roll Clássico 1995:** Alternância para o layout histórico das ilhas de corte dos anos 90 com trilhas de Vídeo A, pista intermediária de Transições [FX] e trilha de Vídeo B;\n` +
-  `- **Novas Transições Época 1995:** Adicionadas Virada de Página 3D (Page Peel com verso metálico e sombra), Varredura de Relógio 360° (Clock Wipe radial), Íris Diamante/Losango e Persianas Verticais;\n` +
-  `- **Padrão Broadcast SMPTE Drop-Frame (DF):** Sincronismo oficial para transmissão televisiva NTSC 29.97 fps com separador ponto-e-vírgula (\`;\`) e cálculo de descarte de 2 quadros a cada minuto;\n` +
-  `- **Empacotador Autônomo para Iomega Zip 100MB / DAT:** Gera arquivo consolidado contendo projeto .PPJ, lista de decisão EDL CMX 3600, ficha técnica LEIAME.TXT no padrão dos anos 90 e AUTORUN.INF;\n` +
-  `- **Bateria Completa de Testes E2E (18 Módulos):** Conjunto automatizado de testes simulando usuário real em todos os painéis, com capturas salvas na pasta raiz \`testes_e2e_screenshots/\`.`;
+const notes = `### ScriptEditor ${version} · Edição 95 — Atualização 1.1.1 (Fit to Fill, VU Galvanométrico, Chroma Key, Sinais Broadcast & Ficha Técnica)\n\n` +
+  `- **Edição por 4 Pontos com Ajuste de Velocidade Automático (Fit to Fill 1995):** Ao marcar pontos IN e OUT no monitor de Origem e também na Linha do Tempo com durações diferentes, o editor detecta a divergência e abre a janela clássica de resolução com opções: "Ajustar Velocidade para Preencher (Fit to Fill)", "Ignorar Ponto OUT da Origem", "Ignorar Ponto OUT da Linha do Tempo" ou "Ignorar Ponto IN da Linha do Tempo";\n` +
+  `- **Medidores VU Analógicos Galvanométricos 1995:** Modo alternável na Mesa de Som e console dedicado ("Console VU Analógico Tape Deck") com mostradores estéreo em fundo creme marfim, escala serigráfica de -20 a +3 dB, indicador de sobrecarga PEAK e física balística realista (resposta 300ms, amortecimento mecânico);\n` +
+  `- **Processador Chroma Key & Blue/Green Screen 1995:** Janela dedicada de recorte por cor para faixas de sobreposição com conta-gotas/pipeta direto na tela de prévia, presets Verde Broadcast e Azul Betacam, tolerância, limiar (threshold), suavização de borda, supressão de spill (despill) e visualização do canal Alpha (P&B) em tempo real;\n` +
+  `- **Suite de Efeitos Visuais MTV 1995 & Telejornalismo:** Mosaico de censura/pixelização em blocos ajustáveis (4 a 64px), posterização de cores 8-bit, solarização psicodélica Sabattier e controle rotativo de Matiz (Hue Rotate -180° a +180°);\n` +
+  `- **Gerador Expandido de Sinais Broadcast & Calibração:** Padrão EBU 75% (PAL/CCIR 601), Multi-Burst analógico de 0.5 a 4.2 MHz para teste de resposta de cabeçote, Tom musical Lá 440 Hz (ISO 16) e Varredura Senoidal Contínua (Sweep 20Hz - 20kHz) com áudio DSP;\n` +
+  `- **Ficha Técnica de Montagem & Relatório Oficial de Decupagem:** Exportação nos formatos HTML 1995 (estilo Netscape Navigator 3) e texto puro (.TXT), contendo cronologia completa de cortes, timecodes SMPTE Drop-Frame, lista de marcadores/cue sheets, manifesto de mídias e layout otimizado para impressão A4;\n` +
+  `- **Bateria Expandida de 23 Testes Automatizados E2E:** Todas as 23 funcionalidades testadas e capturadas em alta resolução na pasta raiz \`testes_e2e_screenshots/\`.`;
 
 const releaseCheck = runSilent(`gh release view ${tag} --json tagName`);
 if (!releaseCheck) {

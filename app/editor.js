@@ -5,7 +5,7 @@
    Zero emojis · Ícones SVG 16x16 pixel-art · Edição Comercial, Doméstica e Roteirizada
    ============================================================================ */
 
-let APP_VERSAO = "1.1.0"; // Substituída em boot() pela versão real do package.json
+let APP_VERSAO = "1.1.1"; // Substituída em boot() pela versão real do package.json
 const FPS = 29.97;
 
 const ICON = {
@@ -2067,11 +2067,87 @@ function getTrackEndTime(tk) {
   return Number(maxEnd.toFixed(2));
 }
 
-function insertSourceIntoTimeline(targetTrack, mode = "append_or_playhead", explicitTime = null) {
+function open4PointFitDialog(targetTrack, mode, explicitTime, srcDur, tlDur) {
+  const speedRatio = Number((srcDur / tlDur).toFixed(3));
+  const speedPct = (speedRatio * 100).toFixed(1);
+
+  dialog({
+    id: "fitToFillWin",
+    title: "Edição por 4 Pontos — Ajuste de Duração (Fit to Fill)",
+    width: 500,
+    body: `
+      <div class="col" style="gap:10px">
+        <div class="row" style="gap:8px;align-items:flex-start">
+          <div style="font-size:24px;line-height:1;margin-top:2px">⏱</div>
+          <div style="font-size:11px;line-height:1.4">
+            <b>Divergência de Duração nos 4 Pontos Marcados:</b><br>
+            • <b>Origem (Source):</b> ${fmtSMPTE(S.srcIn)} → ${fmtSMPTE(S.srcOut)} (Duração: ${srcDur.toFixed(2)}s)<br>
+            • <b>Linha do Tempo:</b> ${fmtSMPTE(S.tlIn)} → ${fmtSMPTE(S.tlOut)} (Duração: ${tlDur.toFixed(2)}s)<br><br>
+            Selecione o procedimento para o corte na linha do tempo:
+          </div>
+        </div>
+
+        <div class="fld" style="background:var(--field);padding:8px;box-shadow:inset 1px 1px var(--lo);display:flex;flex-direction:column;gap:8px">
+          <label class="row" style="gap:8px;cursor:pointer;align-items:flex-start">
+            <input type="radio" name="fitOpt" value="fit_to_fill" checked style="margin-top:2px">
+            <div>
+              <b>Ajustar Velocidade para Preencher (Fit to Fill 1995)</b><br>
+              <span class="muted" style="font-size:10px">Altera a velocidade do clipe para <b>${speedPct}%</b> (${speedRatio.toFixed(2)}x) para preencher com perfeição os ${tlDur.toFixed(2)}s da timeline.</span>
+            </div>
+          </label>
+          <label class="row" style="gap:8px;cursor:pointer;align-items:flex-start">
+            <input type="radio" name="fitOpt" value="ignore_src_out" style="margin-top:2px">
+            <div>
+              <b>Ignorar Ponto de Saída (OUT) da Origem</b><br>
+              <span class="muted" style="font-size:10px">Usa o IN da origem e corta a duração exata (${tlDur.toFixed(2)}s) na velocidade normal (100%).</span>
+            </div>
+          </label>
+          <label class="row" style="gap:8px;cursor:pointer;align-items:flex-start">
+            <input type="radio" name="fitOpt" value="ignore_tl_out" style="margin-top:2px">
+            <div>
+              <b>Ignorar Ponto de Saída (OUT) da Linha do Tempo</b><br>
+              <span class="muted" style="font-size:10px">Insere o trecho integral da origem (${srcDur.toFixed(2)}s) a partir do IN da timeline a 100% de velocidade.</span>
+            </div>
+          </label>
+          <label class="row" style="gap:8px;cursor:pointer;align-items:flex-start">
+            <input type="radio" name="fitOpt" value="ignore_tl_in" style="margin-top:2px">
+            <div>
+              <b>Ignorar Ponto de Entrada (IN) da Linha do Tempo</b><br>
+              <span class="muted" style="font-size:10px">Alinha o final do clipe com o OUT da timeline (${fmtSMPTE(S.tlOut)}) usando ${srcDur.toFixed(2)}s a 100%.</span>
+            </div>
+          </label>
+        </div>
+      </div>
+    `,
+    buttons: [
+      {
+        label: "Confirmar Edição",
+        def: 1,
+        run: (w) => {
+          const selected = w.querySelector('input[name="fitOpt"]:checked')?.value || "fit_to_fill";
+          insertSourceIntoTimeline(targetTrack, mode, explicitTime, selected);
+        }
+      },
+      { label: "Cancelar" }
+    ]
+  });
+}
+
+function insertSourceIntoTimeline(targetTrack, mode = "append_or_playhead", explicitTime = null, fitChoice = null) {
   const it = S.srcItem;
   if (!it) {
     toast("Selecione ou importe uma mídia no Bin primeiro.");
     return;
+  }
+
+  // Detecção de Edição por 4 Pontos (Origem IN..OUT e Timeline IN..OUT)
+  if (S.srcIn != null && S.srcOut != null && S.srcOut > S.srcIn && S.tlIn != null && S.tlOut != null && S.tlOut > S.tlIn && !fitChoice) {
+    const sDur = Number((S.srcOut - S.srcIn).toFixed(2));
+    const tDur = Number((S.tlOut - S.tlIn).toFixed(2));
+    if (sDur >= 0.1 && tDur >= 0.1 && Math.abs(sDur - tDur) > 0.05) {
+      open4PointFitDialog(targetTrack, mode, explicitTime, sDur, tDur);
+      return;
+    }
   }
 
   saveUndoSnapshot();
@@ -2086,8 +2162,37 @@ function insertSourceIntoTimeline(targetTrack, mode = "append_or_playhead", expl
     S.isStarterDemo = false;
   }
 
-  const clipDur = Math.max(0.5, Number((S.srcOut - S.srcIn).toFixed(2)) || Number(it.dur) || 6);
-  let insertTime = explicitTime != null ? Number(explicitTime.toFixed(2)) : Number(S.playhead.toFixed(2));
+  let clipDur = Math.max(0.5, Number((S.srcOut - S.srcIn).toFixed(2)) || Number(it.dur) || 6);
+  let clipInPoint = S.srcIn;
+  let clipSpeed = 1;
+  let insertTime = explicitTime != null ? Number(explicitTime.toFixed(2)) : (S.tlIn != null ? Number(S.tlIn.toFixed(2)) : Number(S.playhead.toFixed(2)));
+
+  if (fitChoice === "fit_to_fill") {
+    const sDur = Number((S.srcOut - S.srcIn).toFixed(2));
+    const tDur = Number((S.tlOut - S.tlIn).toFixed(2));
+    clipSpeed = Number((sDur / tDur).toFixed(3));
+    clipDur = tDur;
+    insertTime = Number(S.tlIn.toFixed(2));
+    clipInPoint = S.srcIn;
+  } else if (fitChoice === "ignore_src_out") {
+    const tDur = Number((S.tlOut - S.tlIn).toFixed(2));
+    clipDur = tDur;
+    insertTime = Number(S.tlIn.toFixed(2));
+    clipInPoint = S.srcIn;
+    clipSpeed = 1;
+  } else if (fitChoice === "ignore_tl_out") {
+    const sDur = Number((S.srcOut - S.srcIn).toFixed(2));
+    clipDur = sDur;
+    insertTime = Number(S.tlIn.toFixed(2));
+    clipInPoint = S.srcIn;
+    clipSpeed = 1;
+  } else if (fitChoice === "ignore_tl_in") {
+    const sDur = Number((S.srcOut - S.srcIn).toFixed(2));
+    clipDur = sDur;
+    insertTime = Math.max(0, Number((S.tlOut - sDur).toFixed(2)));
+    clipInPoint = S.srcIn;
+    clipSpeed = 1;
+  }
 
   let tk = targetTrack;
   if (tk === "overlay") {
@@ -2102,15 +2207,15 @@ function insertSourceIntoTimeline(targetTrack, mode = "append_or_playhead", expl
     return;
   }
 
-  if (mode === "append_or_playhead" && explicitTime == null) {
+  if (mode === "append_or_playhead" && explicitTime == null && !fitChoice && S.tlIn == null) {
     // Se já houver um clipe ocupando a posição da agulha naquela faixa, adiciona logo na sequência (no fim da faixa)
     // para nunca empilhar um vídeo em cima do outro!
     const occupied = (S.clips[tk] || []).some(c => insertTime + clipDur > c.start + 0.02 && insertTime < c.start + c.dur - 0.02);
     if (occupied) {
       insertTime = getTrackEndTime(tk);
     }
-  } else if (mode === "insert" || mode === "overwrite") {
-    clearOverlapOnTrack(tk, insertTime, insertTime + clipDur, mode);
+  } else if (mode === "insert" || mode === "overwrite" || fitChoice) {
+    clearOverlapOnTrack(tk, insertTime, insertTime + clipDur, mode === "insert" ? "insert" : "overwrite");
   }
 
   const isOverlayV = isVideoTrack(tk) && tk !== "v1";
@@ -2127,10 +2232,10 @@ function insertSourceIntoTimeline(targetTrack, mode = "append_or_playhead", expl
     mediaKind: it.kind,
     synthType: it.synthType || "",
     start: insertTime,
-    inPoint: S.srcIn,
+    inPoint: clipInPoint,
     dur: clipDur,
     sourceMaxDur: it.dur || 600,
-    speed: 1,
+    speed: clipSpeed,
     volume: 100,
     opacity: 100,
     scale: defScale,
@@ -2146,7 +2251,7 @@ function insertSourceIntoTimeline(targetTrack, mode = "append_or_playhead", expl
     cropLeft: 0,
     cropRight: 0,
     motionPreset: "none",
-    chromaKey: "none",
+    chromaKey: false,
     brightness: 0,
     contrast: 0,
     saturation: 100,
@@ -2167,7 +2272,11 @@ function insertSourceIntoTimeline(targetTrack, mode = "append_or_playhead", expl
   recalcSequenceDuration();
   setPlayhead(newClip.start, false);
   renderAll();
-  toast(`"${it.name}" (${clipDur}s) colocado em ${tk.toUpperCase()} (${fmtSMPTE(newClip.start)}). Clique em ► Tocar!`);
+  if (fitChoice === "fit_to_fill") {
+    toast(`Fit to Fill aplicado: velocidade ${(clipSpeed * 100).toFixed(0)}% (${clipDur.toFixed(2)}s preenchidos na timeline)!`);
+  } else {
+    toast(`"${it.name}" (${clipDur}s) colocado em ${tk.toUpperCase()} (${fmtSMPTE(newClip.start)}). Clique em ► Tocar!`);
+  }
 }
 
 /* ---------- Geradores Sintéticos Anos 90 (Leader, Barras SMPTE, VHS Doméstico, VT Comercial, Roteiro) ---------- */
@@ -2311,6 +2420,78 @@ function drawSynthGenerator(ctx, W, H, type, localTime, label) {
     return;
   }
 
+  if (type === "bars_ebu_75") {
+    // Barras de Cor Padrão EBU 75% (PAL / CCIR 601 European Broadcast Standard)
+    const cols = ["#BFBFBF", "#BFBF00", "#00BFBF", "#00BF00", "#BF00BF", "#BF0000", "#0000BF", "#000000"];
+    const bw = W / cols.length;
+    cols.forEach((c, i) => {
+      ctx.fillStyle = c;
+      ctx.fillRect(i * bw, 0, bw + 1, H * 0.78);
+    });
+
+    ctx.fillStyle = "#0A0A0A";
+    ctx.fillRect(0, H * 0.78, W, H * 0.22);
+
+    ctx.fillStyle = "#FFE040";
+    ctx.font = "bold 16px 'Courier New', monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("PADRÃO EBU 75% · BROADCAST CCIR 601 / PAL-M (1995)", W / 2, H * 0.88);
+    ctx.fillStyle = "#00FF66";
+    ctx.font = "12px monospace";
+    ctx.fillText("75% LUMINÂNCIA · 100% COR · ALINHAMENTO DE VETORSCOPIO", W / 2, H * 0.95);
+    return;
+  }
+
+  if (type === "multiburst") {
+    // Padrão de Resolução Multi-Burst de Frequência de Vídeo (0.5 a 4.2 MHz)
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(0, 0, W, H);
+
+    const burstH = H * 0.78;
+    const packetW = W / 7;
+
+    // 1. Barra Branca de Referência 100 IRE
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(0, 0, packetW, burstH);
+    ctx.fillStyle = "#000000";
+    ctx.font = "bold 13px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("REF 100%", packetW / 2, burstH / 2);
+
+    // 2. Pacotes de Frequência Analógica (0.5, 1.0, 2.0, 3.0, 3.58, 4.2 MHz)
+    const freqs = [
+      { f: "0.5 MHz", period: 28 },
+      { f: "1.0 MHz", period: 16 },
+      { f: "2.0 MHz", period: 8 },
+      { f: "3.0 MHz", period: 5 },
+      { f: "3.58 MHz", period: 3.8 },
+      { f: "4.2 MHz", period: 2.5 }
+    ];
+
+    freqs.forEach((pkt, idx) => {
+      const startX = (idx + 1) * packetW;
+      for (let x = startX; x < startX + packetW; x++) {
+        const sine = Math.sin((x - startX) * (Math.PI * 2 / pkt.period));
+        const val = Math.round(128 + sine * 115);
+        ctx.fillStyle = `rgb(${val}, ${val}, ${val})`;
+        ctx.fillRect(x, 0, 1, burstH);
+      }
+      ctx.fillStyle = "#FFE000";
+      ctx.font = "bold 11px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(pkt.f, startX + packetW / 2, 22);
+    });
+
+    // Faixa Inferior
+    ctx.fillStyle = "#111111";
+    ctx.fillRect(0, burstH, W, H - burstH);
+    ctx.fillStyle = "#FFE040";
+    ctx.font = "bold 15px 'Courier New', monospace";
+    ctx.textAlign = "center";
+    ctx.fillText("PADRÃO MULTI-BURST 0.5 - 4.2 MHz · RESPOSTA EM FREQUÊNCIA DE CABEÇOTE ANALÓGICO", W / 2, H * 0.89);
+    return;
+  }
+
   if (type === "grayscale_10") {
     // Escala de Cinza em 10 Passos Broadcast (0 a 100 IRE)
     ctx.fillStyle = "#000000";
@@ -2348,7 +2529,7 @@ function drawSynthGenerator(ctx, W, H, type, localTime, label) {
     return;
   }
 
-  if (type === "tone_1khz" || type === "pink_noise" || type === "white_noise") {
+  if (type === "tone_1khz" || type === "tone_440hz" || type === "sweep_20_20k" || type === "pink_noise" || type === "white_noise") {
     // Osciloscópio de Sinal de Áudio DSP 1995
     ctx.fillStyle = "#031008";
     ctx.fillRect(0, 0, W, H);
@@ -2370,6 +2551,11 @@ function drawSynthGenerator(ctx, W, H, type, localTime, label) {
       let amp = 0;
       if (type === "tone_1khz") {
         amp = Math.sin((x * 0.08) + localTime * 24) * 80;
+      } else if (type === "tone_440hz") {
+        amp = Math.sin((x * 0.045) + localTime * 14) * 85;
+      } else if (type === "sweep_20_20k") {
+        const sweepFreq = 0.015 + ((localTime * 0.3) % 1) * 0.25;
+        amp = Math.sin(x * sweepFreq) * 80;
       } else if (type === "pink_noise") {
         amp = (Math.sin(x * 0.12 + localTime * 18) * 0.6 + (Math.random() - 0.5) * 0.8) * 70;
       } else {
@@ -2382,6 +2568,8 @@ function drawSynthGenerator(ctx, W, H, type, localTime, label) {
 
     const titleMap = {
       tone_1khz: "TOM DE REFERÊNCIA SMPTE 1 kHz · -20 dBFS / 0 VU",
+      tone_440hz: "TOM DE AFINAÇÃO MUSICAL LÁ 440 Hz · PADRÃO ISO 16 / SMPTE",
+      sweep_20_20k: "VARREDURA SENOIDAL CONTÍNUA 20 Hz - 20 kHz · TESTE ACÚSTICO",
       pink_noise: "RUÍDO ROSA (PINK NOISE) · CALIBRAÇÃO ACÚSTICA RTA 1/f",
       white_noise: "RUÍDO BRANCO (WHITE NOISE) · ESPECTRO PLANO CONTÍNUO"
     };
@@ -2618,6 +2806,7 @@ function drawSingleClipToContext(tCtx, W, H, clip, globalSec) {
   const flt = (clip.filter && clip.filter !== "none") ? clip.filter : (prefs.filter || "none");
 
   let filterStr = `brightness(${bVal}%) contrast(${cVal}%) saturate(${sVal}%)`;
+  if (clip.hue && clip.hue !== 0) filterStr += ` hue-rotate(${clip.hue}deg)`;
   if (flt === "pb") filterStr += " grayscale(100%)";
   else if (flt === "sepia") filterStr += " sepia(85%)";
   else if (flt === "invert") filterStr += " invert(100%)";
@@ -2875,21 +3064,130 @@ function drawSingleClipToContext(tCtx, W, H, clip, globalSec) {
     }
   }
 
-  // Chroma Key (Green Screen / Blue Screen)
-  if (clip.chromaKey && drewReal) {
+  // Processador Chroma Key 1995 (Blue Screen & Green Screen com Alpha & Despill)
+  if (clip.chromaKey && (drewReal || clip.synthType || clip.text)) {
     try {
       const imgData = tCtx.getImageData(0, 0, W, H);
       const data = imgData.data;
-      const tol = Math.max(10, Math.min(100, Number(clip.chromaTol) || 35)) * 2.5;
-      const targetIsGreen = (clip.chromaColor || "green") === "green";
+      const tol = Math.max(5, Math.min(95, Number(clip.chromaTol) || 35)) / 100;
+      const threshold = Math.max(0, Math.min(80, Number(clip.chromaThreshold) || 15)) / 100;
+      const despill = Math.max(0, Math.min(100, Number(clip.chromaSpill == null ? 60 : clip.chromaSpill))) / 100;
+      const isAlphaPreview = !!clip.previewAlpha;
+
+      let keyR = 0, keyG = 255, keyB = 0;
+      if (clip.chromaColor === "blue") {
+        keyR = 0; keyG = 0; keyB = 255;
+      } else if (clip.chromaColor === "black") {
+        keyR = 0; keyG = 0; keyB = 0;
+      } else if (clip.chromaColor === "white") {
+        keyR = 255; keyG = 255; keyB = 255;
+      } else if (clip.chromaColor && clip.chromaColor.startsWith("#") && clip.chromaColor.length >= 7) {
+        keyR = parseInt(clip.chromaColor.slice(1, 3), 16) || 0;
+        keyG = parseInt(clip.chromaColor.slice(3, 5), 16) || 0;
+        keyB = parseInt(clip.chromaColor.slice(5, 7), 16) || 0;
+      }
+
+      const isGreenKey = (clip.chromaColor === "green" || (!clip.chromaColor && keyG > keyR && keyG > keyB));
+      const isBlueKey = (clip.chromaColor === "blue" || (keyB > keyR && keyB > keyG));
+
       for (let i = 0; i < data.length; i += 4) {
-        const r = data[i], g = data[i + 1], b = data[i + 2];
-        if (targetIsGreen) {
-          if (g > 80 && g - r > tol * 0.4 && g - b > tol * 0.4) data[i + 3] = 0;
+        let r = data[i], g = data[i + 1], b = data[i + 2], a = data[i + 3];
+        if (a === 0) continue;
+
+        let mask = 1.0;
+        if (isGreenKey) {
+          const excess = (g - Math.max(r, b)) / 255;
+          if (excess > threshold) {
+            mask = Math.max(0, 1 - (excess - threshold) / Math.max(0.01, tol));
+          }
+          if (despill > 0 && mask < 0.95) {
+            data[i + 1] = Math.round(g * (1 - despill) + Math.max(r, b) * despill);
+          }
+        } else if (isBlueKey) {
+          const excess = (b - Math.max(r, g)) / 255;
+          if (excess > threshold) {
+            mask = Math.max(0, 1 - (excess - threshold) / Math.max(0.01, tol));
+          }
+          if (despill > 0 && mask < 0.95) {
+            data[i + 2] = Math.round(b * (1 - despill) + Math.max(r, g) * despill);
+          }
         } else {
-          if (b > 80 && b - r > tol * 0.4 && b - g > tol * 0.4) data[i + 3] = 0;
+          const dr = (r - keyR) / 255;
+          const dg = (g - keyG) / 255;
+          const db = (b - keyB) / 255;
+          const dist = Math.sqrt(dr * dr + dg * dg + db * db) / 1.732;
+          if (dist < threshold + tol) {
+            mask = Math.max(0, Math.min(1, (dist - threshold) / Math.max(0.01, tol)));
+          }
+        }
+
+        if (isAlphaPreview) {
+          const lum = Math.round(mask * 255);
+          data[i] = lum;
+          data[i + 1] = lum;
+          data[i + 2] = lum;
+          data[i + 3] = 255;
+        } else {
+          data[i + 3] = Math.round(a * mask);
         }
       }
+      tCtx.putImageData(imgData, 0, 0);
+    } catch (_e) {}
+  }
+
+  // Suite de Efeitos Visuais MTV 1995 (Mosaico de Censura, Posterização 8-bit, Solarização Sabattier)
+  if (flt === "mosaic" || clip.mosaic || flt === "posterize" || clip.posterize || flt === "solarize" || clip.solarize) {
+    try {
+      const imgData = tCtx.getImageData(0, 0, W, H);
+      const data = imgData.data;
+
+      // 1. Mosaico de Censura / Pixelização em Blocos (MTV News 1995)
+      if (flt === "mosaic" || clip.mosaic) {
+        const bs = Math.max(4, Math.min(64, Number(clip.mosaicBlockSize) || 16));
+        for (let by = 0; by < H; by += bs) {
+          for (let bx = 0; bx < W; bx += bs) {
+            const cx = Math.min(W - 1, bx + Math.floor(bs / 2));
+            const cy = Math.min(H - 1, by + Math.floor(bs / 2));
+            const cIdx = (cy * W + cx) * 4;
+            const br = data[cIdx], bg = data[cIdx + 1], bb = data[cIdx + 2], ba = data[cIdx + 3];
+
+            for (let dy = 0; dy < bs && by + dy < H; dy++) {
+              for (let dx = 0; dx < bs && bx + dx < W; dx++) {
+                const idx = ((by + dy) * W + (bx + dx)) * 4;
+                data[idx] = br;
+                data[idx + 1] = bg;
+                data[idx + 2] = bb;
+                data[idx + 3] = ba;
+              }
+            }
+          }
+        }
+      }
+
+      // 2. Posterização 8-bit (Quantização de Cores)
+      if (flt === "posterize" || clip.posterize) {
+        const levels = Math.max(2, Math.min(16, Number(clip.posterizeLevels) || 6));
+        const step = 255 / (levels - 1);
+        for (let i = 0; i < data.length; i += 4) {
+          data[i] = Math.round(data[i] / step) * step;
+          data[i + 1] = Math.round(data[i + 1] / step) * step;
+          data[i + 2] = Math.round(data[i + 1] / step) * step;
+        }
+      }
+
+      // 3. Solarização Sabattier 1995 (Inversão Psicotrópica de Tons Altos)
+      if (flt === "solarize" || clip.solarize) {
+        const threshold = Math.max(20, Math.min(235, Number(clip.solarizeThreshold) || 128));
+        for (let i = 0; i < data.length; i += 4) {
+          const luma = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+          if (luma > threshold) {
+            data[i] = 255 - data[i];
+            data[i + 1] = 255 - data[i + 1];
+            data[i + 2] = 255 - data[i + 2];
+          }
+        }
+      }
+
       tCtx.putImageData(imgData, 0, 0);
     } catch (_e) {}
   }
@@ -2916,10 +3214,6 @@ function drawSingleClipToContext(tCtx, W, H, clip, globalSec) {
   } else if (flt === "noturno") {
     tCtx.fillStyle = "rgba(0, 180, 90, 0.24)";
     tCtx.fillRect(0, 0, W, H);
-  } else if (flt === "mosaic") {
-    tCtx.fillStyle = "rgba(0, 0, 0, 0.12)";
-    for (let x = 0; x < W; x += 12) tCtx.fillRect(x, 0, 1, H);
-    for (let y = 0; y < H; y += 12) tCtx.fillRect(0, y, W, 1);
   } else if (flt === "vignette") {
     const vg = tCtx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.32, W / 2, H / 2, Math.hypot(W / 2, H / 2));
     vg.addColorStop(0, "rgba(0, 0, 0, 0)");
@@ -4005,9 +4299,20 @@ function getClipAudioSampleAt(clip, globalSec) {
     return { l: Math.min(1, maxL * vol * panL), r: Math.min(1, maxR * vol * panR) };
   }
 
-  // Clipes sintéticos e Geradores de Sinais Broadcast 1995 (1kHz, Pink Noise, White Noise, Leader)
+  // Clipes sintéticos e Geradores de Sinais Broadcast 1995 (1kHz, 440Hz, Sweep, Pink Noise, White Noise, Leader)
   if (clip.synthType === "tone_1khz") {
     const s = Math.sin(2 * Math.PI * 1000 * localSec) * 0.10 * vol;
+    return { l: s * panL, r: s * panR };
+  }
+  if (clip.synthType === "tone_440hz") {
+    const s = Math.sin(2 * Math.PI * 440 * localSec) * 0.12 * vol;
+    return { l: s * panL, r: s * panR };
+  }
+  if (clip.synthType === "sweep_20_20k") {
+    const dur = Math.max(1, clip.dur || 6);
+    const frac = Math.min(1, Math.max(0, (localSec % dur) / dur));
+    const phase = 2 * Math.PI * 20 * ((Math.pow(1000, frac) - 1) / Math.log(1000)) * dur;
+    const s = Math.sin(phase) * 0.10 * vol;
     return { l: s * panL, r: s * panR };
   }
   if (clip.synthType === "pink_noise") {
@@ -5204,6 +5509,7 @@ function showClipContextMenu(clip, clientX, clientY) {
     ["splitHere", "Dividir Clipe Aqui (Navalha)", "Ctrl+K"],
     ["speedDur", "Velocidade / Duração…", ""],
     ["openFx", "Redimensionar, Posição e Recorte (FX)…", ""],
+    ["chromaKey", "Chroma Key & Blue/Green Screen 1995…", ""],
     ["-", "", ""],
     ["pasteAttr", "Colar Atributos…", prettyKeyName(KEYMAP.pasteAttributes || "Ctrl+Alt+V")],
     [isGrp ? "ungroup" : "group", isGrp ? "Desagrupar Clipes" : "Agrupar Clipes Selecionados", prettyKeyName(KEYMAP.groupClips || "Ctrl+G")],
@@ -5250,6 +5556,7 @@ function showClipContextMenu(clip, clientX, clientY) {
     if (act === "splitHere") splitSpecificClipAt(clip.track, clip.id, clickSec);
     else if (act === "speedDur") openClipSpeedDialog(clip);
     else if (act === "openFx") { S.sideTab = "fx"; renderSide(); }
+    else if (act === "chromaKey") openChromaKeyDialog(clip);
     else if (act === "pasteAttr") openPasteAttributesDialog();
     else if (act === "group") groupSelectedClips();
     else if (act === "ungroup") ungroupSelectedClips();
@@ -6781,7 +7088,7 @@ function renderSide() {
                 <option value="green"${(!clip.chromaColor || clip.chromaColor === "green") ? " selected" : ""}>Verde</option>
                 <option value="blue"${clip.chromaColor === "blue" ? " selected" : ""}>Azul</option>
               </select>
-              <input type="range" id="fx-chroma-tol" min="15" max="80" value="${clip.chromaTol || 35}" style="width:60px" title="Tolerância de cor">
+              <button type="button" class="btn sm" id="btnOpenChromaInProps" title="Ajustes avançados de tolerância, limiar, despill e canal Alpha">Processador…</button>
             </div>
           </div>
         </div>
@@ -6892,6 +7199,9 @@ function renderSide() {
               <span>Filtro Clipe:</span>
               <select id="fx-flt" style="grid-column:2/4">
                 <option value="none"${(!clip.filter || clip.filter === "none") ? " selected" : ""}>Nenhum (Usar Master)</option>
+                <option value="mosaic"${clip.filter === "mosaic" ? " selected" : ""}>Mosaico de Censura MTV</option>
+                <option value="posterize"${clip.filter === "posterize" ? " selected" : ""}>Posterização 8-bit Pop</option>
+                <option value="solarize"${clip.filter === "solarize" ? " selected" : ""}>Solarização Sabattier 1995</option>
                 <option value="vhs"${clip.filter === "vhs" ? " selected" : ""}>VHS Caseiro 1995 (OSD)</option>
                 <option value="16mm"${clip.filter === "16mm" ? " selected" : ""}>Película Cinema 16mm</option>
                 <option value="tv95"${clip.filter === "tv95" ? " selected" : ""}>TV CRT Scanlines</option>
@@ -6899,14 +7209,17 @@ function renderSide() {
                 <option value="sepia"${clip.filter === "sepia" ? " selected" : ""}>Memória Sépia</option>
                 <option value="noturno"${clip.filter === "noturno" ? " selected" : ""}>Visão Noturna</option>
                 <option value="invert"${clip.filter === "invert" ? " selected" : ""}>Negativo (Inverter)</option>
-                <option value="mosaic"${clip.filter === "mosaic" ? " selected" : ""}>Mosaico 8-bit</option>
                 <option value="vignette"${clip.filter === "vignette" ? " selected" : ""}>Vinheta 35mm</option>
                 <option value="glow"${clip.filter === "glow" ? " selected" : ""}>Brilho Difuso Anos 90</option>
                 <option value="blur"${clip.filter === "blur" ? " selected" : ""}>Desfoque Suave</option>
-                <option value="posterize"${clip.filter === "posterize" ? " selected" : ""}>Pôster 8-Cores</option>
                 <option value="duotone"${clip.filter === "duotone" ? " selected" : ""}>Bicolor Cyan/Âmbar</option>
                 <option value="filmborder"${clip.filter === "filmborder" ? " selected" : ""}>Borda de Película 35mm</option>
               </select>
+            </div>
+            <div class="slider-row">
+              <span>Matiz (Hue):</span>
+              <input type="range" id="fx-hue" min="-180" max="180" value="${clip.hue || 0}">
+              <span class="val" id="fx-hue-v">${clip.hue || 0}°</span>
             </div>
             <div class="slider-row">
               <span>Brilho:</span>
@@ -6997,10 +7310,11 @@ function renderSide() {
     if (chromaCol) {
       chromaCol.onchange = (e) => { clip.chromaColor = e.target.value; renderMonitorFrame(); };
     }
-    const chromaTol = box.querySelector("#fx-chroma-tol");
-    if (chromaTol) {
-      chromaTol.oninput = (e) => { clip.chromaTol = +e.target.value; renderMonitorFrame(); };
+    const btnChromaModal = box.querySelector("#btnOpenChromaInProps");
+    if (btnChromaModal) {
+      btnChromaModal.onclick = () => openChromaKeyDialog(clip);
     }
+    bindRange("fx-hue", "hue", "°");
     const chyronSel = box.querySelector("#fx-chyron");
     if (chyronSel) {
       chyronSel.onchange = (e) => { clip.chyronType = e.target.value; renderMonitorFrame(); };
@@ -7161,6 +7475,220 @@ function renderSide() {
     };
     return;
   }
+
+function openChromaKeyDialog(targetClip = null) {
+  const clip = targetClip || getSelectedClip() || S.clips[S.targetVideoTrack || "v1"]?.[0];
+  if (!clip) {
+    toast("Selecione um clipe na linha do tempo para ajustar o Chroma Key.");
+    return;
+  }
+
+  let previewMode = "composite"; // "composite" | "alpha" | "checker"
+  let eyedropperActive = false;
+
+  dialog({
+    id: "chromaWin",
+    title: `Processador Chroma Key & Blue/Green Screen 1995 — ${clip.title}`,
+    width: 680,
+    body: `
+      <div class="chroma-dialog-layout">
+        <div class="chroma-preview-pane">
+          <div class="chroma-canvas-box">
+            <canvas id="ckPreviewCanvas" width="384" height="256"></canvas>
+          </div>
+          <div class="row" style="justify-content:space-between;align-items:center;background:var(--field);padding:4px 6px;box-shadow:inset 1px 1px var(--lo);font-size:10.5px">
+            <span><b>Visualização:</b></span>
+            <div class="row" style="gap:6px">
+              <label class="row" style="gap:2px"><input type="radio" name="ckPrevMode" value="composite" checked> Composição</label>
+              <label class="row" style="gap:2px"><input type="radio" name="ckPrevMode" value="alpha"> Canal Alpha (P&amp;B)</label>
+              <label class="row" style="gap:2px"><input type="radio" name="ckPrevMode" value="checker"> Fundo Xadrez</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="chroma-controls-pane">
+          <div class="fld" style="background:var(--face);padding:6px;border:1px solid var(--dk);box-shadow:inset 1px 1px var(--hi), inset -1px -1px var(--lo)">
+            <label class="row" style="gap:6px;align-items:center;font-weight:700">
+              <input type="checkbox" id="ckEnable" ${clip.chromaKey ? "checked" : ""}>
+              <span>Ativar Chroma Key neste Clipe</span>
+            </label>
+          </div>
+
+          <div class="col" style="gap:6px;background:var(--face);padding:6px;border:1px solid var(--dk);box-shadow:inset 1px 1px var(--hi), inset -1px -1px var(--lo);font-size:11px">
+            <b style="font-size:11px">Cor Chave (Key Color):</b>
+            <div class="row" style="gap:4px;flex-wrap:wrap">
+              <button type="button" class="btn sm" id="ckPresetGreen" style="background:#00FF00;color:#000;font-weight:700">Verde Broadcast</button>
+              <button type="button" class="btn sm" id="ckPresetBlue" style="background:#0040FF;color:#fff;font-weight:700">Azul Betacam</button>
+              <button type="button" class="btn sm" id="ckPresetBlack" style="background:#111;color:#fff">Preto Luma</button>
+              <button type="button" class="btn sm" id="ckPresetWhite" style="background:#fff;color:#000">Branco Luma</button>
+            </div>
+            <div class="row" style="gap:6px;align-items:center;margin-top:2px">
+              <span>Personalizada:</span>
+              <input type="color" id="ckColorPicker" value="${clip.chromaColor && clip.chromaColor.startsWith("#") ? clip.chromaColor : "#00FF00"}" style="width:36px;height:22px;padding:0;cursor:pointer">
+              <button type="button" class="btn sm" id="ckEyedropper" title="Clique para capturar cor direto da tela de prévia">Conta-gotas (Pipeta)</button>
+              <span id="ckEyedropperStatus" style="font-size:10px;color:#800"></span>
+            </div>
+          </div>
+
+          <div class="col" style="gap:5px;background:var(--face);padding:6px;border:1px solid var(--dk);box-shadow:inset 1px 1px var(--hi), inset -1px -1px var(--lo);font-size:11px">
+            <div class="slider-row">
+              <span>Tolerância:</span>
+              <input type="range" id="ckTolerance" min="5" max="95" value="${clip.chromaTol || 35}">
+              <span class="val" id="ckTolVal">${clip.chromaTol || 35}%</span>
+            </div>
+            <div class="slider-row">
+              <span>Limiar (Threshold):</span>
+              <input type="range" id="ckThreshold" min="0" max="80" value="${clip.chromaThreshold || 15}">
+              <span class="val" id="ckThreshVal">${clip.chromaThreshold || 15}%</span>
+            </div>
+            <div class="slider-row">
+              <span>Suavização de Borda:</span>
+              <input type="range" id="ckFeather" min="0" max="10" value="${clip.chromaFeather || 1}">
+              <span class="val" id="ckFeatherVal">${clip.chromaFeather || 1} px</span>
+            </div>
+            <div class="slider-row">
+              <span>Supressão de Spill:</span>
+              <input type="range" id="ckSpill" min="0" max="100" value="${clip.chromaSpill == null ? 60 : clip.chromaSpill}">
+              <span class="val" id="ckSpillVal">${clip.chromaSpill == null ? 60 : clip.chromaSpill}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `,
+    buttons: [
+      {
+        label: "Aplicar e Fechar",
+        def: 1,
+        run: () => {
+          renderTimeline();
+          renderMonitorFrame();
+          toast(`Chroma Key atualizado para o clipe "${clip.title}"!`);
+        }
+      },
+      {
+        label: "Desativar Chroma",
+        run: () => {
+          clip.chromaKey = false;
+          clip.previewAlpha = false;
+          renderTimeline();
+          renderMonitorFrame();
+          toast(`Chroma Key desativado no clipe "${clip.title}".`);
+        }
+      },
+      { label: "Fechar" }
+    ]
+  });
+
+  const win = document.getElementById("chromaWin");
+  if (!win) return;
+  const cvs = win.querySelector("#ckPreviewCanvas");
+  const ctx = cvs?.getContext("2d");
+
+  const updatePreview = () => {
+    if (!ctx || !cvs) return;
+    const W = cvs.width, H = cvs.height;
+
+    if (previewMode === "checker") {
+      ctx.fillStyle = "#FFFFFF";
+      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = "#D0D0D0";
+      const sz = 16;
+      for (let y = 0; y < H; y += sz) {
+        for (let x = 0; x < W; x += sz) {
+          if (((x / sz + y / sz) % 2) === 0) ctx.fillRect(x, y, sz, sz);
+        }
+      }
+    } else {
+      ctx.fillStyle = "#0A1422";
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    const prevAlpha = clip.previewAlpha;
+    if (previewMode === "alpha") clip.previewAlpha = true;
+    else clip.previewAlpha = false;
+
+    drawSingleClipToContext(ctx, W, H, clip, S.playhead >= clip.start && S.playhead < clip.start + clip.dur ? S.playhead : clip.start);
+    clip.previewAlpha = prevAlpha;
+  };
+
+  win.querySelectorAll('input[name="ckPrevMode"]').forEach(r => {
+    r.onchange = () => {
+      previewMode = r.value;
+      updatePreview();
+    };
+  });
+
+  const chkEnable = win.querySelector("#ckEnable");
+  if (chkEnable) {
+    chkEnable.onchange = () => {
+      clip.chromaKey = chkEnable.checked;
+      updatePreview();
+      renderMonitorFrame();
+    };
+  }
+
+  const bindSlider = (id, prop, valId, suffix) => {
+    const s = win.querySelector("#" + id);
+    const v = win.querySelector("#" + valId);
+    if (!s) return;
+    s.oninput = () => {
+      clip[prop] = +s.value;
+      if (v) v.textContent = s.value + suffix;
+      updatePreview();
+      renderMonitorFrame();
+    };
+  };
+
+  bindSlider("ckTolerance", "chromaTol", "ckTolVal", "%");
+  bindSlider("ckThreshold", "chromaThreshold", "ckThreshVal", "%");
+  bindSlider("ckFeather", "chromaFeather", "ckFeatherVal", " px");
+  bindSlider("ckSpill", "chromaSpill", "ckSpillVal", "%");
+
+  const applyColor = (c) => {
+    clip.chromaColor = c;
+    clip.chromaKey = true;
+    if (chkEnable) chkEnable.checked = true;
+    const cp = win.querySelector("#ckColorPicker");
+    if (cp && c.startsWith("#")) cp.value = c;
+    updatePreview();
+    renderMonitorFrame();
+  };
+
+  win.querySelector("#ckPresetGreen")?.addEventListener("click", () => applyColor("green"));
+  win.querySelector("#ckPresetBlue")?.addEventListener("click", () => applyColor("blue"));
+  win.querySelector("#ckPresetBlack")?.addEventListener("click", () => applyColor("#000000"));
+  win.querySelector("#ckPresetWhite")?.addEventListener("click", () => applyColor("#FFFFFF"));
+
+  const colPick = win.querySelector("#ckColorPicker");
+  if (colPick) colPick.oninput = () => applyColor(colPick.value);
+
+  const btnEye = win.querySelector("#ckEyedropper");
+  const eyeSt = win.querySelector("#ckEyedropperStatus");
+  if (btnEye) {
+    btnEye.onclick = () => {
+      eyedropperActive = !eyedropperActive;
+      btnEye.classList.toggle("def", eyedropperActive);
+      if (eyeSt) eyeSt.textContent = eyedropperActive ? "Clique na tela de prévia..." : "";
+    };
+  }
+
+  if (cvs) {
+    cvs.onclick = (e) => {
+      if (!eyedropperActive) return;
+      const rect = cvs.getBoundingClientRect();
+      const x = Math.floor((e.clientX - rect.left) * (cvs.width / rect.width));
+      const y = Math.floor((e.clientY - rect.top) * (cvs.height / rect.height));
+      const p = ctx.getImageData(x, y, 1, 1).data;
+      const hex = "#" + ((1 << 24) + (p[0] << 16) + (p[1] << 8) + p[2]).toString(16).slice(1);
+      applyColor(hex);
+      eyedropperActive = false;
+      btnEye?.classList.remove("def");
+      if (eyeSt) eyeSt.textContent = `Cor capturada: ${hex.toUpperCase()}`;
+    };
+  }
+
+  updatePreview();
+}
 
   if (S.sideTab === "trans") {
     const clip = getSelectedClip();
@@ -8010,6 +8538,8 @@ function openGeneratorDialog() {
         <select id="gn-type">
           <optgroup label="Padrões de Calibração de Vídeo">
             <option value="bars">Barras de Cor Padrão SMPTE NTSC</option>
+            <option value="bars_ebu_75">Barras de Cor Padrão EBU 75% (PAL / CCIR 601)</option>
+            <option value="multiburst">Padrão Multi-Burst (0.5 a 4.2 MHz - Resolução de Cabeçote)</option>
             <option value="bars_pluge">Barras SMPTE com Pulso Pluge (-3.5 / 0 / +3.5 IRE)</option>
             <option value="crosshatch">Grade de Alinhamento CRT &amp; Geometria (Crosshatch 16×12)</option>
             <option value="grayscale_10">Escala de Cinza em 10 Passos (0 a 100 IRE)</option>
@@ -8019,6 +8549,8 @@ function openGeneratorDialog() {
           </optgroup>
           <optgroup label="Geradores de Tons e Ruídos de Áudio (DSP)">
             <option value="tone_1khz">Tom de Referência 1 kHz (-20 dBFS / 0 VU SMPTE)</option>
+            <option value="tone_440hz">Tom de Afinação Musical Lá 440 Hz (Padrão ISO 16)</option>
+            <option value="sweep_20_20k">Varredura Senoidal Contínua (Sweep 20 Hz - 20 kHz)</option>
             <option value="pink_noise">Ruído Rosa (Pink Noise - Calibração Acústica RTA)</option>
             <option value="white_noise">Ruído Branco (White Noise - Espectro Contínuo)</option>
           </optgroup>
@@ -8039,10 +8571,12 @@ function openGeneratorDialog() {
           saveUndoSnapshot();
           const tp = w.querySelector("#gn-type").value;
           const dur = Math.max(1, +w.querySelector("#gn-dur").value || 6);
-          const isAud = ["tone_1khz", "pink_noise", "white_noise"].includes(tp);
+          const isAud = ["tone_1khz", "tone_440hz", "sweep_20_20k", "pink_noise", "white_noise"].includes(tp);
 
           const names = {
             bars: "BARRAS_SMPTE_NTSC.MOV",
+            bars_ebu_75: "BARRAS_EBU_75_PAL.MOV",
+            multiburst: "PADRAO_MULTIBURST_4MHZ.MOV",
             bars_pluge: "SMPTE_BARS_PLUGE.MOV",
             crosshatch: "CROSSHATCH_16x12.MOV",
             grayscale_10: "GRAYSCALE_10_STEPS.MOV",
@@ -8050,6 +8584,8 @@ function openGeneratorDialog() {
             vhs_home: "FITA_VHS_CASEIRA_95.AVI",
             commercial: "VT_COMERCIAL_95.AVI",
             tone_1khz: "TOM_1KHZ_0VU.WAV",
+            tone_440hz: "TOM_LA_440HZ_ISO16.WAV",
+            sweep_20_20k: "SWEEP_SENOIDAL_20_20K.WAV",
             pink_noise: "RUIDO_ROSA_RTA.WAV",
             white_noise: "RUIDO_BRANCO_DSP.WAV"
           };
@@ -9208,6 +9744,543 @@ function checkCrashRecovery() {
   }
 }
 
+/* ---------- Medidores VU Analógicos Galvanométricos 1995 (Tape Deck & Master Console) ---------- */
+let vuAnalogState = {
+  angleL: -38,
+  angleR: -38,
+  velL: 0,
+  velR: 0,
+  peakHoldL: 0,
+  peakHoldR: 0
+};
+
+function amplitudeToVUDegrees(amp) {
+  if (amp <= 0.001) return -38;
+  const db = 20 * Math.log10(Math.min(1.5, amp));
+  if (db <= -20) return -38;
+  if (db >= 3) return 24;
+  if (db <= 0) {
+    const norm = (db + 20) / 20;
+    return -38 + Math.pow(norm, 0.85) * 38;
+  } else {
+    return (db / 3) * 24;
+  }
+}
+
+function updateAnalogVUBallistics(rawL, rawR) {
+  const targetL = amplitudeToVUDegrees(rawL);
+  const targetR = amplitudeToVUDegrees(rawR);
+  const now = performance.now();
+
+  const k = 0.26;
+  const damp = 0.74;
+
+  vuAnalogState.velL += (targetL - vuAnalogState.angleL) * k;
+  vuAnalogState.velL *= damp;
+  vuAnalogState.angleL += vuAnalogState.velL;
+  if (vuAnalogState.angleL < -42) { vuAnalogState.angleL = -42; vuAnalogState.velL = -vuAnalogState.velL * 0.15; }
+  if (vuAnalogState.angleL > 28) { vuAnalogState.angleL = 28; vuAnalogState.velL = -vuAnalogState.velL * 0.15; }
+
+  vuAnalogState.velR += (targetR - vuAnalogState.angleR) * k;
+  vuAnalogState.velR *= damp;
+  vuAnalogState.angleR += vuAnalogState.velR;
+  if (vuAnalogState.angleR < -42) { vuAnalogState.angleR = -42; vuAnalogState.velR = -vuAnalogState.velR * 0.15; }
+  if (vuAnalogState.angleR > 28) { vuAnalogState.angleR = 28; vuAnalogState.velR = -vuAnalogState.velR * 0.15; }
+
+  if (rawL >= 0.98) vuAnalogState.peakHoldL = now + 650;
+  if (rawR >= 0.98) vuAnalogState.peakHoldR = now + 650;
+}
+
+function drawSingleMeterFace(ctx, x, y, w, h, angle, isPeak, label, dbVal) {
+  ctx.save();
+  ctx.translate(x, y);
+
+  // Fundo Creme Marfim estilo Studer / Revox / Ampex 1995
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, h);
+  bgGrad.addColorStop(0, "#FAF6E8");
+  bgGrad.addColorStop(0.7, "#F4EDE0");
+  bgGrad.addColorStop(1, "#E8DFC8");
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, w, h);
+
+  // Moldura chanfrada interior do galvanômetro
+  ctx.strokeStyle = "#808080";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(0.5, 0.5, w - 1, h - 1);
+  ctx.strokeStyle = "#FFFFFF";
+  ctx.strokeRect(1.5, 1.5, w - 3, h - 3);
+
+  const pivotX = w / 2;
+  const pivotY = h + (h * 0.35);
+  const radius = h * 1.15;
+
+  // Arco da escala
+  const startRad = (-90 - 38) * Math.PI / 180;
+  const zeroRad = -90 * Math.PI / 180;
+  const endRad = (-90 + 24) * Math.PI / 180;
+
+  // Arco Preto (-20 a 0 dB)
+  ctx.strokeStyle = "#222222";
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.arc(pivotX, pivotY, radius, startRad, zeroRad, false);
+  ctx.stroke();
+
+  // Arco Vermelho (0 a +3 dB)
+  ctx.strokeStyle = "#D01515";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(pivotX, pivotY, radius, zeroRad, endRad, false);
+  ctx.stroke();
+
+  // Marcas e Serigrafia da Escala
+  const marks = [
+    { db: -20, deg: -38, txt: "-20" },
+    { db: -10, deg: -24, txt: "-10" },
+    { db: -7, deg: -17, txt: "-7" },
+    { db: -5, deg: -11, txt: "-5" },
+    { db: -3, deg: -6, txt: "-3" },
+    { db: -2, deg: -3.5, txt: "-2" },
+    { db: -1, deg: -1.5, txt: "-1" },
+    { db: 0, deg: 0, txt: "0", red: true },
+    { db: 1, deg: 7, txt: "+1", red: true },
+    { db: 2, deg: 15, txt: "+2", red: true },
+    { db: 3, deg: 24, txt: "+3", red: true }
+  ];
+
+  ctx.textAlign = "center";
+  marks.forEach(m => {
+    const rad = (-90 + m.deg) * Math.PI / 180;
+    const isMajor = [ -20, -10, -7, -5, -3, 0, 1, 2, 3 ].includes(m.db);
+    const tickLen = isMajor ? 8 : 4;
+    const x1 = pivotX + Math.cos(rad) * (radius - tickLen);
+    const y1 = pivotY + Math.sin(rad) * (radius - tickLen);
+    const x2 = pivotX + Math.cos(rad) * (radius + 2);
+    const y2 = pivotY + Math.sin(rad) * (radius + 2);
+
+    ctx.strokeStyle = m.red ? "#D01515" : "#222222";
+    ctx.lineWidth = m.db === 0 ? 2.5 : (isMajor ? 1.5 : 1);
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+
+    if (m.txt) {
+      const tx = pivotX + Math.cos(rad) * (radius - 16);
+      const ty = pivotY + Math.sin(rad) * (radius - 16);
+      ctx.fillStyle = m.red ? "#D01515" : "#222222";
+      ctx.font = m.db === 0 ? "bold 11px Tahoma, sans-serif" : "bold 9px Tahoma, sans-serif";
+      ctx.fillText(m.txt, tx, ty);
+    }
+  });
+
+  // Logotipo "VU" e "VOLUME UNITS"
+  ctx.fillStyle = "#111111";
+  ctx.font = "bold 18px 'Times New Roman', serif";
+  ctx.fillText("VU", pivotX, h * 0.44);
+  ctx.font = "bold 8px Tahoma, sans-serif";
+  ctx.fillStyle = "#555555";
+  ctx.fillText("VOLUME UNITS", pivotX, h * 0.54);
+
+  // Identificação do Canal
+  ctx.fillStyle = "#6E2A1C";
+  ctx.font = "bold 10px Tahoma, sans-serif";
+  ctx.fillText(label, pivotX, h * 0.68);
+
+  // LED de Pico (PEAK OVERLOAD)
+  const ledX = w - 24;
+  const ledY = 20;
+  ctx.beginPath();
+  ctx.arc(ledX, ledY, 5, 0, Math.PI * 2);
+  if (isPeak) {
+    const lGrad = ctx.createRadialGradient(ledX - 1, ledY - 1, 1, ledX, ledY, 5);
+    lGrad.addColorStop(0, "#FFFFFF");
+    lGrad.addColorStop(0.4, "#FF3300");
+    lGrad.addColorStop(1, "#CC0000");
+    ctx.fillStyle = lGrad;
+    ctx.shadowColor = "#FF2200";
+    ctx.shadowBlur = 8;
+  } else {
+    ctx.fillStyle = "#501212";
+    ctx.shadowBlur = 0;
+  }
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.strokeStyle = "#333";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.fillStyle = "#555";
+  ctx.font = "7.5px Tahoma, sans-serif";
+  ctx.fillText("PEAK", ledX, ledY + 12);
+
+  // Leitura Digital no Canto Esquerdo
+  ctx.fillStyle = "#222";
+  ctx.font = "bold 9px monospace";
+  ctx.textAlign = "left";
+  ctx.fillText(dbVal, 10, 18);
+
+  // Sombra da Agulha
+  const needleRad = (-90 + angle) * Math.PI / 180;
+  const tipX = pivotX + Math.cos(needleRad) * (radius + 6);
+  const tipY = pivotY + Math.sin(needleRad) * (radius + 6);
+
+  ctx.save();
+  ctx.strokeStyle = "rgba(0, 0, 0, 0.22)";
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(pivotX + 2, pivotY + 2);
+  ctx.lineTo(tipX + 2, tipY + 2);
+  ctx.stroke();
+  ctx.restore();
+
+  // Agulha Mecânica
+  ctx.strokeStyle = "#1A1A1A";
+  ctx.lineWidth = 1.8;
+  ctx.beginPath();
+  ctx.moveTo(pivotX, pivotY);
+  ctx.lineTo(tipX, tipY);
+  ctx.stroke();
+
+  // Pivô Mecânico com Parafuso
+  ctx.beginPath();
+  ctx.arc(pivotX, pivotY, 14, 0, Math.PI * 2);
+  const pGrad = ctx.createRadialGradient(pivotX - 3, pivotY - 3, 2, pivotX, pivotY, 14);
+  pGrad.addColorStop(0, "#666666");
+  pGrad.addColorStop(0.6, "#222222");
+  pGrad.addColorStop(1, "#111111");
+  ctx.fillStyle = pGrad;
+  ctx.fill();
+  ctx.strokeStyle = "#888888";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawDualAnalogVUMeters(canvas, levelL, levelR) {
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width;
+  const H = canvas.height;
+
+  updateAnalogVUBallistics(levelL, levelR);
+  const now = performance.now();
+  const isPeakL = now < vuAnalogState.peakHoldL;
+  const isPeakR = now < vuAnalogState.peakHoldR;
+
+  const dbLStr = levelL <= 0.001 ? "-INF dB" : (20 * Math.log10(Math.min(1.5, levelL))).toFixed(1) + " dB";
+  const dbRStr = levelR <= 0.001 ? "-INF dB" : (20 * Math.log10(Math.min(1.5, levelR))).toFixed(1) + " dB";
+
+  ctx.fillStyle = "#181E24";
+  ctx.fillRect(0, 0, W, H);
+
+  const meterW = Math.floor((W - 16) / 2);
+  const meterH = H - 12;
+
+  drawSingleMeterFace(ctx, 6, 6, meterW, meterH, vuAnalogState.angleL, isPeakL, "CANAL ESQUERDO (CH 1)", dbLStr);
+  drawSingleMeterFace(ctx, 10 + meterW, 6, meterW, meterH, vuAnalogState.angleR, isPeakR, "CANAL DIREITO (CH 2)", dbRStr);
+}
+
+function openAnalogVUConsole() {
+  let vuTimer = null;
+  dialog({
+    id: "analogVuBridgeWin",
+    title: "Console Estéreo Analógico 1995 — Medidores VU Galvanométricos",
+    width: 660,
+    body: `
+      <div class="col" style="gap:8px">
+        <div class="row" style="justify-content:space-between;align-items:center;background:var(--field);padding:4px 8px;box-shadow:inset 1px 1px var(--lo);font-size:11px">
+          <span><b>Console Galvanométrico Studer/Revox 1995</b> · Resposta balística 300ms, Escala ANSI C16.5</span>
+          <span style="font-size:10px;color:#555">Alinhamento: 0 VU = +4 dBu (-20 dBFS)</span>
+        </div>
+        <div class="mixer-analog-vu-panel" style="padding:10px">
+          <canvas id="analogBridgeCanvas" width="624" height="210"></canvas>
+        </div>
+      </div>
+    `,
+    buttons: [
+      {
+        label: "Fechar",
+        def: 1,
+        run: () => {
+          if (vuTimer) clearInterval(vuTimer);
+        }
+      }
+    ]
+  });
+
+  const win = document.getElementById("analogVuBridgeWin");
+  if (!win) return;
+  const cvs = win.querySelector("#analogBridgeCanvas");
+
+  vuTimer = setInterval(() => {
+    if (!document.getElementById("analogVuBridgeWin")) {
+      clearInterval(vuTimer);
+      return;
+    }
+    const levels = computeAudioLevelsAt(S.playhead);
+    drawDualAnalogVUMeters(cvs, levels.l, levels.r);
+  }, 33);
+}
+
+/* ---------- Relatórios e Folhas de Decupagem Técnicas (Batch Log & Print 1995) ---------- */
+function generateTechnicalReportData() {
+  const allClips = [];
+  const tracks = [...S.videoTracks, ...S.audioTracks];
+  tracks.forEach(tk => {
+    (S.clips[tk] || []).forEach(c => {
+      allClips.push({ ...c, track: tk });
+    });
+  });
+  allClips.sort((a, b) => a.start - b.start);
+
+  const binItems = S.binItems || [];
+  return { allClips, binItems, markers: S.markers || [] };
+}
+
+function openTechnicalReportDialog() {
+  const { allClips, binItems, markers } = generateTechnicalReportData();
+  const dateStr = new Date().toLocaleDateString("pt-BR") + " " + new Date().toLocaleTimeString("pt-BR");
+
+  let htmlDoc = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Ficha Técnica de Montagem — ${S.projectName}</title>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Arial, sans-serif; font-size: 11px; background: #FFF; color: #000; margin: 16px; }
+    h1 { font-size: 18px; border-bottom: 2px solid #000; margin: 0 0 6px 0; padding-bottom: 4px; }
+    h2 { font-size: 13px; background: #D4D0C8; padding: 4px 6px; border: 1px solid #808080; margin: 14px 0 6px 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 10.5px; margin-bottom: 12px; }
+    th, td { border: 1px solid #777; padding: 4px 6px; text-align: left; }
+    th { background: #E4E0D8; font-weight: bold; }
+    .mono { font-family: 'Courier New', monospace; }
+    .header-box { display: flex; justify-content: space-between; border: 1px solid #000; padding: 8px; background: #FAF8F0; margin-bottom: 12px; }
+    @media print {
+      body { margin: 0; font-size: 10px; }
+      h2 { background: #DDD !important; -webkit-print-color-adjust: exact; }
+      th { background: #EEE !important; -webkit-print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header-box">
+    <div>
+      <h1>SCRIPTEDITOR 95 — FICHA TÉCNICA DE MONTAGEM</h1>
+      <div><b>PROJETO:</b> ${S.projectName}</div>
+      <div><b>DURAÇÃO TOTAL:</b> <span class="mono">${fmtSMPTE(S.totalDur)}</span> (${S.totalDur.toFixed(2)}s)</div>
+      <div><b>SISTEMA:</b> NTSC Broadcast 29.97 FPS (SMPTE Drop-Frame) · Resolução Master: 720×486 D1</div>
+    </div>
+    <div style="text-align:right">
+      <div><b>EMISSÃO:</b> ${dateStr}</div>
+      <div><b>ILHA DE EDIÇÃO:</b> C2 Broadcast NLE 1995</div>
+      <div><b>TOTAL DE EVENTOS:</b> ${allClips.length} cortes · ${markers.length} marcadores</div>
+    </div>
+  </div>
+
+  <h2>1. LISTA CRONOLÓGICA DE CORTES E CLIPES DA LINHA DO TEMPO</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>FAIXA</th>
+        <th>NOME DO CLIPE / EVENTO</th>
+        <th>IN TL</th>
+        <th>OUT TL</th>
+        <th>DURAÇÃO</th>
+        <th>IN ORIGEM</th>
+        <th>VELOC</th>
+        <th>VOL</th>
+        <th>TRANSIÇÃO</th>
+        <th>EFEITOS / FILTROS</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${allClips.map((c, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td><b>${c.track.toUpperCase()}</b></td>
+          <td>${c.title}</td>
+          <td class="mono">${fmtSMPTE(c.start)}</td>
+          <td class="mono">${fmtSMPTE(c.start + c.dur)}</td>
+          <td class="mono">${c.dur.toFixed(2)}s</td>
+          <td class="mono">${c.inPoint != null ? fmtSMPTE(c.inPoint) : "00:00:00:00"}</td>
+          <td>${c.speed ? (c.speed * 100).toFixed(0) + "%" : "100%"}</td>
+          <td>${c.volume != null ? c.volume + "%" : "100%"}</td>
+          <td>${c.trans || "Corte Seco"}</td>
+          <td>${[c.filter && c.filter !== "none" ? c.filter : "", c.chromaKey ? "ChromaKey" : "", c.blendMode && c.blendMode !== "normal" ? c.blendMode : ""].filter(Boolean).join(", ") || "—"}</td>
+        </tr>
+      `).join("")}
+    </tbody>
+  </table>
+
+  <h2>2. MARCADORES DE PRODUÇÃO &amp; CUE SHEET</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>TIMECODE SMPTE</th>
+        <th>COR</th>
+        <th>RÓTULO</th>
+        <th>ANOTAÇÕES / DIRETIVAS DE CORTE</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${markers.length ? markers.map((m, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td class="mono">${fmtSMPTE(m.time)}</td>
+          <td>${m.color ? m.color.toUpperCase() : "VERDE"}</td>
+          <td><b>${m.label || "Marcador"}</b></td>
+          <td>${m.comment || "—"}</td>
+        </tr>
+      `).join("") : `<tr><td colspan="5" style="text-align:center;color:#666">Nenhum marcador registrado na linha do tempo.</td></tr>`}
+    </tbody>
+  </table>
+
+  <h2>3. MANIFESTO DE MÍDIAS DO PROJETO (BIN)</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>NOME DO ARQUIVO</th>
+        <th>TIPO</th>
+        <th>DURAÇÃO</th>
+        <th>ORIGEM / LOCALIZAÇÃO</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${binItems.map((b, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${b.name}</td>
+          <td>${b.kind ? b.kind.toUpperCase() : "MÍDIA"}</td>
+          <td class="mono">${b.dur ? fmtSMPTE(b.dur) : "—"}</td>
+          <td class="mono" style="font-size:9.5px">${b.path || b.url || "Memória do Sistema"}</td>
+        </tr>
+      `).join("")}
+    </tbody>
+  </table>
+
+  <div style="margin-top:20px;border-top:1px dashed #777;padding-top:6px;font-size:9.5px;color:#555">
+    ScriptEditor 95 · Departamento de Montagem e Videografismo · Emissora C2 · Relatório Oficial de Masterização
+  </div>
+</body>
+</html>`;
+
+  let txtDoc = [
+    `================================================================================`,
+    `      SCRIPTEDITOR 95 — FICHA TÉCNICA DE MONTAGEM & DECUPAGEM BROADCAST         `,
+    `================================================================================`,
+    `PROJETO:       ${S.projectName}`,
+    `DATA/HORA:     ${dateStr}`,
+    `DURAÇÃO TOTAL: ${fmtSMPTE(S.totalDur)} (${S.totalDur.toFixed(2)}s)`,
+    `PADRÃO:        SMPTE NTSC Drop-Frame 29.97 FPS · Ilha Analógica 1995`,
+    `TOTAL CORTES:  ${allClips.length} eventos de corte`,
+    `MARCADORES:    ${markers.length} marcadores de produção`,
+    `--------------------------------------------------------------------------------`,
+    `#   FX   IN TL        OUT TL       DUR      IN ORIG      VELOC  CLIPE`,
+    `--------------------------------------------------------------------------------`
+  ];
+
+  allClips.forEach((c, idx) => {
+    const num = String(idx + 1).padStart(2, "0");
+    const tk = c.track.toUpperCase().padEnd(4, " ");
+    const inTl = fmtSMPTE(c.start).padEnd(12, " ");
+    const outTl = fmtSMPTE(c.start + c.dur).padEnd(12, " ");
+    const dur = (c.dur.toFixed(2) + "s").padEnd(8, " ");
+    const inOrig = fmtSMPTE(c.inPoint || 0).padEnd(12, " ");
+    const spd = ((c.speed ? (c.speed * 100).toFixed(0) : "100") + "%").padEnd(6, " ");
+    txtDoc.push(`${num}  ${tk} ${inTl} ${outTl} ${dur} ${inOrig} ${spd} ${c.title}`);
+  });
+
+  txtDoc.push(`--------------------------------------------------------------------------------`);
+  txtDoc.push(`MARCADORES / CUE SHEET:`);
+  markers.forEach((m, idx) => {
+    txtDoc.push(`  ${String(idx + 1).padStart(2, "0")}  ${fmtSMPTE(m.time)}  [${(m.color || "VERDE").toUpperCase()}]  ${m.label || ""}  (${m.comment || "—"})`);
+  });
+  txtDoc.push(`================================================================================`);
+  txtDoc.push(`[Fim da Ficha Técnica · ScriptEditor 95 Edition]`);
+
+  dialog({
+    id: "techReportWin",
+    title: `Ficha Técnica de Montagem & Relatório de Decupagem — ${S.projectName}`,
+    width: 720,
+    body: `
+      <div class="col" style="gap:8px">
+        <div class="row" style="justify-content:space-between;align-items:center;background:var(--field);padding:4px 8px;box-shadow:inset 1px 1px var(--lo);font-size:11px">
+          <span><b>Relatório Oficial de Montagem</b> · Visualização estilo Netscape 95 e Texto Puro</span>
+          <div class="row" style="gap:4px">
+            <button type="button" class="btn sm def" id="btnTabHtml">Visualização HTML</button>
+            <button type="button" class="btn sm" id="btnTabTxt">Texto Puro (TXT)</button>
+          </div>
+        </div>
+
+        <div id="techReportHtmlView" class="tech-report-frame">
+          <iframe id="techReportIframe" style="width:100%;height:360px;border:none" srcdoc="${htmlDoc.replace(/"/g, '&quot;')}"></iframe>
+        </div>
+
+        <div id="techReportTxtView" class="tech-report-frame" style="display:none;font-family:'Courier New', monospace;white-space:pre;line-height:1.3">
+          ${txtDoc.join("\r\n")}
+        </div>
+      </div>
+    `,
+    buttons: [
+      {
+        label: "Salvar como Arquivo HTML 95…",
+        def: 1,
+        run: async () => {
+          const fn = `FICHA_TECNICA_${S.projectName.replace(/\.[^.]+$/, "")}_95.HTML`;
+          await saveOutputFile(fn, htmlDoc, [{ name: "Documento HTML (*.html)", extensions: ["html", "htm"] }]);
+          toast("Ficha Técnica HTML salva com sucesso!");
+        }
+      },
+      {
+        label: "Salvar como Arquivo TXT…",
+        run: async () => {
+          const fn = `FICHA_TECNICA_${S.projectName.replace(/\.[^.]+$/, "")}_95.TXT`;
+          await saveOutputFile(fn, txtDoc.join("\r\n"), [{ name: "Arquivo de Texto (*.txt)", extensions: ["txt"] }]);
+          toast("Ficha Técnica TXT salva com sucesso!");
+        }
+      },
+      {
+        label: "Imprimir Ficha Técnica (A4)…",
+        run: () => {
+          const ifr = document.getElementById("techReportIframe");
+          if (ifr && ifr.contentWindow) {
+            ifr.contentWindow.print();
+          } else {
+            window.print();
+          }
+        }
+      },
+      { label: "Fechar" }
+    ]
+  });
+
+  const win = document.getElementById("techReportWin");
+  if (!win) return;
+  const bHtml = win.querySelector("#btnTabHtml");
+  const bTxt = win.querySelector("#btnTabTxt");
+  const vHtml = win.querySelector("#techReportHtmlView");
+  const vTxt = win.querySelector("#techReportTxtView");
+
+  if (bHtml && bTxt && vHtml && vTxt) {
+    bHtml.onclick = () => {
+      bHtml.classList.add("def");
+      bTxt.classList.remove("def");
+      vHtml.style.display = "block";
+      vTxt.style.display = "none";
+    };
+    bTxt.onclick = () => {
+      bTxt.classList.add("def");
+      bHtml.classList.remove("def");
+      vHtml.style.display = "none";
+      vTxt.style.display = "block";
+    };
+  }
+}
+
 /* ---------- Mesa de Som Analógica 95 (Mixer Multi-Pistas, Faders, Pan & Normalização) ---------- */
 function openAudioMixerDialog() {
   const allAudio = [...S.audioTracks];
@@ -9222,9 +10295,13 @@ function openAudioMixerDialog() {
         <div class="row" style="justify-content:space-between;align-items:center;background:var(--field);padding:4px 8px;box-shadow:inset 1px 1px var(--lo);font-size:11px">
           <span><b>Console Estéreo 16-bit</b> · Faders lineares, Panorâmico (Pan) e Níveis em Decibéis (dB)</span>
           <div class="row" style="gap:4px">
+            <button type="button" class="btn sm" id="btnToggleMixerVuMode" title="Alternar entre Barras LED e Agulhas Analógicas VU Tape Deck">VU Analógico: Ligar</button>
             <button type="button" class="btn sm" id="btnOpenEQInMixer" title="Abre o Equalizador Gráfico de 10 Bandas (DSP)">Equalizador DSP 10-Bandas…</button>
             <button type="button" class="btn sm" id="btnNormMixer" title="Ajusta o ganho geral da sequência para -0.1 dBFS">Normalizar Picos (-0.1 dB)</button>
           </div>
+        </div>
+        <div class="mixer-analog-vu-panel" id="mixerAnalogPanel" style="display:none">
+          <canvas id="mixerAnalogVuCanvas" width="624" height="136"></canvas>
         </div>
         <div class="mixer-board">
           ${allAudio.map(tk => {
@@ -9365,6 +10442,18 @@ function openAudioMixerDialog() {
     bEQ.onclick = () => openGraphicEQDialog();
   }
 
+  // Alternar Modo VU Analógico
+  const btnVuMode = winEl.querySelector("#btnToggleMixerVuMode");
+  const analogPanel = winEl.querySelector("#mixerAnalogPanel");
+  if (btnVuMode && analogPanel) {
+    btnVuMode.onclick = () => {
+      const isHidden = analogPanel.style.display === "none";
+      analogPanel.style.display = isHidden ? "flex" : "none";
+      btnVuMode.textContent = isHidden ? "VU Analógico: Desligar" : "VU Analógico: Ligar";
+      btnVuMode.classList.toggle("def", isHidden);
+    };
+  }
+
   // Botão Normalizar Picos (-0.1 dB)
   const bNorm = winEl.querySelector("#btnNormMixer");
   if (bNorm) {
@@ -9390,6 +10479,13 @@ function openAudioMixerDialog() {
       return;
     }
     const levels = computeAudioLevelsAt(S.playhead);
+
+    const analogCvs = winEl.querySelector("#mixerAnalogVuCanvas");
+    const isAnalogVis = winEl.querySelector("#mixerAnalogPanel")?.style.display !== "none";
+    if (analogCvs && isAnalogVis) {
+      drawDualAnalogVUMeters(analogCvs, levels.l, levels.r);
+    }
+
     const mL = winEl.querySelector("#stripVuFill-masterL");
     const mR = winEl.querySelector("#stripVuFill-masterR");
     if (mL) mL.style.height = `${Math.round(amplitudeToMeterNorm(levels.l) * 100)}%`;
@@ -11298,7 +12394,29 @@ function aboutDialog() {
       <b style="margin-top:4px">Recursos da Edição 95 (Moldes Adobe Premiere 4.2)</b>
       <div class="listview vers" style="max-height:175px">
         <div class="ver-block">
-          <b>1.0.7 · Seleção Múltipla de Clipes, Agrupamento e Operações em Bloco</b><span class="chip95">você está nesta</span>
+          <b>1.1.1 · Fit to Fill 4-Pontos, VU Galvanométrico, Chroma Key &amp; Ficha Técnica</b><span class="chip95">você está nesta</span>
+          <ul>
+            <li>Edição por 4 Pontos com Ajuste de Velocidade Automático (Fit to Fill 1995) e diálogo de resolução de conflito</li>
+            <li>Medidores VU Analógicos com Agulhas Galvanométricas: Fundo creme marfim, escala serigráfica -20 a +3 dB e física balística</li>
+            <li>Processador de Chroma Key &amp; Blue/Green Screen 1995: Recorte por cor, tolerância, threshold, despill e canal Alpha P&amp;B</li>
+            <li>Suite de Efeitos MTV 1995: Mosaico de Censura por blocos, Posterização 8-bit, Solarização Sabattier e Matiz (Hue)</li>
+            <li>Gerador de Sinais Expandido: Barras EBU 75%, Multi-Burst 0.5-4.2 MHz, Tom de Lá 440 Hz e Sweep Senoidal 20Hz-20kHz</li>
+            <li>Ficha Técnica de Montagem &amp; Cue Sheet Oficial em formatos HTML 1995 e TXT com suporte à impressão A4</li>
+          </ul>
+        </div>
+        <div class="ver-block">
+          <b>1.1.0 · Tela Inicial ScriptRoom 95, VHS Suite, A/B Roll &amp; ZipDrive</b>
+          <ul>
+            <li>Nova Tela de Entrada estilo ScriptRoom 95 com cartela vinho, dicas rotativas, estatísticas e projetos recentes</li>
+            <li>Suite Analógica de Fita VHS e Betacam SP: Head switching, tracking jitter, chroma bleed e ruído CRT</li>
+            <li>Edição em Trilha Dupla A/B Roll clássica com transições Page Peel 3D, Clock Wipe 360°, Iris e Venezianas</li>
+            <li>Timecode SMPTE Drop-Frame (DF) com precisão broadcast de 29.97 FPS</li>
+            <li>Pacote de Projeto ZipDrive 1995 autônomo com projeto .PPJ, manifesto, EDL e mídias empacotadas</li>
+            <li>Correção de layout da Mesa de Som Analógica 95 com faders verticais e serigrafia precisa</li>
+          </ul>
+        </div>
+        <div class="ver-block">
+          <b>1.0.7 · Seleção Múltipla de Clipes, Agrupamento e Operações em Bloco</b>
           <ul>
             <li>Seleção Múltipla com Laço (Marquee 95): Caixa elástica tracejada com o mouse no vazio para selecionar múltiplos clipes</li>
             <li>Seleção Aditiva (Shift + Clique / Ctrl + Clique) e seleção de faixas inteiras (Duplo-clique no cabeçalho ou Ctrl+A)</li>
@@ -12023,6 +13141,9 @@ const CMD = {
   filaRender: { label: "Fila de Renderização em Lote (Batch Render Queue)…", icon: "film", run: () => openRenderQueueDialog() },
   multicamSwitcher: { label: "Monitor Multicâmera 4-Up (Live Switcher)", run: () => setMonitorLayout("multicam") },
   exportarCueSheet: { label: "Exportar Folha de Decupagem (Cue Sheet .TXT)…", icon: "script", run: () => exportCueSheet() },
+  fichaTecnica: { label: "Exportar Ficha Técnica de Montagem (HTML/TXT)…", icon: "script", run: () => openTechnicalReportDialog() },
+  consoleVU: { label: "Console VU Analógico Tape Deck 1995…", icon: "speaker", run: () => openAnalogVUConsole() },
+  chromaProcessor: { label: "Processador Chroma Key & Blue/Green Screen 1995…", icon: "sparkle", run: () => openChromaKeyDialog() },
   abaMarcadores: { label: "Lista de Marcadores & Decupagem", run: () => { S.sideTab = "marcadores"; prefs.painel = true; renderSide(); } },
   abrirScriptRoom: { label: "Abrir o aplicativo ScriptRoom", icon: "clapper", run: () => { if (window.editorNative) window.editorNative.launchScriptRoom(); } },
   desligar: { label: "Sair do ScriptEditor", icon: "power", run: () => { if (window.editorNative) window.editorNative.close(); } },
@@ -12096,12 +13217,12 @@ const CMD = {
 };
 
 const MENUS = [
-  ["Arquivo", "A", ["telaInicial", "fecharProjeto", "-", "novaSequencia", "novoProjetoLivre", "abrirProjeto", "salvarProjeto", "salvarProjetoComo", "pacoteZip", "-", "importarMidia", "relinkMidias", "importarEDL", "exportarEDL", "exportarCueSheet", "-", "importarSRT", "exportarSRT", "-", "gerarSinal", "geradorGC", "colorMatte", "-", "configuracoesIlha", "-", "importarSR", "salvarNoSR", "-", "exportarMaster", "filaRender", "-", "abrirScriptRoom", "-", "desligar"]],
+  ["Arquivo", "A", ["telaInicial", "fecharProjeto", "-", "novaSequencia", "novoProjetoLivre", "abrirProjeto", "salvarProjeto", "salvarProjetoComo", "pacoteZip", "-", "importarMidia", "relinkMidias", "importarEDL", "exportarEDL", "exportarCueSheet", "fichaTecnica", "-", "importarSRT", "exportarSRT", "-", "gerarSinal", "geradorGC", "colorMatte", "-", "configuracoesIlha", "-", "importarSR", "salvarNoSR", "-", "exportarMaster", "filaRender", "-", "abrirScriptRoom", "-", "desligar"]],
   ["Editar", "E", ["desfazer", "refazer", "-", "selecionarTodos", "desmarcarTudo", "-", "copiarClipe", "colarClipe", "colarAtributos", "duplicarClipe", "congelarQuadro", "-", "agruparClipes", "desagruparClipes", "vincularAV", "-", "cortarAgulha", "excluirClipe", "excluirRipple", "rippleDeleteVazio", "-", "toggleSnap", "-", "configTeclas"]],
-  ["Projeto", "P", ["novaSequencia", "duplicarSequencia", "-", "importarMidia", "relinkMidias", "abrirProjeto", "salvarProjeto", "pacoteZip", "-", "gerarSinal", "geradorGC", "colorMatte", "adicionarMarcador", "abaMarcadores", "-", "addVideoTrack", "addAudioTrack", "-", "configuracoesIlha", "vhsSuite", "toggleAbRoll", "-", "mesaSom", "rackDinamica", "equalizadorDSP", "corretor3Way", "-", "importarSRT", "exportarSRT", "-", "importarSR"]],
-  ["Clipe", "C", ["sobrescreverOrigem", "inserirOrigem", "-", "marcarInTimeline", "marcarOutTimeline", "limparInOutTimeline", "-", "colorMatte", "quickDissolve", "-", "agruparClipes", "desagruparClipes", "vincularAV", "colarAtributos", "-", "velocidadeClipe", "congelarQuadro", "cortarAgulha", "duplicarClipe", "excluirClipe", "excluirRipple", "rippleDeleteVazio", "-", "toggleSnap", "-", "addVideoTrack", "addAudioTrack", "-", "toolSelect", "toolTrack", "toolRazor", "toolTrim", "toolRipple", "toolRolling", "toolSlip", "toolSlide", "toolHand"]],
-  ["Janela", "J", ["layDual", "layMulticam", "laySingle", "layScript", "-", "janelaDub", "multicamSwitcher", "filaRender", "-", "verPainel", "-", "desacoplarProgram", "desacoplarSource", "desacoplarSide", "desacoplarTimeline", "-", "reacoplarTodos", "resetLayout", "-", "esquema"]],
-  ["Áudio/Vídeo", "V", ["vhsSuite", "toggleAbRoll", "-", "mesaSom", "rackDinamica", "equalizadorDSP", "corretor3Way", "-", "janelaDub", "-", "addVideoTrack", "addAudioTrack", "-", "mesaFoley", "gravadorADR", "claqueteCam", "-", "exportarMaster", "filaRender"]],
+  ["Projeto", "P", ["novaSequencia", "duplicarSequencia", "-", "importarMidia", "relinkMidias", "abrirProjeto", "salvarProjeto", "pacoteZip", "-", "gerarSinal", "geradorGC", "colorMatte", "adicionarMarcador", "abaMarcadores", "-", "addVideoTrack", "addAudioTrack", "-", "configuracoesIlha", "vhsSuite", "toggleAbRoll", "-", "mesaSom", "consoleVU", "rackDinamica", "equalizadorDSP", "corretor3Way", "-", "importarSRT", "exportarSRT", "-", "importarSR"]],
+  ["Clipe", "C", ["sobrescreverOrigem", "inserirOrigem", "-", "marcarInTimeline", "marcarOutTimeline", "limparInOutTimeline", "-", "chromaProcessor", "colorMatte", "quickDissolve", "-", "agruparClipes", "desagruparClipes", "vincularAV", "colarAtributos", "-", "velocidadeClipe", "congelarQuadro", "cortarAgulha", "duplicarClipe", "excluirClipe", "excluirRipple", "rippleDeleteVazio", "-", "toggleSnap", "-", "addVideoTrack", "addAudioTrack", "-", "toolSelect", "toolTrack", "toolRazor", "toolTrim", "toolRipple", "toolRolling", "toolSlip", "toolSlide", "toolHand"]],
+  ["Janela", "J", ["layDual", "layMulticam", "laySingle", "layScript", "-", "consoleVU", "janelaDub", "multicamSwitcher", "filaRender", "-", "verPainel", "-", "desacoplarProgram", "desacoplarSource", "desacoplarSide", "desacoplarTimeline", "-", "reacoplarTodos", "resetLayout", "-", "esquema"]],
+  ["Áudio/Vídeo", "V", ["vhsSuite", "toggleAbRoll", "-", "chromaProcessor", "-", "mesaSom", "consoleVU", "rackDinamica", "equalizadorDSP", "corretor3Way", "-", "janelaDub", "-", "addVideoTrack", "addAudioTrack", "-", "mesaFoley", "gravadorADR", "claqueteCam", "-", "exportarMaster", "filaRender"]],
   ["Ajuda", "u", ["atalhosAjuda", "dicaDoDia", "procurarAtualizacoes", "-", "oQueHaDeNovo", "telaAbertura", "sobre"]]
 ];
 

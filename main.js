@@ -1180,7 +1180,7 @@ function criarJanela() {
 async function rodarBateriaTestesE2E() {
   const OUTPUT_DIR = path.join(__dirname, "testes_e2e_screenshots");
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
-  console.log("=== INICIANDO BATERIA DE TESTES E2E SCRIPTEDITOR 95 (v1.1.0) ===");
+  console.log("=== INICIANDO BATERIA DE TESTES E2E SCRIPTEDITOR 95 (v1.1.1) ===");
   console.log("Pasta de capturas:", OUTPUT_DIR);
 
   const sleep = (ms) => new Promise(r => setTimeout(r, ms));
@@ -1374,7 +1374,57 @@ async function rodarBateriaTestesE2E() {
       await sleep(500);
       await capture("18_empacotador_projeto_zipdrive_1995.png", "Empacotador Autônomo Iomega Zip 100MB / DAT");
 
-      console.log("=== TODOS OS 18 TESTES E CAPTURAS CONCLUÍDOS COM SUCESSO! ===");
+      // 19. EDIÇÃO POR 4 PONTOS (FIT TO FILL 1995)
+      await exec(`
+        document.querySelectorAll(".win:not(#appWin)").forEach(w => { if (w._close) w._close(); else w.remove(); });
+        document.querySelectorAll(".scrim").forEach(s => s.remove());
+        if (typeof open4PointFitDialog === "function") open4PointFitDialog("v1", "insert", null, 6.0, 3.5);
+      `);
+      await sleep(500);
+      await capture("19_edicao_4_pontos_fit_to_fill_1995.png", "Edição por 4 Pontos — Ajuste de Velocidade Automático (Fit to Fill)");
+
+      // 20. CONSOLE DE MEDIDORES VU ANALÓGICOS GALVANOMÉTRICOS
+      await exec(`
+        document.querySelectorAll(".win:not(#appWin)").forEach(w => { if (w._close) w._close(); else w.remove(); });
+        document.querySelectorAll(".scrim").forEach(s => s.remove());
+        if (typeof openAnalogVUConsole === "function") openAnalogVUConsole();
+      `);
+      await sleep(500);
+      await capture("20_console_medidores_vu_analogicos_galvanometricos.png", "Console Estéreo de Medidores VU Analógicos Galvanométricos 1995");
+
+      // 21. PROCESSADOR DE CHROMA KEY & RECORTE BROADCAST 1995
+      await exec(`
+        document.querySelectorAll(".win:not(#appWin)").forEach(w => { if (w._close) w._close(); else w.remove(); });
+        document.querySelectorAll(".scrim").forEach(s => s.remove());
+        const c = (S.clips.v1 && S.clips.v1[0]) || { title: "CENA_CHROMA.AVI", chromaKey: true, chromaColor: "green", chromaTol: 35 };
+        if (typeof openChromaKeyDialog === "function") openChromaKeyDialog(c);
+      `);
+      await sleep(500);
+      await capture("21_processador_chroma_key_alpha_matte.png", "Processador Chroma Key & Blue/Green Screen 1995 (Alpha Matte)");
+
+      // 22. GERADOR DE SINAIS EXPANDIDO: MULTI-BURST & EBU 75%
+      await exec(`
+        document.querySelectorAll(".win:not(#appWin)").forEach(w => { if (w._close) w._close(); else w.remove(); });
+        document.querySelectorAll(".scrim").forEach(s => s.remove());
+        if (typeof openGeneratorDialog === "function") {
+          openGeneratorDialog();
+          const sel = document.getElementById("gn-type");
+          if (sel) sel.value = "multiburst";
+        }
+      `);
+      await sleep(500);
+      await capture("22_sinais_calibracao_multiburst_ebu75.png", "Gerador Broadcast Expandido: Multi-Burst 0.5-4.2 MHz & EBU 75%");
+
+      // 23. FICHA TÉCNICA DE MONTAGEM & CUE SHEET OFICIAL
+      await exec(`
+        document.querySelectorAll(".win:not(#appWin)").forEach(w => { if (w._close) w._close(); else w.remove(); });
+        document.querySelectorAll(".scrim").forEach(s => s.remove());
+        if (typeof openTechnicalReportDialog === "function") openTechnicalReportDialog();
+      `);
+      await sleep(500);
+      await capture("23_ficha_tecnica_montagem_cue_sheet_95.png", "Ficha Técnica de Montagem & Relatório de Decupagem (HTML 95 & TXT)");
+
+      console.log("=== TODOS OS 23 TESTES E CAPTURAS CONCLUÍDOS COM SUCESSO! ===");
       await sleep(600);
       app.quit();
     } catch (err) {
